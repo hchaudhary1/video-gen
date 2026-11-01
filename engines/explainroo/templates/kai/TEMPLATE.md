@@ -166,6 +166,64 @@ made again. `check` takes a few minutes for a ten minute video. Render the
 draft first (`render --draft`), then the final; `render` uses up to 8
 workers (`--workers n`).
 
+## Thumbnails
+
+Match [Kai's thumbnail style](https://www.youtube.com/@kaiexplainsYT/videos):
+huge uppercase type, saturated flat colors, crisp offset shadows and one
+immediately legible visual idea. Compose the thumbnail separately from the video scenes.
+
+### Design
+
+- **Canvas:** 1920×1080, PNG/JPEG under 2 MB. Use a flat near-black background
+  (`#090909`). A pale background with black text also works for hardware lineups.
+- **Colors:** white `#ffffff`, warm yellow `#ffce33`, bright red `#ff001a`,
+  electric blue `#008fe5`. Use white for the setup and yellow for the payoff.
+  Pair white lettering with blue or red offsets, and yellow lettering with red.
+- **Type:** heavy, compact bold/black sans serif, ALL CAPS, tight tracking and
+  line spacing. Start at 180–260 px for stacked headlines or 330–500 px for
+  one dominant word, with 12–28 px visible gaps between lines. Adjust to fit
+  the composition. Choose a licensed face matching the reference's glyph
+  width and weight; Kai's exact font is unverified.
+- **Shadows:** duplicate lettering behind itself, offset 12–22 px right and
+  10–20 px down, and fill red or blue. Keep edges sharp, with no blur or glow.
+- **Graphics:** one large cutout, bold flat cartoon, or simple chart. Use black
+  internal lines, a white outer contour around 6–12 px, and an optional hard
+  red/blue offset. Hardware photos need clean cutout edges. Illustrated faces,
+  hands and characters can carry the metaphor.
+- **Spacing:** use a few large elements and clean empty space. Keep important
+  text 80–100 px from the edges and clear of the lower-right duration overlay.
+  A hero graphic may deliberately crop at the frame edge.
+
+### Layouts
+
+Choose the layout that best communicates the topic. Coordinates are starting
+points at 1920×1080; adjust to the headline and artwork.
+
+| Layout | Composition |
+|---|---|
+| Headline + hero | 2–4 stacked lines on the left, approximately x 100–940, y 150–880; one large graphic on the right, approximately x 1000–1800, y 150–900. |
+| Headline + comparison | Same left text block; two large bars or outcomes on the right, with minimal labels and prominent values. Keep quantitative bar heights accurate. |
+| Huge verdict | White setup across the upper quarter; one enormous yellow word or acronym across the remaining width. |
+| Top hook + hardware/character | One headline across the top; a large character/prop arrangement or hardware lineup fills the lower two thirds. |
+| Before / after | Two panels separated by a thin white vertical line, with large numbers or labels above contrasting images. |
+| Graphic only | One central object linked to a few recognizable symbols; omit the headline when the graphic communicates the hook. |
+
+### Copy and delivery
+
+- Write one short, direct hook, usually 2–7 words, with deliberate line breaks.
+  Emphasize one word, phrase or number through scale and color. Use verdicts,
+  warnings or comparisons only when supported by the film; put detail in the title.
+- Numbers, objects and faces are optional. Text-only compositions are valid.
+  Small tilted tags, arrows and model tiles can support the main idea; keep
+  scene UI, chapter bars, evidence cards and decorative fine print out.
+- Use original or appropriately sourced artwork; record reused asset provenance.
+  Omit Kai's channel signature and watermark.
+- Retain an editable source and thumbnail brief with the title, headline,
+  description, chosen reference, font and asset sources.
+- Export full size and a 320×180 preview. Inspect text weight, color offsets,
+  object scale and readability at both sizes. Obtain independent image review
+  and selection; follow repository-root `docs/publishing.md` for publishing.
+
 ## Checklist
 
 1. Research and keep `sources/SOURCES.md` with URLs and the exact quotes.
@@ -174,5 +232,5 @@ workers (`--workers n`).
 4. `still` and `sheet --scene <id>` to see the build up; compare with the
    look you want.
 5. `render --draft`, look, `render`, `verify`.
-6. Thumbnail: dark background, one big claim in display type, one yellow or
-   blue numeral, one object drawing. No faces, no watermark.
+6. Create the thumbnail using the guidelines above; inspect the full-size export
+   and feed preview, then obtain independent review and selection.
