@@ -1,0 +1,27 @@
+{
+  "id": "household-safety-bureau",
+  "name": "Household Safety Bureau",
+  "overlay": {
+    "label": "HSB",
+    "unit": "ADVISORY",
+    "danger": "#e5322d"
+  },
+  "persona": "A cheerful public-safety announcer delivering household advisories in the bright, reassuring tone of a 1950s information film.",
+  "twist": "The advisories are written by the house itself.",
+  "signOff": "Your household thanks you. Lights out.",
+  "sound": {
+    "seed": 3307,
+    "key": "A",
+    "scale": "harmonic-minor",
+    "bed": "pulse",
+    "texture": "tick",
+    "motif": [
+      0,
+      2,
+      6
+    ]
+  },
+  "counter": 0,
+  "issues": [],
+  "createdAt": "2026-11-01T00:00:00.000Z"
+}

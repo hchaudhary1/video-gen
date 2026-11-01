@@ -1,0 +1,27 @@
+{
+  "id": "night-office",
+  "name": "Night Office",
+  "overlay": {
+    "label": "NIGHT OFFICE",
+    "unit": "NOTICE",
+    "danger": "#e5322d"
+  },
+  "persona": "A polite night-shift clerk reading official notices to residents. Courteous, procedural, faintly apologetic; never raises its voice; occasionally reads a line it was not meant to read aloud and corrects itself.",
+  "twist": "The office is staffed by what the rules protect you from.",
+  "signOff": "This notice has been delivered. Please remain where you are.",
+  "sound": {
+    "seed": 1101,
+    "key": "C#",
+    "scale": "phrygian",
+    "bed": "dread",
+    "texture": "hum",
+    "motif": [
+      0,
+      1,
+      4
+    ]
+  },
+  "counter": 0,
+  "issues": [],
+  "createdAt": "2026-11-01T00:00:00.000Z"
+}
