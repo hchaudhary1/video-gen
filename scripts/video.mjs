@@ -512,6 +512,9 @@ Kai explainers (kai-explainer; personalities/kai-explainer/PROFILE.md, vendored 
 explainroo <command> [args]          run the explainroo engine, e.g. explainroo init videos/<slug> --template kai,
                                      explainroo voice|check|still|sheet|render|verify videos/<slug>; see engines/explainroo/AGENTS.md
 
+CNBC commentary (cnbc-commentary; personalities/cnbc-commentary/PROFILE.md)
+cnbc [latest|transcribe|cut|assemble|ratio|frame|thumb|publish-check] ...   run "cnbc" alone for usage
+
 The latest prepared job is used when --job is omitted.
 Creative design is performed by the agent; see docs/orchestrator.md.
 `;
@@ -519,6 +522,10 @@ try {
   const [command = 'help', ...args] = process.argv.slice(2);
   if (command === 'tts') {
     await (await import('../lib/narration.mjs')).ttsCommand(args);
+    process.exit(0);
+  }
+  if (command === 'cnbc') {
+    await (await import('../lib/cnbc.mjs')).cnbcCommand(args);
     process.exit(0);
   }
   if (command === 'explainroo') {

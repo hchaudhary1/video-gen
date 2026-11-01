@@ -8,6 +8,7 @@ Choose by treatment, not just topic. The user's explicit direction wins.
 | Long-form first-person tech/AI explainer, locked frame that builds up per scene | [kai-explainer](kai-explainer/PROFILE.md) (vendored explainroo engine, not `project-new`) |
 | Original uncanny fiction or survival rules (series horror; identities in `rules-story/identities/`) | [rules-story](rules-story/PROFILE.md) |
 | Markets, earnings or financial reporting | [news-financial](news-financial/PROFILE.md) |
+| CNBC clips of a famous market voice + our commentary (>50% own), Finance Deep Dive style | [cnbc-commentary](cnbc-commentary/PROFILE.md) (explainroo engine + `npm run video -- cnbc ...`) |
 | Elections, government or political reporting | [news-political](news-political/PROFILE.md) |
 | Actually test or demonstrate software | [app-review](app-review/PROFILE.md) |
 
