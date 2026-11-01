@@ -1,0 +1,34 @@
+{
+  "extends": "midnight",
+  "name": "kai",
+  "dark": true,
+  "bg": "#0e1010",
+  "ink": "#f3f3ef",
+  "muted": "#8d9191",
+  "surface": "#151717",
+  "accent": "yellow",
+  "colors": {
+    "red": "#e0313b",
+    "orange": "#f08a24",
+    "yellow": "#ffd23f",
+    "green": "#3fbf6f",
+    "teal": "#2bb3c0",
+    "blue": "#1e8fe1",
+    "purple": "#8f6ae0",
+    "pink": "#e05a9a",
+    "gray": "#5d6262",
+    "ink": "#f3f3ef"
+  },
+  "fonts": {
+    "display": { "family": "Space Grotesk", "weight": 700 },
+    "body": { "family": "Inter", "weight": 500 },
+    "hand": { "family": "Space Grotesk", "weight": 500 },
+    "mono": { "family": "JetBrains Mono", "weight": 500 }
+  },
+  "background": "plain",
+  "stroke": { "rough": false, "width": 3, "glow": 0 },
+  "radius": 6,
+  "transition": "cut",
+  "music": "calm",
+  "caption": { "bg": "rgba(14,16,16,0.88)", "fg": "#f3f3ef", "active": "#ffd23f" }
+}

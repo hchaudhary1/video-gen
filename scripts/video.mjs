@@ -508,6 +508,10 @@ synth --job <job> --effect <name> --name sfx/<file>.wav [--seed n --key C# --sca
 synth --job <job> --bed <style> --name music/<file>.wav --duration s [--seed n --key .. --scale .. --texture ..]   one bed
 series-kit --job <job>               from series.json: install rules-series-kit@1.0.0 and write assets/series/series-data.js (identity HUD, rules, sentence captions)
 
+Kai explainers (kai-explainer; personalities/kai-explainer/PROFILE.md, vendored engine in engines/explainroo)
+explainroo <command> [args]          run the explainroo engine, e.g. explainroo init videos/<slug> --template kai,
+                                     explainroo voice|check|still|sheet|render|verify videos/<slug>; see engines/explainroo/AGENTS.md
+
 The latest prepared job is used when --job is omitted.
 Creative design is performed by the agent; see docs/orchestrator.md.
 `;
@@ -516,6 +520,22 @@ try {
   if (command === 'tts') {
     await (await import('../lib/narration.mjs')).ttsCommand(args);
     process.exit(0);
+  }
+  if (command === 'explainroo') {
+    // The vendored explainroo engine (engines/explainroo, kai-explainer profile). Arguments pass through unchanged;
+    // relative project paths resolve inside the engine folder and its caches stay under the repository .cache/.
+    const engine = path.join(ROOT, 'engines', 'explainroo');
+    if (!await exists(path.join(engine, 'node_modules')))
+      throw new Error('Install the explainroo engine first: (cd engines/explainroo && npm ci) then npm run video -- explainroo doctor --fetch');
+    const code = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, [path.join(engine, 'bin', 'explainroo.js'), ...args], {
+        cwd: engine, stdio: 'inherit',
+        env: {...process.env, EXPLAINROO_CACHE: process.env.EXPLAINROO_CACHE || path.join(ROOT, '.cache', 'explainroo')}
+      });
+      child.on('error', reject);
+      child.on('close', resolve);
+    });
+    process.exit(code ?? 1);
   }
   const opts = options(args);
   const reviewerRecordingVerdict = command === 'capture-visibility' && Boolean(opts.record) && ROLE === 'reviewer';

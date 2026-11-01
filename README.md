@@ -51,6 +51,7 @@ Read the relevant contract, not the whole folder.
 | [capture](docs/capture.md) | Actual browser recordings, native cuts and omission evidence |
 | [news](docs/news.md) | Cleared real media, source speech and subtitle schemas |
 | [publishing](docs/publishing.md) | Thumbnail contract and authorised unlisted YouTube upload |
+| [explainroo engine](engines/explainroo/VENDORED.md) | Vendored explainroo copy used by the `kai-explainer` profile (`npm run video -- explainroo ...`) |
 
 Editorial intent lives in one [PROFILE.md per treatment](personalities/README.md). Profiles set purpose
 and evidence boundaries, not a fixed visual recipe. Assignments contain paths and task data; there is no

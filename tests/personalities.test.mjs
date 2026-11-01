@@ -149,3 +149,7 @@ test('prepared personality projects support inspection, status and listing while
 });
 
 
+
+test('engine-produced profiles point to their engine instead of project-new', () => {
+  assert.throws(() => requirePersonality('kai-explainer'), /engines\/explainroo.*personalities\/kai-explainer\/PROFILE\.md/);
+});

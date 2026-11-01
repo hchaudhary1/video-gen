@@ -1,0 +1,14 @@
+{
+  "theme": "kai.json",
+  "size": "16:9",
+  "voice": "am_michael",
+  "speed": 1.1,
+  "music": { "style": "calm", "volume": 0.3 },
+  "sfx": "minimal",
+  "captions": false,
+  "transition": "cut",
+  "camera": "still",
+  "watermark": false,
+  "lead": 0.3,
+  "hold": 0.8
+}
