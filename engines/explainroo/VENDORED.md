@@ -18,6 +18,13 @@ kept inside video-gen with no submodule or second remote. It is the engine for t
 Changed files relative to the base: AGENTS.md, engine/kai.js, engine/runtime.js, engine/stage.js, engine/text.js,
 src/cli.js, src/export.js, src/qa.js, templates/kai/*, test/cli.test.js, test/kai-kit.test.js, test/verify-black.test.js.
 
+## Also used by horror
+
+The horror sound design (`lib/sound-design.mjs`, `lib/audio.mjs`) imports `engine/audio/` from this folder.
+`tests/sound-design.test.mjs` pins the hashes of `synth.js`, `dsp.js`, `rng.js`, `theory.js` and `wav.js`, because
+series identities must sound the same in every film. An upgrade that changes those files fails that test until
+someone has listened to the identity signatures and updated the pinned hashes.
+
 ## Upgrading
 
 Fetch the new upstream files into a scratch directory, diff them against the base revision above, and port the

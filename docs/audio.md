@@ -111,8 +111,9 @@ belongs in `news.json`, not synthesized effects or the commentary recording.
 ## Synthesized sound and series signatures
 
 `lib/sound-design.mjs` renders beds and effects locally, deterministically from a seed, on the dependency-free
-synth core vendored from explainroo (MIT, `lib/vendor/explainroo-audio/`, pinned commit and hashes in
-`SOURCE.json`). It adds minor, phrygian, harmonic-minor and locrian harmony; drone beds (`dread`, `pulse`,
+synth core of the vendored explainroo engine (MIT, `engines/explainroo/engine/audio/`). A test pins the hashes of
+the five synth files the sound design uses, so an explainroo upgrade that changes them fails until someone checks that
+the identity sound signatures still sound the same and updates the pinned hashes. It adds minor, phrygian, harmonic-minor and locrian harmony; drone beds (`dread`, `pulse`,
 `music-box`, with an optional `hum`, `hiss` or `tick` texture); and effects: impact, boom, sub-drop,
 reverse-swell, riser, heartbeat, creak, knock (count/interval), glitch, static, hum, tinnitus, stinger, tick
 (count/interval) and the identity `ident` sting. `npm run video -- synth --list true` prints them.

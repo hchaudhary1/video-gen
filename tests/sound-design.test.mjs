@@ -10,18 +10,21 @@ import {limitStereo, mixSettings, mixdown, decodeWav, TARGET_LUFS} from '../lib/
 import {compileFilm, SpecError} from '../lib/composition.mjs';
 import {listIdentities} from '../lib/identities.mjs';
 
-const VENDOR = new URL('../lib/vendor/explainroo-audio/', import.meta.url);
+// Series identities must sound the same in every film, so the synth files the sound design runs on are pinned.
+// An explainroo upgrade that changes them fails here: check the identity signatures by ear, then update the hashes.
+const ENGINE_AUDIO = new URL('../engines/explainroo/engine/audio/', import.meta.url);
+const PINNED = {
+  'dsp.js': 'db707653b4609548731b011fb153da5933f0d5446f2d82e69655e7c0b24116c0',
+  'rng.js': '0aca4abc08afc2e3ea0e1f3da542cd7ae7ec0e9d6685f3a26ba06a23481c29e4',
+  'synth.js': '6e0342d2067445d0c321d1b98ad350bd2a194531482a988a11cd40041ee9d1bb',
+  'theory.js': '95de8bd764ce863e60d96cae6fb61cbc5a4a34fd612219bd455029b119b01653',
+  'wav.js': '2ba59a245f2692efef6509e03bc4056b3598e252c6a1aa938887afa020e81239'
+};
 const peakDb = a => { let p = 0; for (const c of [a.L, a.R]) for (const v of c) p = Math.max(p, Math.abs(v)); return 20 * Math.log10(p); };
 
-test('vendored explainroo audio files are byte-identical to the pinned upstream commit', async () => {
-  const source = JSON.parse(await readFile(new URL('SOURCE.json', VENDOR), 'utf8'));
-  assert.equal(source.commit, 'e95232c8d535ed2aa390e7b1caee0d1326dd9e83');
-  assert.equal(source.license, 'MIT');
-  const files = (await readdir(new URL('upstream/', VENDOR))).filter(f => f !== 'package.json').sort();
-  assert.deepEqual(files, Object.keys(source.files).sort());
-  for (const [file, hash] of Object.entries(source.files))
-    assert.equal(createHash('sha256').update(await readFile(new URL(`upstream/${file}`, VENDOR))).digest('hex'), hash, file);
-  assert.match(await readFile(new URL('upstream/LICENSE', VENDOR), 'utf8'), /Vincent Schmalbach/);
+test('the synth files behind the series sound signatures are unchanged', async () => {
+  for (const [file, hash] of Object.entries(PINNED))
+    assert.equal(createHash('sha256').update(await readFile(new URL(file, ENGINE_AUDIO))).digest('hex'), hash, `engines/explainroo/engine/audio/${file} changed`);
 });
 
 test('dark scales and tonal centres', () => {
