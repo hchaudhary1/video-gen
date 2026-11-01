@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp, mkdir, writeFile, readFile, cp, readdir} from 'node:fs/promises';
+import {mkdtemp, mkdir, writeFile, readFile, readdir} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -13,7 +13,11 @@ import {decodeWav} from '../lib/audio.mjs';
 const tmp = prefix => mkdtemp(path.join(os.tmpdir(), prefix));
 async function registry() {
   const dir = await tmp('vg-ids-');
-  for (const f of await readdir('personalities/rules-story/identities')) await cp(path.join('personalities/rules-story/identities', f), path.join(dir, f));
+  // Fresh counters: the shipped registry records real productions.
+  for (const f of await readdir('personalities/rules-story/identities')) {
+    const identity = JSON.parse(await readFile(path.join('personalities/rules-story/identities', f), 'utf8'));
+    await writeFile(path.join(dir, f), JSON.stringify({...identity, counter: 0, issues: []}, null, 2));
+  }
   return {VG_IDENTITIES: dir};
 }
 
@@ -67,7 +71,7 @@ test('series-kit writes identity, rules and captions and installs the kit; synth
   await writeFile(path.join(job, 'inputs/source-script.md'), script + '\n');
   await writeFile(path.join(job, 'job.json'), JSON.stringify({duration: 12, width: 1080, height: 1920, fps: 30}));
   await writeFile(path.join(job, 'alignment.json'), JSON.stringify({matchRatio: 1, words: toks.map((text, i) => ({id: `w${i}`, text, start: 0.5 + i * 0.5, end: 0.9 + i * 0.5, scriptIndex: i, scriptText: text}))}));
-  await writeFile(path.join(job, 'series.json'), JSON.stringify({identity: 'night-office', rules: [{n: 1, title: 'Count the knocks', at: {phrase: 'Rule one'}}]}));
+  await writeFile(path.join(job, 'series.json'), JSON.stringify({identity: 'night-office', rules: [{n: 1, title: 'Count the knocks', at: {phrase: 'Rule one'}}, {n: 2, title: 'Not reached', at: null}]}));
   const slug = path.basename(job);
   await assert.rejects(prepareSeries(job, {env}), /identity-continue/);
   await continueIdentity('night-office', {project: slug}, env);
@@ -75,6 +79,7 @@ test('series-kit writes identity, rules and captions and installs the kit; synth
   assert.equal(r.kitInstalled, true);
   assert.equal(r.data.identity.overlay, 'NIGHT OFFICE · NOTICE 001');
   assert.equal(r.data.rules[0].start, 0.5 + toks.indexOf('Rule') * 0.5);
+  assert.equal(r.data.rules[1].start, null, 'a rule the film does not reach keeps its box without a start');
   const sandbox = {window: {}};
   vm.runInNewContext(await readFile(path.join(job, 'assets/series/series-data.js'), 'utf8'), sandbox);
   assert.equal(sandbox.window.RulesSeriesData.captions[0].text, 'If someone knocks three times after midnight…');

@@ -586,6 +586,7 @@ try {
     } else if (command === 'snapshot') await snapshot(job, {scene: opts.scene, at: opts.at});
     else if (command === 'review-template') await reviewTemplate(job, {stage: opts.stage || 'final', role: opts.role});
     else if (command === 'asset') {
+      if (Array.isArray(opts.note)) opts.note = opts.note.join(' '); // --note is collected as a repeatable option
       if (!opts.note?.trim()) throw new Error('asset needs --note "<what it shows>" so later films can find it in the library');
       if (/^(sfx|music)\//.test(opts.name || '') && !opts.license?.trim()) throw new Error('Audio needs --license "<the licence on its source page>" (and --source "<that page>").');
       if ((opts.name || '').startsWith('music/')) throw new Error('Bring music in with the music command (it also finds the beats): npm run video -- music --job <job> --src <url|file> --name ' + opts.name + ' --source "<page>" --license "<licence>"');

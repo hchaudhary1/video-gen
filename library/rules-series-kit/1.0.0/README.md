@@ -25,12 +25,15 @@ npm run video -- series-kit --job jobs/<slug>                            # needs
 
 ## Use in a scene template
 
+Inside the scene `<template>`, put the kit's `<script src>` tags after the composition root element (scripts
+placed before it stop the HyperFrames runtime from becoming render-ready):
+
 ```html
-<script src="assets/library/rules-series-kit/1.0.0/kit.js"></script>
-<script src="assets/series/series-data.js"></script>
 <div id="r1-root" data-composition-id="r1" data-width="1920" data-height="1080" data-duration="40">
   <div class="rs-stage"> <!-- your pictures: transparent background, white-on-black art --> </div>
 </div>
+<script src="assets/library/rules-series-kit/1.0.0/kit.js"></script>
+<script src="assets/series/series-data.js"></script>
 <script>
 {
   const root = document.getElementById('r1-root'), tl = gsap.timeline({paused: true});
@@ -51,4 +54,8 @@ npm run video -- series-kit --job jobs/<slug>                            # needs
   `sequence` (one picture per beat) add elements and tweens to the given timeline at local times.
 - `RulesSeries.cue(sceneId, captionIndex)` is the local start of a caption; `captionsIn(sceneId)` lists them.
 - Landscape and vertical canvases are both supported (`rs-vertical` layout; captions sit above the Shorts UI).
+- The renderer hides inactive scenes with `visibility: hidden` on their host. Show and hide your own pictures
+  with `visibility: inherit` (GSAP `autoAlpha` does this) or opacity, never `visibility: visible`, or they leak
+  into other scenes.
+- A rule a Short does not reach can stay in the HUD progress row with `"at": null` in series.json.
 - Keep one danger colour (the identity's `overlay.danger`); `--rs-you` (yellow) and `--rs-ok` (green) are sparse markers.

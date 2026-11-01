@@ -21,7 +21,28 @@
       4
     ]
   },
-  "counter": 0,
-  "issues": [],
+  "counter": 1,
+  "issues": [
+    {
+      "number": 1,
+      "project": "the-last-knock-series",
+      "format": "landscape",
+      "at": "2026-11-01T08:15:41.126Z"
+    },
+    {
+      "number": 1,
+      "project": "the-last-knock-short-1",
+      "parent": "the-last-knock-series",
+      "format": "vertical",
+      "at": "2026-11-01T08:15:41.457Z"
+    },
+    {
+      "number": 1,
+      "project": "the-last-knock-short-2",
+      "parent": "the-last-knock-series",
+      "format": "vertical",
+      "at": "2026-11-01T08:15:41.797Z"
+    }
+  ],
   "createdAt": "2026-11-01T00:00:00.000Z"
 }
