@@ -27,7 +27,7 @@ import {createProject, updateProject, listProjects, deleteProject, projectStep, 
 import {setHumanStages} from '../lib/review.mjs';
 import {renderStageBar} from '../lib/project.mjs';
 import {watchInstructions} from '../lib/watch.mjs';
-import {youtubeAuth, youtubeUpload} from '../lib/youtube-upload.mjs';
+import {youtubeAuth, youtubeUpload, youtubeThumbnail} from '../lib/youtube-upload.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HF = path.join(ROOT, 'node_modules/hyperframes/bin/hyperframes.mjs');
@@ -41,7 +41,7 @@ const digest = async file => createHash('sha256').update(await readFile(file)).d
 // command is allowed, as before.
 const ROLE = process.env.VIDEO_AGENT_ROLE || '';
 const ROLE_AGENT = Boolean(ROLE) && ROLE !== 'orchestrator';
-const ORCHESTRATOR_ONLY = new Set(['start', 'prepare', 'next', 'render', 'review-pack', 'capture-visibility', 'deliver', 'save-all', 'preview', 'mix', 'transcribe', 'alignment-approve', 'human-review', 'play', 'youtube-auth', 'youtube-upload',
+const ORCHESTRATOR_ONLY = new Set(['start', 'prepare', 'next', 'render', 'review-pack', 'capture-visibility', 'deliver', 'save-all', 'preview', 'mix', 'transcribe', 'alignment-approve', 'human-review', 'play', 'youtube-auth', 'youtube-upload', 'youtube-thumbnail',
   'thumbnails', 'thumbnail-choose', 'thumbnail-feedback', 'thumbnail-settings',
   'project-new', 'project-set', 'project-delete', 'script-review', 'watch', 'watch-serve', 'delegated']);
 // Chat projects (lib/project.mjs): commands that work on a project rather than a job.
@@ -473,8 +473,9 @@ project-delete --project <slug> --confirm <slug>
 (human-review, thumbnail-choose --by you, thumbnail-feedback and review-waive on a project's job also need --quote "<their message>")
 
 youtube-auth                         authorize the abdupdates YouTube channel (OAuth client JSON stays in .cache)
-youtube-upload --file <video.mp4> --title "Title" [--description "..."] [--privacy private|unlisted|public] [--tag "ai" ...]
+youtube-upload --file <video.mp4> --title "Title" [--description "..."] [--privacy private|unlisted|public] [--tag "ai" ...] [--thumbnail <png|jpg>]
                                      upload with resumable transfer; privacy defaults to unlisted. See docs/publishing.md
+youtube-thumbnail --video <id|url> --file <png|jpg>   set the custom thumbnail of an uploaded video (2 MB max)
 frame-stats --video <a.mp4>[,<b.mp4>] [--every 2]   measure how much of the frame a film uses (ink, spread, near-blank), to compare films
 
 The latest prepared job is used when --job is omitted.
@@ -493,6 +494,7 @@ try {
   if (command === 'profiles') console.log(JSON.stringify(PERSONALITIES.map(id => loadPersonality(id).profile), null, 2));
   else if (command === 'youtube-auth') await youtubeAuth(ROOT);
   else if (command === 'youtube-upload') await youtubeUpload(ROOT, opts);
+  else if (command === 'youtube-thumbnail') await youtubeThumbnail(ROOT, opts);
   else if (PROJECT_COMMANDS.has(command) || (['next', 'status'].includes(command) && opts.project)) {
     if (!opts.project && command !== 'project-new' && command !== 'projects') throw new Error(`${command} needs --project <slug> (see \`npm run video -- projects\`).`);
     await projectCommand(command, opts);

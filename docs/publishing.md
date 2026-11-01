@@ -46,7 +46,10 @@ npm run video -- youtube-upload --file jobs/<slug>/renders/video.mp4 --title "Vi
   --description "Video description" --privacy unlisted --tag "AI" --tag "technology"
 ```
 
-`--file` and `--title` are required. `--description` and repeatable `--tag` are optional. Privacy defaults to
+`--file` and `--title` are required. `--description`, repeatable `--tag` and `--thumbnail <png|jpg>` are optional.
+The thumbnail is checked before the video upload starts (PNG/JPEG, 2 MB maximum) and set right after it. Set or replace
+the thumbnail of an already uploaded video with `npm run video -- youtube-thumbnail --video <id|url> --file <png|jpg>`.
+Custom thumbnails need a verified channel; the existing `youtube.upload` authorization covers them. Privacy defaults to
 `unlisted`; choose `private` or `public` explicitly if wanted. Completed videos are uploaded as unlisted by default.
 Category defaults to `28` (Science & Technology) and can be changed with `--category <id>`.
 
