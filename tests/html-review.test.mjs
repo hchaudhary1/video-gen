@@ -8,6 +8,7 @@ import os from 'node:os';
 import {nextStep, buildFilm, jobProgress, reviewAssignments} from '../lib/film.mjs';
 import {sourceFingerprint, fileHash, loadReviewPack, submitReview, qualifyDelivery, REVIEW_ROLES} from '../lib/review.mjs';
 import {recordHumanReview, humanDecision, humanFindings, parseNote, parseStages} from '../lib/review.mjs';
+import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 
 const put = (job, file, value) => writeFile(path.join(job, file), JSON.stringify(value));
 const read = async (job, file) => JSON.parse(await readFile(path.join(job, file), 'utf8'));
@@ -22,6 +23,7 @@ async function fixture(t, {human} = {}) {
     alternatives: [{concept: 'A', rejected: 'B'}, {concept: 'C', rejected: 'D'}], subjects: [{id: 'subject', what: 'Recurring subject'}],
     scenes: words.map((w, i) => ({id: w.text, start: i ? {phrase: w.text} : {boundary: 'start'}, idea: 'Idea', mechanism: 'Operation', states: ['initial', 'operation', 'consequence'], payoff: 'Result', camera: 'Static', handoff: 'Same subject', why_not_basic: 'Meaning', alternatives: ['Other'], carry: i ? ['subject'] : []}))};
   await put(job, 'job.json', manifest); await put(job, 'alignment.json', {matchRatio: 1, words}); await put(job, 'film.json', film);
+  await freezePersonality(job, loadPersonality('rules-story'));
   await writeFile(path.join(job, 'assets/narration.wav'), 'Synthetic narration fixture');
   for (const id of ['opening', 'comparison', 'ending'])
     await put(job, `shots/${id}.json`, {scene: id, objects: id === 'opening' ? [{id: 'subject', type: 'circle', at: [960, 540], r: 100}] : [], actions: []});

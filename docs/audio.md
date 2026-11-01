@@ -105,8 +105,7 @@ and analyses a track. `setup-audio` installs the local analysis environment when
 ```
 
 Optional fields: `level` and `duck` (dB), `fadeIn`/`fadeOut` (seconds). Beat analysis is available for
-edits where it helps; narrated action does not have to hit every beat. Source speech for actual-media news
-belongs in `news.json`, not synthesized effects or the commentary recording.
+edits where it helps; narrated action does not have to hit every beat.
 
 ## Synthesized sound and series signatures
 

@@ -5,7 +5,6 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {sourceFingerprint, fileHash, loadReviewPack, validateReview, submitReview, reviewStatus,
   qualifyDelivery, REVIEW_ROLES, registerProducer} from '../lib/review.mjs';
-import {loadPersonality} from '../lib/personalities.mjs';
 
 const put = (job,file,value) => writeFile(path.join(job,file),JSON.stringify(value,null,2)+'\n');
 async function fixture(t) {
@@ -129,48 +128,11 @@ test('runner-registered producer is rejected at submission and acceptance; produ
     ['/root','/root/builder','t3/builder-other-project']);
 });
 
-test('legacy non-app-review jobs without producer history retain their established review behavior',async t=>{
+test('legacy jobs without producer history retain their established review behavior',async t=>{
   const job=await fixture(t), manifest=JSON.parse(await readFile(path.join(job,'job.json')));
   delete manifest.review.producerAgentIds; await put(job,'job.json',manifest);
   const context=await freeze(job,'final');
   await assert.doesNotReject(submitReview(job,review(context)));
-});
-
-test('app-review legacy jobs without recorded provenance block review and reject spoofed reviewer IDs',async t=>{
-  const job=await fixture(t), manifest=JSON.parse(await readFile(path.join(job,'job.json')));
-  const profile=await loadPersonality('app-review');
-  manifest.productionProfile={id:profile.profile.id,version:profile.profile.version,sha256:profile.sha256};
-  await put(job,'production-profile.json',profile);
-  manifest.review.producerAgentIds=['/root']; await put(job,'job.json',manifest);
-  let context=await freeze(job,'final');
-  await assert.rejects(submitReview(job,review(context),{agentId:'claimed-reviewer',role:'reviewer'}),/Producer identities are incomplete/);
-  manifest.review.producerAgentIds=['producer-real']; manifest.review.producerAgentRecords=[{agentId:'producer-real',role:'builder'}]; await put(job,'job.json',manifest);
-  context=await freeze(job,'final');
-  const forged=review(context); forged.reviewer.agentId='invented';
-  await assert.rejects(submitReview(job,forged,{agentId:'runner-reviewer',role:'reviewer'}),/match VIDEO_AGENT_ID/);
-  const stillOnly=review(context); stillOnly.verdict='pass';
-  assert.throws(()=>validateReview(stillOnly,context),/encoded MP4 clip in playback/);
-  const valid=review(context); valid.reviewer.agentId='runner-reviewer';
-  valid.inspection.mode='playback';
-  valid.inspection.evidence=context.pack.evidence.filter(e=>e.kind==='clip').map(e=>e.path);
-  valid.inspection.playbackAssertion='reviewer-asserted-not-authenticated';
-  await assert.doesNotReject(submitReview(job,valid,{agentId:'runner-reviewer',role:'reviewer'}));
-});
-
-test('final app-review playback must cover all capture, scene and handoff intervals and disclose reviewer assertion', async t=>{
-  const job=await fixture(t), context=await freeze(job,'final');
-  context.personality='app-review';
-  context.pack.appCaptureIntervals=[{id:'screen-result',scene:'scene',start:5,end:10}];
-  const report=review(context); report.inspection.mode='playback';
-  report.inspection.evidence=context.pack.evidence.filter(e=>e.kind==='clip').map(e=>e.path);
-  assert.throws(()=>validateReview(report,context),/playbackAssertion.*cannot authenticate/i);
-  report.inspection.playbackAssertion='reviewer-asserted-not-authenticated';
-  const clip=context.pack.evidence.find(e=>e.kind==='clip'); clip.end=4;
-  assert.throws(()=>validateReview(report,context),/covering every scene and handoff interval/);
-  clip.end=12;
-  assert.doesNotThrow(()=>validateReview(report,context));
-  context.pack.appCaptureIntervals[0].end=13;
-  assert.throws(()=>validateReview(report,context),/covering app capture screen-result/);
 });
 
 test('timestamped blockers are retained, incomplete coverage never qualifies, corrected review is versioned',async t=>{

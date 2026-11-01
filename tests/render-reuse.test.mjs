@@ -4,6 +4,7 @@ import {mkdtemp, mkdir, writeFile, rm} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {renderFilm} from '../lib/film.mjs';
+import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -19,6 +20,7 @@ test('render refuses to reuse failed, partial, uninspected, or stale builds', as
   await mkdir(path.join(job, 'review'));
   const save = (file, value) => writeFile(path.join(job, file), JSON.stringify(value));
   await save('job.json', {duration: 1, fps: 30});
+  await freezePersonality(job, loadPersonality('rules-story'));
   await save('timing.json', {scenes: [{id: 'one'}], missing: []});
   const base = {ok: true, scope: 'all', missing: [], errors: [], sourceHash: 'stale', report: {scenes: {one: {}}}};
   for (const change of [

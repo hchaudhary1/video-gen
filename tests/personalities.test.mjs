@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp, mkdir, readFile, writeFile, rm, cp} from 'node:fs/promises';
+import {mkdtemp, mkdir, writeFile, rm, cp} from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import path from 'node:path';
-import {PERSONALITIES, PROFILE_FILE, requirePersonality, loadPersonality, freezePersonality, readPersonality, assertRenderReady, preparationPersonality} from '../lib/personalities.mjs';
+import {PERSONALITIES, RETIRED_PROFILES, PROFILE_FILE, requirePersonality, loadPersonality, freezePersonality, readPersonality, assertRenderReady, preparationPersonality} from '../lib/personalities.mjs';
 import {createProject, loadProject, projectStep, closeDelegation, updateProject, inspect, projectStatus, listProjects} from '../lib/project.mjs';
 import {sourceFingerprint} from '../lib/review.mjs';
-import {nextStep, renderFilm} from '../lib/film.mjs';
 
 async function fixture(t) {
   const base = path.resolve('.cache/tests');
@@ -14,6 +15,36 @@ async function fixture(t) {
   t.after(() => rm(root, {recursive: true, force: true}));
   return root;
 }
+
+// A snapshot of the only lifecycle profile with different instructions, as a later catalog would produce.
+async function differentSnapshot(dir) {
+  const catalog = path.join(dir, 'other-catalog');
+  await cp(path.resolve('personalities/rules-story'), path.join(catalog, 'rules-story'), {recursive: true});
+  await writeFile(path.join(catalog, 'rules-story/PROFILE.md'), 'A different design for --profile rules-story');
+  return loadPersonality('rules-story', catalog);
+}
+
+test('rules-story is the only project-new personality', () => {
+  assert.deepEqual(PERSONALITIES, ['rules-story']);
+});
+
+test('retired profiles are rejected with a clear message, including frozen snapshots of old projects', async t => {
+  for (const id of RETIRED_PROFILES) {
+    assert.throws(() => requirePersonality(id), new RegExp(`"${id}" is retired`));
+    assert.throws(() => loadPersonality(id), /is retired/);
+  }
+  const root = await fixture(t);
+  await assert.rejects(createProject(root, {name: 'old', profile: 'news-political', brief: 'b'}), /"news-political" is retired/);
+  assert.equal(existsSync(path.join(root, 'jobs/scripts/old')), false, 'a retired profile leaves no folder');
+  const profile = {id: 'explainer', name: 'explainer', version: 1, workflow: 'faceless-explainer', renderReady: true};
+  const files = {'PROFILE.md': 'Use with --profile explainer.'};
+  const sha256 = createHash('sha256').update(JSON.stringify({profile, files})).digest('hex');
+  const job = path.join(root, 'old-job');
+  await mkdir(job, {recursive: true});
+  await writeFile(path.join(job, PROFILE_FILE), JSON.stringify({profile, files, sha256}));
+  await writeFile(path.join(job, 'job.json'), JSON.stringify({productionProfile: {id: 'explainer', version: 1, sha256}}));
+  assert.throws(() => readPersonality(job), /Personality "explainer" is retired/);
+});
 
 test('new production requires an explicit profile', () => {
   assert.throws(() => requirePersonality(), /pass --profile/);
@@ -41,7 +72,7 @@ test('frozen instructions survive catalog edits and reject missing, changed or m
   const catalogEdit = structuredClone(snapshot);
   catalogEdit.files['PROFILE.md'] = 'A different future design';
   assert.equal(readPersonality(dir).files['PROFILE.md'], snapshot.files['PROFILE.md']);
-  await assert.rejects(freezePersonality(dir, loadPersonality('explainer')), /frozen/);
+  await assert.rejects(freezePersonality(dir, loadPersonality('rules-story', catalog)), /frozen/);
   const brief = '# Writer\nOriginal task.';
   assert.equal(brief, '# Writer\nOriginal task.');
 
@@ -50,7 +81,7 @@ test('frozen instructions survive catalog edits and reject missing, changed or m
   assert.throws(() => readPersonality(dir), /changed or are invalid/);
   assert.notEqual(await sourceFingerprint(dir), before, 'profile changes invalidate review source fingerprints');
   await writeFile(path.join(dir, PROFILE_FILE), JSON.stringify(snapshot));
-  await writeFile(path.join(dir, 'project.json'), JSON.stringify({productionProfile: {...metadata, id: 'explainer'}}));
+  await writeFile(path.join(dir, 'project.json'), JSON.stringify({productionProfile: {...metadata, version: metadata.version + 1}}));
   assert.throws(() => readPersonality(dir), /does not match/);
   await rm(path.join(dir, PROFILE_FILE));
   assert.throws(() => readPersonality(dir), /Missing frozen/);
@@ -70,47 +101,14 @@ test('automatic project routing persists through research and revision without a
   await projectStep(root, 'story');
   const writer = JSON.stringify((await loadProject(root, 'story')).delegation.tasks[0].assignment);
   assert.match(writer, /production-profile.json/);
-  await assert.rejects(updateProject(root, 'story', {profile: 'explainer'}), /frozen/);
+  await assert.rejects(updateProject(root, 'story', {profile: 'explainer'}), /retired/);
 });
 
-test('news uses its own source rubric and app review records the session before it writes', async t => {
+test('a folder without a frozen profile has no default, and unknown or ambiguous new choices fail', async t => {
   const root = await fixture(t);
-  await createProject(root, {name: 'news', profile: 'news-financial', brief: 'Cover today\'s financial news.'});
-  await projectStep(root, 'news');
-  const news = JSON.stringify((await loadProject(root, 'news')).delegation.tasks[0].assignment);
-  assert.match(news, /production-profile.json/);
-  assert.doesNotMatch(news, /Show the real thing, drawn/);
-
-  await createProject(root, {name: 'app', profile: 'app-review', brief: 'Review T3 Code entirely.'});
-  const S = path.join(root, 'jobs/scripts/app');
-  let step = await projectStep(root, 'app');
-  assert.equal(step.state, 'record the session');
-  assert.match(step.text, /capture-ingest --job jobs\/scripts\/app/);
-  assert.match(step.text, /reshoot run/);
-  assert.match(step.text, /native window/);
-  assert.equal((await projectStatus(root, 'app')).phase, 'recording the session');
-
-  // The manifest is the evidence. A stray folder without one leaves the gate closed.
-  await mkdir(path.join(S, 'capture/F1'), {recursive: true});
-  assert.equal((await projectStep(root, 'app')).state, 'record the session');
-  await writeFile(path.join(S, 'capture/F1/manifest.json'), JSON.stringify({task: 'F1', viewport: [2560, 1600]}));
-  step = await projectStep(root, 'app');
-  assert.equal(step.state, 'gather the sources');
-  await closeDelegation(root, 'app');
-
-  await mkdir(path.join(S, 'sources'), {recursive: true});
-  await writeFile(path.join(S, 'SOURCES.md'), '# Sources');
-  step = await projectStep(root, 'app');
-  assert.equal(step.state, 'write the script and its visual plan');
-  const brief = JSON.stringify((await loadProject(root, 'app')).delegation.tasks[0].assignment);
-  assert.match(brief, /capture\/F1\/manifest.json/);
-  assert.match(brief, /capture\/F1\/manifest\.json/);
-
-});
-
-test('legacy jobs retain the explainer while unknown explicit and ambiguous new choices fail', async t => {
-  const root = await fixture(t);
-  assert.equal(readPersonality(root).profile.id, 'explainer');
+  assert.throws(() => readPersonality(root), /No frozen production-profile\.json/);
+  await writeFile(path.join(root, 'project.json'), JSON.stringify({slug: 'legacy'}));
+  assert.throws(() => readPersonality(root), /No frozen production-profile\.json/);
   await assert.rejects(createProject(root, {name: 'bad', brief: 'Explain atoms', profile: 'unknown'}), /Unknown personality/);
   await assert.rejects(createProject(root, {name: 'ambiguous', brief: 'Make a news video'}), /pass --profile/);
 });
@@ -121,7 +119,7 @@ test('preparation inherits the frozen personality rather than reclassifying the 
   await writeFile(path.join(dir, 'project.json'), JSON.stringify({productionProfile: metadata}));
   const snapshot = preparationPersonality(dir, 'Today\'s election news.');
   assert.equal(snapshot.profile.id, 'rules-story');
-  assert.throws(() => preparationPersonality(dir, 'Story', 'explainer'), /differs from/);
+  assert.throws(() => preparationPersonality(dir, 'Story', 'explainer'), /retired/);
   await freezePersonality(prepared, snapshot);
   assert.deepEqual(readPersonality(prepared), readPersonality(dir));
   await rm(path.join(dir, PROFILE_FILE));
@@ -142,7 +140,7 @@ test('prepared personality projects support inspection, status and listing while
   assert.ok(status.stages.groups.length, 'the stage bar can obtain its complete status model');
   assert.equal((await listProjects(root))[0].phase, 'film: prepared');
   await rm(path.join(job, PROFILE_FILE));
-  const different = loadPersonality('explainer');
+  const different = await differentSnapshot(root);
   const metadata = await freezePersonality(job, different);
   await writeFile(path.join(job, 'job.json'), JSON.stringify({status: 'prepared', productionProfile: metadata}));
   await assert.rejects(inspect(root, project), /personality differs from its script project/);
