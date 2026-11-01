@@ -9,6 +9,7 @@ import {reconcile} from '../lib/timing.mjs';
 import {buildFilm} from '../lib/film.mjs';
 import {useBundle} from '../lib/assets.mjs';
 import {sourceFingerprint, fileHash, loadReviewPack, REVIEW_ROLES} from '../lib/review.mjs';
+import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const testCache = path.join(ROOT, '.cache', 'cleanup-tests');
 const run = (command, job) => spawnSync(process.execPath, [path.join(ROOT,'scripts/video.mjs'),command,'--job',job], {encoding:'utf8'});
@@ -29,6 +30,7 @@ async function fixture(t) {
     scenes: [{id: 'opening', start: {boundary: 'start'}, idea: 'Show the device', kind: 'html', file: 'compositions/opening.html'}]};
   for (const [name, data] of Object.entries({'job.json': manifest, 'alignment.json': a, 'film.json': film}))
     await writeFile(path.join(job, name), JSON.stringify(data));
+  await freezePersonality(job, loadPersonality('rules-story'));
   await writeFile(path.join(job, 'compositions/opening.html'), '<template><div data-composition-id="opening"><div id="opening-device"></div></div></template>');
   return {job, film};
 }

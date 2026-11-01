@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {readFile, writeFile, mkdir, copyFile, access, rm} from 'node:fs/promises';
+import {readFile, writeFile, mkdir, copyFile, access} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {extractNarration, normalizeWords, reconcile} from '../lib/timing.mjs';
 import {itemPath, inspectBundle, searchLibrary, publishBundle, useBundle, saveToLibrary, saveAll} from '../lib/assets.mjs';
 import {fileHash, submitReview, reviewStatus, waiveReview, qualifyDelivery, writeReviewFile, localFile, registerProducer, parseReviewDepth} from '../lib/review.mjs';
-import {createReviewPack, generateCaptureInspection, assertIndependentCaptureReviewer} from '../lib/review-pack.mjs';
+import {createReviewPack} from '../lib/review-pack.mjs';
 import {parseStages, parseNote, recordHumanReview} from '../lib/review.mjs';
 import {thumbnailStep, thumbnailStatus, recordVerdict, recordRanking, addThumbnailFeedback, chooseThumbnail, exportThumbnail, MAX_THUMBNAILS} from '../lib/thumbnails.mjs';
 import {compareNarration} from '../lib/audio.mjs';
@@ -19,10 +19,8 @@ import {SpecError} from '../lib/composition.mjs';
 import {findVisualPlan, VISUALS_FILE} from '../lib/timing.mjs';
 import {loadConfig, resolveSettings} from '../lib/media.mjs';
 import {PERSONALITIES, loadPersonality, preparationPersonality, freezePersonality, assertRenderReady} from '../lib/personalities.mjs';
-import {transcribeNews, ingestNews, newsPlan, isNews, verifyNews} from '../lib/news.mjs';
-import {readPersonality} from '../lib/personalities.mjs';
 import {readdir} from 'node:fs/promises';
-import {createProject, updateProject, listProjects, deleteProject, projectStep, projectStatus, printStatus, recordScriptReview, closeDelegation, carryCaptures,
+import {createProject, updateProject, listProjects, deleteProject, projectStep, projectStatus, printStatus, recordScriptReview, closeDelegation,
   assertNoDelegation, projectOfJob, requireQuote, logDecision} from '../lib/project.mjs';
 import {setHumanStages} from '../lib/review.mjs';
 import {renderStageBar} from '../lib/project.mjs';
@@ -41,7 +39,7 @@ const digest = async file => createHash('sha256').update(await readFile(file)).d
 // command is allowed, as before.
 const ROLE = process.env.VIDEO_AGENT_ROLE || '';
 const ROLE_AGENT = Boolean(ROLE) && ROLE !== 'orchestrator';
-const ORCHESTRATOR_ONLY = new Set(['start', 'prepare', 'next', 'render', 'review-pack', 'capture-visibility', 'deliver', 'save-all', 'preview', 'mix', 'transcribe', 'alignment-approve', 'human-review', 'play', 'youtube-auth', 'youtube-upload', 'youtube-thumbnail',
+const ORCHESTRATOR_ONLY = new Set(['start', 'prepare', 'next', 'render', 'review-pack', 'deliver', 'save-all', 'preview', 'mix', 'transcribe', 'alignment-approve', 'human-review', 'play', 'youtube-auth', 'youtube-upload', 'youtube-thumbnail',
   'thumbnails', 'thumbnail-choose', 'thumbnail-feedback', 'thumbnail-settings',
   'project-new', 'project-set', 'project-delete', 'script-review', 'watch', 'watch-serve', 'delegated']);
 // Chat projects (lib/project.mjs): commands that work on a project rather than a job.
@@ -75,8 +73,8 @@ const probe = async file => JSON.parse(await run('ffprobe', ['-v', 'error', '-sh
 // Commands that change a film's sources, reviews or render. Once a job is delivered they would quietly send it back into
 // production (status → rendering/draft-rendered, stale reviews), so they need an explicit --reopen true.
 const PRODUCTION_COMMANDS = new Set(['transcribe', 'plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix', 'synth', 'series-kit',
-  'news-ingest', 'news-transcribe', 'alignment-approve', 'check', 'review-pack', 'human-review', 'review-submit', 'deliver', 'render', 'library-use']);
-const PRODUCER_COMMANDS = new Set(['plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix', 'synth', 'series-kit', 'news-ingest', 'news-transcribe', 'alignment-approve', 'check', 'capture-ingest', 'capture-scene']);
+  'alignment-approve', 'check', 'review-pack', 'human-review', 'review-submit', 'deliver', 'render', 'library-use']);
+const PRODUCER_COMMANDS = new Set(['plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix', 'synth', 'series-kit', 'alignment-approve', 'check']);
 async function guardDelivered(job, command, opts) {
   if (!PRODUCTION_COMMANDS.has(command)) return;
   if (command === 'human-review' && opts.want !== undefined) return;
@@ -93,7 +91,7 @@ function options(args) {
   const result = {};
   while (args.length) {
     const key = args.shift();
-    if (['--json','--generate','--no-latest','--list'].includes(key) && (!args.length || args[0].startsWith('--'))) { result[key.slice(2)] = true; continue; }
+    if (['--json','--no-latest','--list'].includes(key) && (!args.length || args[0].startsWith('--'))) { result[key.slice(2)] = true; continue; }
     if (!key.startsWith('--') || !args.length || args[0].startsWith('--')) throw new Error(`Expected --option value: ${key}`);
     if (key === '--note' || key === '--finding' || key === '--model' || key === '--tag') (result[key.slice(2)] ||= []).push(args.shift()); // repeatable
     else result[key.slice(2)] = args.shift();
@@ -111,36 +109,13 @@ async function jobPath(opts) {
   if (!latest) throw new Error('No job selected. Prepare a job or pass --job jobs/<name>.');
   return path.resolve(ROOT, latest.job);
 }
-function producerRecord() {
-  const agentId = process.env.VIDEO_AGENT_ID, role = process.env.VIDEO_AGENT_ROLE;
-  return agentId && role && role !== 'reviewer' && !role.endsWith('-reviewer') ? {agentId, role, source:'VIDEO_AGENT_ID/VIDEO_AGENT_ROLE'} : null;
-}
-async function captureProducerHistory(script) {
-  const root = path.join(path.dirname(script), 'capture');
-  const entries = await (await import('node:fs/promises')).readdir(root, {withFileTypes:true}).catch(()=>[]);
+async function savedProducerHistory(script) {
   const records=[];
-  for (const entry of entries.filter(e=>e.isDirectory())) {
-    const capture = await json(path.join(root,entry.name,'manifest.json')).catch(()=>null);
-    // Both stages own real runner records: capture-ingest writes `producer`, while
-    // capture-scene appends to `producerHistory`. Keep historical manifests
-    // without either field honestly unattributed.
-    const saved = [...(capture?.producer ? [capture.producer] : []), ...(Array.isArray(capture?.producerHistory) ? capture.producerHistory : [])];
-    for (const record of saved) if (record?.agentId && record.role && record.role !== 'reviewer' && !record.role.endsWith('-reviewer'))
-      records.push({agentId:record.agentId,role:record.role,source:record.source || 'saved-capture-manifest'});
-  }
   const project=await json(path.join(path.dirname(script),'project.json')).catch(()=>null);
   const delegations=[...(Array.isArray(project?.history) ? project.history.filter(h=>h && typeof h === 'object' && Array.isArray(h.tasks)) : []),...(project?.delegation ? [project.delegation] : [])];
   for (const task of delegations.flatMap(d=>d.tasks || [])) if (task?.agentId && task.role && task.role !== 'reviewer' && !task.role.endsWith('-reviewer'))
     records.push({agentId:task.agentId,role:task.role,source:'saved-project-delegation'});
   return [...new Map(records.map(r=>[`${r.agentId}\0${r.role}`,r])).values()];
-}
-async function registerCaptureProducer(dir) {
-  const record=producerRecord();
-  if (!record) return;
-  const file=path.join(dir,'manifest.json'), manifest=await json(file);
-  manifest.producerHistory ||= [];
-  if (!manifest.producerHistory.some(r=>r.agentId===record.agentId&&r.role===record.role)) manifest.producerHistory.push(record);
-  await save(file,manifest);
 }
 async function prepare(opts) {
   if (!/^[a-z0-9][a-z0-9-]*$/.test(opts.name || '')) throw new Error('--name must be a lowercase job slug.');
@@ -170,8 +145,6 @@ async function prepare(opts) {
   await writeFile(path.join(job, 'package.json'), JSON.stringify({name: opts.name, private: true, type: 'module',
     scripts: {next: `npm --prefix ../.. run video -- next --job jobs/${opts.name}`}}, null, 2) + '\n');
   for (const dir of ['inputs', 'assets', 'compositions', 'review', 'renders', 'shots', 'components']) await mkdir(path.join(job, dir), {recursive: true});
-  // An app review's session was recorded before the script, so it travels into the job with its evidence.
-  await carryCaptures(script, job);
   const productionProfile = await freezePersonality(job, personality);
 
   await writeFile(path.join(job, 'inputs/source-script.md'), sourceScript);
@@ -186,7 +159,7 @@ async function prepare(opts) {
   await run('ffmpeg', ['-v', 'error', '-i', audio, '-ss', String(start), '-t', String(duration),
     '-vn', '-ar', '48000', '-ac', '1', '-c:a', 'pcm_s16le', path.join(job, 'assets/narration.wav')]);
   const actualDuration = Number((await probe(path.join(job, 'assets/narration.wav'))).format.duration);
-  const producerHistory = await captureProducerHistory(script);
+  const producerHistory = await savedProducerHistory(script);
   const manifest = {version: 1, name: opts.name, createdAt: new Date().toISOString(),
     duration: actualDuration, format, width: settings.width, height: settings.height, fps,
     audio: {path: 'assets/narration.wav', source: path.relative(ROOT, audio), sourceStart: start,
@@ -277,7 +250,6 @@ async function start(opts) {
 }
 
 async function verify(job) {
-  if (isNews(readPersonality(job))) { const report = await verifyNews(job); console.log(JSON.stringify(report,null,2)); return report; }
   const manifest = await json(path.join(job, 'job.json')), file = await localFile(job, 'renders/video.mp4');
   const metadata = await probe(file), video = metadata.streams.find(s => s.codec_type === 'video');
   const audio = metadata.streams.find(s => s.codec_type === 'audio');
@@ -442,14 +414,9 @@ save-all                             save every job asset/component the library 
 review-template --stage S --role R   write a pre-filled reviewer report
 alignment-approve --note "..."       record review of a low script match
 setup-audio                          check ffmpeg, install librosa (beat analysis for music)
-capture-ingest --run <reshoot run folder> --task <id> [--feature ".." --claim ".." --build ".." --dir capture/<task>]   turn a reshoot run
-                                     (headless Chrome, cursor composited) into recording.mp4, actions.jsonl, shots/ and manifest.json;
-                                     in a project this runs before the film job exists (docs/capture.md)
-capture-scene --capture <dir> --scene <id> [--fit 0.9]   cut the recording per capture/<task>/edits.json and compile
-                                     shots/<id>.json: click rings and camera push-in/pull-out over the recorded cursor (build it afterwards)
 music --src <url|file> --name music/<x>.mp3 --source "<page>" --license "<licence>" [--title ..]  bring in a licensed track; finds its beats
 
-news-ingest --job <job> --source <id> --file <repository-local cleared file>\nnews-transcribe --job <job> --source <id> [--model small.en --language en]  original-file word times; review draft before use\nnews-check --job <job>               validate news sources, rights, claims, edit and required speech subtitles\nprepare --name <slug> --audio <file> --script <file> --profile <id> [--start 0 --length 30 --format landscape|vertical] [--review-depth fast|standard|deep]
+prepare --name <slug> --audio <file> --script <file> --profile <id> [--start 0 --length 30 --format landscape|vertical] [--review-depth fast|standard|deep]
         [--language en --model small.en --engine faster-whisper|hyperframes]
         [--words measured-words.json --fps 30]
 transcribe [--job jobs/<slug>]       resume a failed transcription/preparation
@@ -457,7 +424,6 @@ audit | check | preview | render | verify [--job jobs/<slug>]
 render [--quality delivery --workers 3 --reuse-build true]  render + mix + verify, once, after the final reviews; reuse-build requires a current successful full build
 mix                                  redo the soundtrack mix on the current render (sources unchanged)
 review-pack --stage final [--from html|render]  freeze review evidence for the whole film (frames from the built HTML by default; nothing is rendered)
-capture-visibility --generate | --record <review.json>   generate current paired source/render frames or record independent verdicts
 human-review --stage final --decision approve|revise [--note "12.5: text" ...]  record the person's own review of the current pack
 human-review --want final|none   choose whether the person reviews the whole film (start takes --human-review too)
 play [--port 3004]                   play the built film in the browser, with a scene strip (read-only; no render)
@@ -479,7 +445,7 @@ library-use --item <id@version> --job jobs/<slug>  freeze files and record hashe
 
 Chat projects (T3 Code; docs/orchestrator.md): the whole video from an agreed brief, one step at a time
 profiles                              list available personalities; the agent chooses --profile
-project-new --name <slug> [--profile explainer|rules-story|news-financial|news-political|app-review] [--brief-file f] [--format landscape|vertical --duration <s> --tts ming --audio f --script f --music f
+project-new --name <slug> [--profile rules-story] [--brief-file f] [--format landscape|vertical --duration <s> --tts ming --audio f --script f --music f
             --review script,final,thumbnail|none --review-depth fast|standard|deep --thumbnails 1-6 --thread <t3 thread id>]   (brief: jobs/scripts/<slug>/BRIEF.md)
 next --project <slug>               the single next step of the whole video (T3 delegated tasks, your review checkpoints)
 status --project <slug> [--json]    every stage, read-only        projects [--json]   every project and where it is
@@ -538,8 +504,7 @@ try {
     process.exit(code ?? 1);
   }
   const opts = options(args);
-  const reviewerRecordingVerdict = command === 'capture-visibility' && Boolean(opts.record) && ROLE === 'reviewer';
-  if (ROLE_AGENT && !reviewerRecordingVerdict && (ORCHESTRATOR_ONLY.has(command) || (command === 'build' && !opts.scene)))
+  if (ROLE_AGENT && (ORCHESTRATOR_ONLY.has(command) || (command === 'build' && !opts.scene)))
     throw new Error(`\`${command}${command === 'build' ? ' without --scene' : ''}\` advances the pipeline, which is the orchestrator's job. You are the ${ROLE}: finish the brief you were given and reply with its result. Do not start sub-agents.`);
   if (command === 'profiles') console.log(JSON.stringify(PERSONALITIES.map(id => loadPersonality(id).profile), null, 2));
   else if (command === 'youtube-auth') await youtubeAuth(ROOT);
@@ -618,9 +583,6 @@ try {
         : `use it as {"type": "image", "src": "${a.path}", ...}${a.name.startsWith('fonts/') ? ' or in theme.fontFiles' : ''}. Look at it before using it`;
       console.log(`Saved ${a.path} (library: ${lib.item}). ${use[0].toUpperCase()}${use.slice(1)}.`);
     }
-    else if (command === 'news-ingest') console.log(JSON.stringify(await ingestNews(job, opts.source, opts.file),null,2));
-    else if (command === 'news-transcribe') console.log(JSON.stringify(await transcribeNews(job,opts.source,{model:Array.isArray(opts.model)?opts.model.at(-1):opts.model||'small.en',language:opts.language||'en',replace:opts.replace==='true'}),null,2));
-    else if (command === 'news-check') console.log(JSON.stringify({ok:true,captions:(await newsPlan(job)).captions.length}));
     else if (command === 'save') {
       if (!opts.file || !opts.title?.trim() || !opts.tags?.trim()) throw new Error('save needs --file <job file> --title "<what it is>" --tags "<words someone would search for>"');
       const r = await saveToLibrary(LIBRARY, job, {file: opts.file, title: opts.title, tags: opts.tags, note: opts.note || '', id: opts.id});
@@ -649,47 +611,6 @@ try {
       for (const w of r.warnings) console.log(`  ! ${w}`);
       console.log('Load in each scene template: <script src="assets/library/rules-series-kit/1.0.0/kit.js"></script><script src="assets/series/series-data.js"></script> (README.md in the kit).');
     }
-    else if (command === 'capture-ingest') {
-      if (!opts.run) throw new Error('capture-ingest needs --run <reshoot run folder>, such as reshoot/takes/runs/<id> (docs/capture.md).');
-      if (!opts.task) throw new Error('capture-ingest needs --task <id>: the feature/task id this recording evidences.');
-      const runDir = path.resolve(ROOT, opts.run);
-      const dir = opts.dir ? path.resolve(job, opts.dir) : path.join(job, 'capture', String(opts.task));
-      const {ingestReshootRun} = await import('../lib/reshoot.mjs');
-      const result = await ingestReshootRun(runDir, dir, {task: opts.task, feature: opts.feature || null, claim: opts.claim || null,
-        build: opts.build || null, url: opts.url || null, notes: opts.notes || null});
-      const producer = producerRecord();
-      if (producer) result.manifest.producer = producer;
-      await save(path.join(dir, 'manifest.json'), result.manifest);
-      const failed = result.manifest.results.filter(r => r.kind === 'assert' && !r.ok);
-      console.log(`Ingested ${path.relative(ROOT, result.recording)} from reshoot run ${result.manifest.source.run} — ${result.manifest.duration}s, ${result.manifest.frames ?? '?'} frames, ${result.clicks} logged action(s), ${result.manifest.frameSize.join('×')} px.`);
-      console.log(`Evidence: ${path.relative(ROOT, path.join(dir, 'manifest.json'))}, actions.jsonl, shots/.`);
-      console.log('The source log records clicks and result checks only: reshoot does not log typing or keypresses as separate actions.');
-      if (failed.length) {
-        console.log(`\n${failed.length} result check(s) did not pass in this run — keep them as evidence and write the review from what happened:`);
-        for (const f of failed) console.log(`  ${f.beat || 'page'}: expected ${f.expected} — ${f.observed}`);
-        process.exitCode = 1;
-      } else console.log('\nNext: write capture/' + path.basename(dir) + '/edits.json (cue phrases + source ranges), then run capture-scene.');
-    }
-    else if (command === 'capture-scene') {
-      if (!opts.capture) throw new Error('capture-scene needs --capture <capture directory> (written by capture-ingest).');
-      if (!opts.scene) throw new Error('capture-scene needs --scene <id>; it is the scene in film.json this capture belongs to.');
-      const captureDir = path.resolve(job, opts.capture);
-      const edits = await json(path.join(captureDir, 'edits.json'));
-      if (opts.scene) edits.scene = opts.scene === 'true' ? edits.scene : opts.scene;
-      const manifest = await json(path.join(job, 'job.json')).catch(() => ({}));
-      const frame = [manifest.width || 1920, manifest.height || 1080];
-      const {compileCaptureScene} = await import('../lib/capture-scene.mjs');
-      await registerCaptureProducer(captureDir);
-      const result = await compileCaptureScene(job, captureDir, edits, {
-        width: numeric(opts.width, frame[0], 'width'), height: numeric(opts.height, frame[1], 'height'),
-        fit: Number(opts.fit ?? 0.9),
-      });
-      console.log(`Compiled ${path.relative(ROOT, result.file)} from capture "${result.capture.task}".`);
-      for (const edit of result.report) console.log(`  ${edit.id}: ${edit.cut[0]}–${edit.cut[1]}s (${edit.duration}s), ${edit.clicks} click(s), camera ${edit.camera}`);
-      for (const warning of result.warnings) console.log(`  warning: ${warning}`);
-      console.log(`\nCues used: ${result.report.map(e => e.cue).join(', ')}. The scene must already exist in film.json with the same id ("${edits.scene}").`);
-      console.log(`Next: npm run video -- build --job ${path.relative(ROOT, job)} --scene ${edits.scene}`);
-    }
     else if (command === 'mix') await remixFilm(job, {verify});
     else if (command === 'alignment-approve') {
       if (!opts.note?.trim()) throw new Error('alignment-approve needs --note "<what differs and how it was handled>"');
@@ -706,28 +627,6 @@ try {
       const written = await reviewAssignments(job, pack, packPath, packSha256);
       console.log(JSON.stringify({stage:pack.stage,packPath,packSha256,sourceHash:pack.sourceHash,videoSha256:pack.videoSha256,interval:pack.interval,evidenceCount:pack.evidence.length,assignments:written,
         next:`npm run video -- next --job ${path.relative(ROOT, job)}`},null,2));
-    } else if (command === 'capture-visibility') {
-      if (opts.generate === true || opts.generate === 'true') {
-        const result=await generateCaptureInspection(job);
-        await rm(path.join(job,'review/independent-verdict.json'),{force:true});
-        console.log(JSON.stringify({dispositions:result.dispositions.length,file:path.relative(ROOT,path.join(job,'review/capture-visibility-dispositions.json')),
-          instruction:'Delegate this file and its paired PNGs to an independent reviewer role; request one verdict per capture, then record the returned report with --record.'},null,2));
-      } else if (opts.record) {
-        const report=await json(path.resolve(ROOT,opts.record));
-        const file=path.join(job,'review/capture-visibility-dispositions.json'), current=await json(file);
-        if(report.sourceHash!==current.sourceHash||report.videoSha256!==current.videoSha256||!Array.isArray(report.dispositions)) throw new Error('Reviewer report is stale or malformed.');
-        if(report.dispositions.length!==current.dispositions.length||report.dispositions.some(v=>!current.dispositions.some(d=>d.captureId===v.captureId&&d.sceneId===v.sceneId))) throw new Error('Reviewer report has missing, duplicate, or unrelated capture verdicts.');
-        const reviewer=report.reviewer;
-        const authenticatedReviewer={agentId:process.env.VIDEO_AGENT_ID,role:process.env.VIDEO_AGENT_ROLE};
-        await assertIndependentCaptureReviewer(job,reviewer,authenticatedReviewer);
-        current.dispositions=current.dispositions.map(item=>{
-          const verdict=report.dispositions.find(v=>v.captureId===item.captureId&&v.sceneId===item.sceneId);
-          if(!verdict||!['acceptable','reject'].includes(verdict.decision)||typeof verdict.observation!=='string'||!verdict.observation.trim()) throw new Error(`Missing independent verdict/observation for ${item.captureId}.`);
-          return {...item,status:'visually-inspected',decision:verdict.decision,observation:verdict.observation.trim(),reviewer,authenticatedReviewer};
-        });
-        await save(file,current);
-        console.log(`Recorded ${reviewer.agentId} independent visual verdict(s). ${current.dispositions.some(d=>d.decision==='reject')?'Rejected intervals remain blocked; repair and render again.':'Run review-pack --stage final --from render to continue.'}`);
-      } else throw new Error('Use --generate or --record <reviewer-report.json>.');
     } else if (command === 'human-review') {
       if (opts.want !== undefined) {
         const file = path.join(job, 'job.json'), manifest = await json(file);
@@ -786,7 +685,7 @@ try {
       };
       scan(report, '');
       if (unfilled.length) throw new Error(`Replace the FILL-IN placeholder in: ${unfilled.join(', ')}. ("findingExample" is ignored.)`);
-      console.log(JSON.stringify(await submitReview(job,report, {agentId: process.env.VIDEO_AGENT_ID, role: process.env.VIDEO_AGENT_ROLE}),null,2));
+      console.log(JSON.stringify(await submitReview(job,report),null,2));
     } else if (command === 'review-waive') {
       // A person's decision only: no agent may waive its own reviews, the orchestrator included.
       if (ROLE) throw new Error('Only the person can waive review. Report the unresolved findings to them; they decide.');

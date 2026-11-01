@@ -28,7 +28,7 @@ Open the repository in your harness, describe the audience/material and ask it t
 an explicit project, save the agreed brief under `jobs/scripts/<slug>/BRIEF.md`, then use:
 
 ```bash
-npm run video -- project-new --name <slug> --profile explainer --tts ming
+npm run video -- project-new --name <slug> --profile rules-story --tts ming
 npm run video -- next --project <slug>
 ```
 
@@ -45,11 +45,9 @@ Read the relevant contract, not the whole folder.
 | [orchestrator](docs/orchestrator.md) | Harness handoffs, checkpoints, completion and the pipeline flowchart |
 | [pipeline](docs/pipeline.html) | Standalone visual map of the whole production pipeline |
 | [composition](docs/composition.md) | Native HyperFrames integration and build failures |
-| [Motion Explainer](docs/motion-explainer.md) | Camera/motion references and Canvas animation for explainers, horror and other scenes |
+| [Motion Explainer](docs/motion-explainer.md) | Camera/motion references and Canvas animation for rules-story scenes |
 | [audio](docs/audio.md) | Ming generation, continuity, effects and verified mixing |
 | [review](docs/review.md) | Evidence-bound independent/user review and concrete findings |
-| [capture](docs/capture.md) | Actual browser recordings, native cuts and omission evidence |
-| [news](docs/news.md) | Cleared real media, source speech and subtitle schemas |
 | [publishing](docs/publishing.md) | Thumbnail contract and authorised unlisted YouTube upload |
 | [explainroo engine](engines/explainroo/VENDORED.md) | Vendored explainroo copy used by the `kai-explainer` profile (`npm run video -- explainroo ...`) |
 
@@ -69,9 +67,7 @@ The remaining modules own concrete operational contracts; their source is not re
 | `native` | Actual HyperFrames assembly, browser inspection and lint attribution |
 | `media`, `assets` | Media settings/probing, local caches, provenance and optional reuse |
 | `narration`, `audio` | Ming worker safeguards, soundtrack mixing and encoded audio verification |
-| `reshoot`, `capture-scene` | Browser evidence ingestion and authenticated native cuts |
-| `news` | Actual-media edit, source speech and subtitles |
-| `pixels` | Encoded frame and capture/source checks |
+| `pixels` | Encoded frame checks and frame-use statistics |
 | `review`, `review-pack` | Independent/user decisions and frozen inspection evidence |
 | `watch` | Read-only review overview, playback and media serving |
 | `thumbnails`, `youtube-upload` | Packaging/selection and resumable authorised upload |
@@ -87,5 +83,5 @@ local tools and models in `.cache/`. These artifacts are ignored by Git. Never p
 `VG_ALLOW_WEB_IMAGES=1` permits raster downloads. YouTube uses OAuth credentials under `.cache/`, described
 in publishing.md. Generated narration is Ming only; a supplied recording always takes priority.
 
-Tests exercise actual native/news rendering, media integrity, capture evidence, review and harness state.
+Tests exercise actual native rendering, media integrity, review and harness state.
 They do not establish the creative quality of a finished film. Judge that through actual viewer evidence.

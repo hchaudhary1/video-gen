@@ -21,9 +21,10 @@ Keep research, narration and production in the project folders. `skills/script-w
 script outputs. Use `docs/audio.md` only when generating narration; supplied recordings remain intact.
 Ming narration uses one invocation and a shared acoustic reference through `scripts/ming_continuity.py`.
 
-Explainer and rules-story personalities use the full Motion Explainer reference during visual planning, following
+The rules-story personality uses the full Motion Explainer reference during visual planning, following
 `docs/motion-explainer.md`; apply its camera, editing and motion graphics vocabulary across the film
-while preserving the selected profile's purpose and evidence boundaries.
+while preserving the profile's purpose. kai-explainer is produced by the vendored engine instead
+(`npm run video -- explainroo ...`); follow its PROFILE.md.
 
 Author the picture directly in HyperFrames using `skills/hyperframes/SKILL.md`. Bring in local assets
 with recorded sources. Reuse library assets when they fit; creating a better asset is equally valid.
@@ -34,9 +35,7 @@ facts, not audience engagement. Review should identify concrete problems and the
 it should not reward compliance with a design template. Keep independent reviews and requested human
 checkpoints truthful. Report unresolved findings and unavailable inspection capabilities at delivery.
 
-Specialised inputs: `docs/news.md` for actual-media news edits and source speech;
-`docs/capture.md` and `docs/capture.md` for browser recordings. Missing media or rights require a
-specific blocker rather than invented footage. Finish the thumbnail and publishing steps in the runbook.
+Missing media or rights require a specific blocker rather than invented footage. Finish the thumbnail and publishing steps in the runbook.
 
 The CLI returns assignment facts inline; the host writes any delegation prompt itself. Include the
 job/project folder, saved profile, relevant contract, scope, inputs, expected outputs and findings.

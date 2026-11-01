@@ -9,18 +9,19 @@ Unmodified upstream files live in `library/motion-explainer/1.0.0/upstream/`. `S
 the revision and hashes; `upstream/LICENSE` preserves attribution. The separate, project-owned
 `timeline.js` connects frame drawing to HyperFrames. Production uses this repo's renderer and workflow.
 
-## Use the full reference in every personality
+## Use the full reference in rules-story
 
-Every personality uses both catalogs during visual planning:
+The rules-story personality uses both catalogs during visual planning (kai-explainer is produced by the
+vendored engine and does not use this reference):
 
 - `upstream/examples/camera-moves/NAMES.md`: camera movement, shooting style, time and editing.
 - `upstream/examples/motion-graphics/NAMES.md`: entrances, text, motion behavior, depth, transitions and highlights.
 
 Read both, then inspect the example HTML for techniques you will implement. The motion graphics example
-has Japanese labels; its names document includes English equivalents. All 48 examples are available to
-every personality. They are starting points for adaptation, combination and invention, with no
-personality-specific shortlist. Use them throughout a film of any length, including sustained shots,
-action within scenes and continuity between scenes; the upstream short loops and card grid are optional.
+has Japanese labels; its names document includes English equivalents. All 48 examples are available.
+They are starting points for adaptation, combination and invention, with no shortlist. Use them
+throughout a film of any length, including sustained shots, action within scenes and continuity between
+scenes; the upstream short loops and card grid are optional.
 
 For each meaningful narrative beat, decide what changes on screen, what the viewer should notice and
 how motion makes that change clear. Specify the subject, technique, timing, direction and strength;
@@ -29,10 +30,8 @@ action and consequence rather than applying isolated effects. Reuse a coherent m
 varying staging for the material. Deliberate holds are valid; using the reference fully means informed
 choices across the film, not including every effect or meeting a motion quota.
 
-Adapt techniques to the selected profile's purpose and evidence rules. Explainers can use cinematic
-staging as well as diagrams; horror can use diagrams, typography and transformation as well as camera
-moves. News and app reviews can use the same vocabulary around authentic media while preserving its
-meaning and distinguishing graphics from recorded evidence. Implement in Canvas, DOM, SVG or a
+Adapt techniques to the profile's purpose. Horror can use diagrams, typography and transformation as
+well as camera moves, for long videos and Shorts alike. Implement in Canvas, DOM, SVG or a
 combination as appropriate; the Canvas bridge below is one integration option.
 
 ## Install into a job

@@ -7,6 +7,7 @@ import {promisify} from 'node:util';
 import {buildFilm, filmAudit, nextStep} from '../lib/film.mjs';
 import {openNativeInspector} from '../lib/native.mjs';
 import {createReviewPack} from '../lib/review-pack.mjs';
+import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 
 async function fixture(t) {
   const base = path.resolve('.cache/tests'); await mkdir(base, {recursive:true});
@@ -16,6 +17,7 @@ async function fixture(t) {
   const manifest = {name:'native-fixture', duration:4, width:320, height:180, fps:30, status:'prepared'};
   const put = (name, value) => writeFile(path.join(job, name), JSON.stringify(value));
   await put('job.json', manifest);
+  await freezePersonality(job, loadPersonality('rules-story'));
   await put('alignment.json', {matchRatio:1, words:[{id:'w0',text:'one',start:0,end:1},{id:'w1',text:'two',start:2,end:3}]});
   await put('film.json', {version:2,title:'Native',concept:'A direct composition',scenes:[
     {id:'one',idea:'First state',kind:'html',file:'compositions/one.html'},

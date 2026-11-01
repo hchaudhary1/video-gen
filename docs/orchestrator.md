@@ -58,8 +58,6 @@ After selection, upload the qualified MP4 to abdupdates as unlisted unless the u
 
 - Script outputs: `skills/script-writing/SKILL.md`.
 - Native authoring: `docs/composition.md`.
-- News edits/source speech: `docs/news.md`.
-- Browser recording and cut evidence: `docs/capture.md`.
 - Ming narration and soundtrack: `docs/audio.md`.
 
 
@@ -102,14 +100,10 @@ flowchart TD
     C -->|No| E
     E --> F[Use recording or generate Ming narration]
     F --> G[Measure word timing and prepare job]
-    G --> H[Author native scenes or real-media news edit]
+    G --> H[Author native scenes]
     H --> I[Build, lint and inspect]
     I -->|Repair| H
-    I --> J{App review?}
-    J -->|Yes| K[Render and verify actual playback]
-    K -->|Repair| H
-    K --> L[Freeze full-film evidence]
-    J -->|No| L
+    I --> L[Freeze full-film evidence]
     L --> M[Independent film review]
     M -->|Concrete repairs| H
     M --> N[Requested film checkpoint]

@@ -719,7 +719,7 @@
     <p class="lede">The whole production pipeline at a glance. Agents research, write, design and build; the CLI measures timing, freezes evidence and holds the gates.</p>
 
     <div class="meta" aria-label="Pipeline summary">
-      <div><b>16</b> steps</div>
+      <div><b>15</b> steps</div>
       <div><b>5</b> phases</div>
       <div><b>3</b> independent reviews</div>
       <div><b>3</b> human checkpoints</div>
@@ -941,20 +941,16 @@
             <h3>Author the picture</h3>
             <span class="kind">agent work</span>
           </div>
-          <p>Write native HyperFrames scenes, or cut an actual-media news edit. Visual intent guides the director; it is not a template or a fixed design recipe.</p>
-          <div class="tags"><code>film.json</code><code>*.html</code><code>news.md</code></div>
+          <p>Write native HyperFrames scenes. Visual intent guides the director; it is not a template or a fixed design recipe.</p>
+          <div class="tags"><code>film.json</code><code>*.html</code></div>
           <div class="files" data-base="jobs/&lt;slug&gt;/">
-            <div class="files-head"><span>Files · jobs/&lt;slug&gt;/</span><span>9</span></div>
+            <div class="files-head"><span>Files · jobs/&lt;slug&gt;/</span><span>5</span></div>
             <ul>
               <li><code>film.json</code><span class="note">scene manifest</span></li>
               <li><code>compositions/&lt;scene&gt;.html</code><span class="note">native scenes</span></li>
               <li><code>shots/&lt;scene&gt;.json</code><span class="note">shot notes</span></li>
               <li><code>components/*</code><span class="note">shared parts</span></li>
               <li><code>assets/*</code><span class="note">media and fonts</span></li>
-              <li><code>news.json</code><span class="note">news edit</span></li>
-              <li><code>news-sources.json</code><span class="note">rights ledger</span></li>
-              <li><code>assets/news/*</code><span class="note">cleared media</span></li>
-              <li><code>capture/*</code><span class="note">recorded cuts</span></li>
             </ul>
           </div>
         </article>
@@ -969,7 +965,7 @@
           </div>
           <p>Build the real composition, inspect frames and playback, and fix what the evidence shows. Automated checks establish facts, not audience engagement.</p>
           <div class="files" data-base="jobs/&lt;slug&gt;/">
-            <div class="files-head"><span>Files · jobs/&lt;slug&gt;/</span><span>14</span></div>
+            <div class="files-head"><span>Files · jobs/&lt;slug&gt;/</span><span>10</span></div>
             <ul>
               <li><code>timing.json</code><span class="note">scene timing</span></li>
               <li><code>assets/cues.js</code><span class="note">browser cues</span></li>
@@ -981,10 +977,6 @@
               <li><code>review/motion.md</code><span class="note">motion transcript</span></li>
               <li><code>review/sounds.md</code><span class="note">sound plan</span></li>
               <li><code>review/snapshots/*.png</code><span class="note">inspection frames</span></li>
-              <li><code>assets/news-captions.json</code><span class="note">caption cues</span></li>
-              <li><code>assets/subtitles.srt</code><span class="note">sidecar subtitles</span></li>
-              <li><code>assets/news-mix.wav</code><span class="note">news mix</span></li>
-              <li><code>review/news-verification.json</code><span class="note">news checks</span></li>
             </ul>
           </div>
           <div class="loop"><i>↺</i> Repairs return to <b>08 · Author the picture</b>.</div>
@@ -1002,34 +994,8 @@
     </div>
 
     <ol class="track">
-      <li class="step decision" id="step-10" data-phase="4" style="--i:10">
+      <li class="step" id="step-10" data-phase="4" style="--i:10">
         <div class="node"><span>10</span></div>
-        <article class="card">
-          <div class="card-top">
-            <h3>App review requested?</h3>
-            <span class="kind">decision</span>
-          </div>
-          <p>When requested, render the film and verify actual playback before freezing evidence. Otherwise freeze the inspected build directly.</p>
-          <div class="branches">
-            <a class="branch" href="#step-11" data-jump><span class="yn yes">Yes</span> render + verify → 11</a>
-            <a class="branch" href="#step-11" data-jump><span class="yn no">No</span> freeze build → 11</a>
-          </div>
-          <div class="files" data-base="jobs/&lt;slug&gt;/">
-            <div class="files-head"><span>Files · jobs/&lt;slug&gt;/</span><span>5</span></div>
-            <ul>
-              <li><code>renders/video.mp4</code><span class="note">playback proof</span></li>
-              <li><code>review/render-verification.json</code><span class="note">media check</span></li>
-              <li><code>review/pixels.json</code><span class="note">frame check</span></li>
-              <li><code>review/capture-visibility-dispositions.json</code><span class="note">app review</span></li>
-              <li><code>review/independent-verdict.json</code><span class="note">app review</span></li>
-            </ul>
-          </div>
-          <div class="loop"><i>↺</i> Playback defects return to <b>08 · Author the picture</b>.</div>
-        </article>
-      </li>
-
-      <li class="step" id="step-11" data-phase="4" style="--i:11">
-        <div class="node"><span>11</span></div>
         <article class="card">
           <div class="card-top">
             <h3>Freeze the evidence</h3>
@@ -1049,8 +1015,8 @@
         </article>
       </li>
 
-      <li class="step" id="step-12" data-phase="4" style="--i:12">
-        <div class="node"><span>12</span></div>
+      <li class="step" id="step-11" data-phase="4" style="--i:11">
+        <div class="node"><span>11</span></div>
         <article class="card">
           <div class="card-top">
             <h3>Independent film review</h3>
@@ -1069,8 +1035,8 @@
         </article>
       </li>
 
-      <li class="step checkpoint" id="step-13" data-phase="4" style="--i:13">
-        <div class="node"><span>13</span></div>
+      <li class="step checkpoint" id="step-12" data-phase="4" style="--i:12">
+        <div class="node"><span>12</span></div>
         <article class="card">
           <div class="card-top">
             <h3>Film checkpoint</h3>
@@ -1099,8 +1065,8 @@
     </div>
 
     <ol class="track">
-      <li class="step" id="step-14" data-phase="5" style="--i:14">
-        <div class="node"><span>14</span></div>
+      <li class="step" id="step-13" data-phase="5" style="--i:13">
+        <div class="node"><span>13</span></div>
         <article class="card">
           <div class="card-top">
             <h3>Verify and qualify</h3>
@@ -1123,8 +1089,8 @@
         </article>
       </li>
 
-      <li class="step checkpoint" id="step-15" data-phase="5" style="--i:15">
-        <div class="node"><span>15</span></div>
+      <li class="step checkpoint" id="step-14" data-phase="5" style="--i:14">
+        <div class="node"><span>14</span></div>
         <article class="card">
           <div class="card-top">
             <h3>Thumbnails</h3>
@@ -1153,8 +1119,8 @@
         </article>
       </li>
 
-      <li class="step end" id="step-16" data-phase="5" style="--i:16">
-        <div class="node"><span>16</span></div>
+      <li class="step end" id="step-15" data-phase="5" style="--i:15">
+        <div class="node"><span>15</span></div>
         <article class="card">
           <div class="card-top">
             <h3>Publish</h3>
