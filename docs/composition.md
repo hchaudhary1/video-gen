@@ -79,6 +79,10 @@ are not the delivered soundtrack. Put optional effects in film.json `sounds` and
 `music` as described in [audio.md](audio.md), so they pass through the verified pipeline mix.
 Retained source speech for news uses [news.md](news.md).
 
+Series horror (rules-story) films share a locked frame from `rules-series-kit@1.0.0`: load its `kit.js` and the
+generated `assets/series/series-data.js` in each scene template and call `RulesSeries.mount` on the scene root.
+The kit drives its HUD, captions and finish from the scene timeline, so seeking stays deterministic.
+
 ## Build and inspect
 
 ```bash
@@ -104,6 +108,8 @@ successful full build. `render --reuse-build true` requires inspection for every
 - Missing/invalid file, cue or asset: fix the named authoring input and rebuild.
 - Composition runtime or lint failure: inspect the authored HTML/JavaScript and diagnostic. The pipeline
   root is generated; fix its generator only during software work, not by patching generated job files.
+- Browser readiness on a heavily loaded machine: `VG_RENDER_READY_MS` raises the 10 s render-ready wait for build,
+  snapshot and review-pack (the timeout message lists any page errors).
 - Browser readiness, missing executable/module, localhost binding or exhausted disk/RAM: fix the actual
   environment issue. Do not redesign scenes to disguise infrastructure failure.
 - Stale review/render: rebuild, regenerate evidence and review the changed sources. Do not edit receipts.

@@ -108,6 +108,34 @@ Optional fields: `level` and `duck` (dB), `fadeIn`/`fadeOut` (seconds). Beat ana
 edits where it helps; narrated action does not have to hit every beat. Source speech for actual-media news
 belongs in `news.json`, not synthesized effects or the commentary recording.
 
+## Synthesized sound and series signatures
+
+`lib/sound-design.mjs` renders beds and effects locally, deterministically from a seed, on the dependency-free
+synth core vendored from explainroo (MIT, `lib/vendor/explainroo-audio/`, pinned commit and hashes in
+`SOURCE.json`). It adds minor, phrygian, harmonic-minor and locrian harmony; drone beds (`dread`, `pulse`,
+`music-box`, with an optional `hum`, `hiss` or `tick` texture); and effects: impact, boom, sub-drop,
+reverse-swell, riser, heartbeat, creak, knock (count/interval), glitch, static, hum, tinnitus, stinger, tick
+(count/interval) and the identity `ident` sting. `npm run video -- synth --list true` prints them.
+
+```bash
+npm run video -- synth --job jobs/<slug> --identity night-office          # the identity's whole kit
+npm run video -- synth --job jobs/<slug> --effect knock --count 3 --interval 0.7 --name sfx/three-knocks.wav
+npm run video -- synth --job jobs/<slug> --bed dread --duration 30 --key E --scale phrygian --name music/bed.wav
+```
+
+The files land under `assets/music/` and `assets/sfx/` with `assets/SOURCES.json` entries (generator, engine,
+seed and parameters), so film.json `music` and `sounds` use them like any other cleared file and the masking
+and loudness checks apply unchanged. A bed's first seconds do not depend on its length: every film of an
+identity opens on the same samples. Series horror (rules-story) uses its identity's kit; see that profile.
+
+## Mix loudness target
+
+Without a `mix` block the master is one gain toward −16 LUFS, limited by the −4 dB peak ceiling. Narration
+has a high crest factor, so a louder delivery needs peak control: `"mix": {"targetLufs": -15}` enables a
+look-ahead limiter on the whole mix (at most `maxLimitDb`, default 6 dB) and raises the master toward the
+target. `review/mix.json` records the limiter's ceiling, largest reduction and share of limited samples; the
+narration bus itself is not processed separately. `"limiter": false` keeps a single gain.
+
 Build writes `review/sounds.md`. Render writes `review/mix.json`, encoded verification and sound evidence.
 The mix applies ducking and a master gain; loudness/peak targets are measured on the exported file. Inspect
 masking findings and report measurement limits. Only claim listening when someone actually listened.

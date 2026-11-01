@@ -1,0 +1,28 @@
+{
+  "id": "lost-and-found",
+  "name": "Lost & Found Dept.",
+  "overlay": {
+    "label": "LOST & FOUND",
+    "unit": "ITEM",
+    "danger": "#e5322d"
+  },
+  "persona": "A meticulous clerk cataloguing things found in homes: describes each item, where it was found and its condition, with the calm of someone who has logged worse.",
+  "twist": "You are the item.",
+  "signOff": "Item logged. Please do not come to collect it.",
+  "sound": {
+    "seed": 2203,
+    "key": "F",
+    "scale": "minor",
+    "bed": "music-box",
+    "texture": "none",
+    "motif": [
+      4,
+      2,
+      1,
+      0
+    ]
+  },
+  "counter": 0,
+  "issues": [],
+  "createdAt": "2026-11-01T00:00:00.000Z"
+}

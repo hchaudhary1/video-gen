@@ -74,9 +74,9 @@ const hf = (args, opts) => run(process.execPath, [HF, ...args], opts);
 const probe = async file => JSON.parse(await run('ffprobe', ['-v', 'error', '-show_format', '-show_streams', '-of', 'json', file], {capture: true}));
 // Commands that change a film's sources, reviews or render. Once a job is delivered they would quietly send it back into
 // production (status → rendering/draft-rendered, stale reviews), so they need an explicit --reopen true.
-const PRODUCTION_COMMANDS = new Set(['transcribe', 'plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix',
+const PRODUCTION_COMMANDS = new Set(['transcribe', 'plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix', 'synth', 'series-kit',
   'news-ingest', 'news-transcribe', 'alignment-approve', 'check', 'review-pack', 'human-review', 'review-submit', 'deliver', 'render', 'library-use']);
-const PRODUCER_COMMANDS = new Set(['plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix', 'news-ingest', 'news-transcribe', 'alignment-approve', 'check', 'capture-ingest', 'capture-scene']);
+const PRODUCER_COMMANDS = new Set(['plan-check', 'build', 'asset', 'save', 'save-all', 'music', 'mix', 'synth', 'series-kit', 'news-ingest', 'news-transcribe', 'alignment-approve', 'check', 'capture-ingest', 'capture-scene']);
 async function guardDelivered(job, command, opts) {
   if (!PRODUCTION_COMMANDS.has(command)) return;
   if (command === 'human-review' && opts.want !== undefined) return;
@@ -93,7 +93,7 @@ function options(args) {
   const result = {};
   while (args.length) {
     const key = args.shift();
-    if (['--json','--generate','--no-latest'].includes(key) && (!args.length || args[0].startsWith('--'))) { result[key.slice(2)] = true; continue; }
+    if (['--json','--generate','--no-latest','--list'].includes(key) && (!args.length || args[0].startsWith('--'))) { result[key.slice(2)] = true; continue; }
     if (!key.startsWith('--') || !args.length || args[0].startsWith('--')) throw new Error(`Expected --option value: ${key}`);
     if (key === '--note' || key === '--finding' || key === '--model' || key === '--tag') (result[key.slice(2)] ||= []).push(args.shift()); // repeatable
     else result[key.slice(2)] = args.shift();
@@ -301,7 +301,7 @@ async function verify(job) {
   const reference = mixReport ? mixFile : narrationFile;
   const soundtrack = mixReport ? {reference: 'renders/mix.wav (narration unprocessed + declared sound effects + music, master gain ' + mixReport.gainDb + ' dB)',
     narrationOnlyCorrelation: (await compareNarration(file, narrationFile)).correlation, loudness: {integratedLufs: mixReport.integratedLufs, truePeakDb: mixReport.truePeakDb,
-      samplePeakDb: mixReport.samplePeakDb, mono: mixReport.mono, peaksOk: mixReport.peaksOk, limitedBy: mixReport.limitedBy}, soundEffects: mixReport.soundEffects,
+      samplePeakDb: mixReport.samplePeakDb, mono: mixReport.mono, peaksOk: mixReport.peaksOk, limitedBy: mixReport.limitedBy, ...(mixReport.limiter ? {limiter: mixReport.limiter} : {})}, soundEffects: mixReport.soundEffects,
     music: mixReport.music, voiceMasked: mixReport.voiceMasked, voiceClose: mixReport.voiceClose, soundsUnderMusic: mixReport.soundsUnderMusic} : null;
   const narrationIntegrity = {...await compareNarration(file, reference), ...(soundtrack ? {reference: soundtrack.reference} : {})};
   const report = {ok: true, output: path.relative(ROOT, file), duration: Number(metadata.format.duration),
@@ -340,6 +340,25 @@ async function musicImport(job, opts) {
   console.log(`\nMusic ${a.path}: ${r.tempo} BPM, beat every ${r.period}s; grid shifted ${(r.shiftApplied * 1000).toFixed(0)} ms${r.offBeatLock ? ' (librosa had locked onto the off-beat)' : ''}; kicks within 35 ms of the grid: ${Math.round((r.kickAlignment.after?.onBeat ?? 0) * 100)}%.`);
   console.log(`Look at the plot: ${path.relative(ROOT, path.join(job, plot))} (red grid lines must sit on the orange kick marks).`);
   console.log(`Then set film.json "music": {"src": "${a.path}", "source": ${JSON.stringify(opts.source)}, "license": ${JSON.stringify(opts.license)}, "trackStart": 0, "filmStart": 0} and run plan-check; the build reports which cuts land on the beat.`);
+}
+
+async function seriesCommand(command, opts) {
+  const ids = await import('../lib/identities.mjs');
+  if (command === 'synth') {
+    const sd = await import('../lib/sound-design.mjs');
+    console.log(JSON.stringify({beds: sd.BED_STYLES, textures: sd.TEXTURES, effects: Object.fromEntries(Object.entries(sd.EFFECTS).map(([k, v]) => [k, v.description])), scales: Object.keys(sd.SCALES)}, null, 2));
+  } else if (command === 'identities') {
+    for (const i of await ids.listIdentities()) console.log(`${i.id.padEnd(26)} ${ids.overlayText(i, i.counter + 1).padEnd(32)} next file ${ids.fileNumber(i.counter + 1)} · ${i.sound.bed}/${i.sound.texture} in ${i.sound.key} ${i.sound.scale} · issued ${i.issues.length}`);
+  } else if (command === 'identity') console.log(JSON.stringify(await ids.getIdentity(opts.id), null, 2));
+  else if (command === 'identity-new') {
+    const motif = opts.motif?.split(',').map(Number);
+    const created = await ids.createIdentity({id: opts.id, name: opts.name, label: opts.label, unit: opts.unit, persona: opts.persona, twist: opts.twist, signOff: opts['sign-off'],
+      danger: opts.danger, key: opts.key, scale: opts.scale, bed: opts.bed, texture: opts.texture, motif, seed: opts.seed === undefined ? undefined : numeric(opts.seed, 0, 'seed')});
+    console.log(`Created identity ${created.id}: ${ids.overlayText(created, 1)}.`);
+  } else if (command === 'identity-continue') {
+    const r = await ids.continueIdentity(opts.id, {project: opts.project, parent: opts.parent || null, format: opts.format || null});
+    console.log(`${r.created ? 'Issued' : 'Already issued'}: ${r.overlay} → ${opts.project}${r.issue.parent ? ` (Short of ${r.issue.parent})` : ''}. Sound signature: seed ${r.identity.sound.seed}, ${r.identity.sound.key} ${r.identity.sound.scale}, ${r.identity.sound.bed}.`);
+  }
 }
 
 async function projectCommand(command, opts) {
@@ -478,6 +497,17 @@ youtube-upload --file <video.mp4> --title "Title" [--description "..."] [--priva
 youtube-thumbnail --video <id|url> --file <png|jpg>   set the custom thumbnail of an uploaded video (2 MB max)
 frame-stats --video <a.mp4>[,<b.mp4>] [--every 2]   measure how much of the frame a film uses (ink, spread, near-blank), to compare films
 
+Series horror (rules-story; personalities/rules-story/PROFILE.md)
+identities                           list series identities (personalities/rules-story/identities/) and their file counters
+identity --id <id>                   one identity: persona, twist, sign-off, sound signature and issued file numbers
+identity-new --id <id> --name ".." --label ".." --unit ".." --persona ".." --twist ".." --sign-off ".." [--key C# --scale phrygian --bed dread|pulse|music-box --texture hum|hiss|tick|none --motif 0,1,4 --seed n]
+identity-continue --id <id> --project <slug> [--parent <long-video slug>]   give a project its file number (a Short shares its parent's)
+synth --list true                    synthesized beds, textures and effects (deterministic, lib/sound-design.mjs on the vendored explainroo synth)
+synth --job <job> --identity <id> [--duration s]   render the identity's sound kit: music/<id>-bed.wav, sfx/<id>-<effect>.wav, with SOURCES.json provenance
+synth --job <job> --effect <name> --name sfx/<file>.wav [--seed n --key C# --scale phrygian --dur s --count n --interval s --bpm n]   one effect take
+synth --job <job> --bed <style> --name music/<file>.wav --duration s [--seed n --key .. --scale .. --texture ..]   one bed
+series-kit --job <job>               from series.json: install rules-series-kit@1.0.0 and write assets/series/series-data.js (identity HUD, rules, sentence captions)
+
 The latest prepared job is used when --job is omitted.
 Creative design is performed by the agent; see docs/orchestrator.md.
 `;
@@ -512,6 +542,7 @@ try {
     if (!files.length) throw new Error('frame-stats needs --video <file.mp4>[,<file.mp4>...]');
     for (const f of files) { const r = await frameStats(path.resolve(f), {every: numeric(opts.every, 2, 'every')}); console.log(`${f}\n  ${r.frames} frames every ${r.every}s · ink median ${r.inkMedian}% (p90 ${r.inkP90}%) · spread median ${r.spreadMedian}% · near-blank ${r.nearBlank}%`); }
   }
+  else if (['identities', 'identity', 'identity-new', 'identity-continue'].includes(command) || (command === 'synth' && opts.list)) await seriesCommand(command, opts);
   else if (command === 'library-add') {
     if (!opts.source) throw new Error('library-add requires --source bundle-directory.');
     console.log(JSON.stringify(await publishBundle(LIBRARY, path.resolve(ROOT, opts.source)), null, 2));
@@ -557,6 +588,7 @@ try {
     } else if (command === 'snapshot') await snapshot(job, {scene: opts.scene, at: opts.at});
     else if (command === 'review-template') await reviewTemplate(job, {stage: opts.stage || 'final', role: opts.role});
     else if (command === 'asset') {
+      if (Array.isArray(opts.note)) opts.note = opts.note.join(' '); // --note is collected as a repeatable option
       if (!opts.note?.trim()) throw new Error('asset needs --note "<what it shows>" so later films can find it in the library');
       if (/^(sfx|music)\//.test(opts.name || '') && !opts.license?.trim()) throw new Error('Audio needs --license "<the licence on its source page>" (and --source "<that page>").');
       if ((opts.name || '').startsWith('music/')) throw new Error('Bring music in with the music command (it also finds the beats): npm run video -- music --job <job> --src <url|file> --name ' + opts.name + ' --source "<page>" --license "<licence>"');
@@ -580,6 +612,23 @@ try {
       console.log(nextHint(job).trim());
     }
     else if (command === 'music') await musicImport(job, opts);
+    else if (command === 'synth') {
+      const {renderSoundKit, renderSingle} = await import('../lib/series.mjs');
+      const num = k => opts[k] === undefined ? undefined : numeric(opts[k], 0, k);
+      const params = Object.fromEntries(Object.entries({seed: num('seed'), key: opts.key, scale: opts.scale, dur: num('dur'), count: num('count'), interval: num('interval'), bpm: num('bpm'),
+        duration: num('duration'), texture: opts.texture, motif: opts.motif?.split(',').map(Number)}).filter(([, v]) => v !== undefined));
+      const result = opts.identity ? await renderSoundKit(job, opts.identity, {duration: params.duration})
+        : await renderSingle(job, {effect: opts.effect, bed: opts.bed, name: opts.name, ...params});
+      console.log(JSON.stringify(result, null, 2));
+      if (opts.identity) console.log(`\nUse in film.json: "music": {"src": "${result.music.src}", "source": ${JSON.stringify(result.music.source)}, "license": ${JSON.stringify(result.music.license)}, "level": -12, "duck": -10, "fadeIn": 0.2, "fadeOut": 2.5}, "mix": {"targetLufs": -15}, and "sounds" from assets/sfx/${opts.identity}-*.wav.`);
+    }
+    else if (command === 'series-kit') {
+      const {prepareSeries} = await import('../lib/series.mjs');
+      const r = await prepareSeries(job);
+      console.log(`Series data: ${r.data.identity.overlay}; ${r.data.rules.length} rule(s); ${r.captionCount} caption(s), median ${r.medianCaptionSeconds}s apart (review/series-captions.md).${r.kitInstalled ? ' Installed rules-series-kit@1.0.0.' : ''}`);
+      for (const w of r.warnings) console.log(`  ! ${w}`);
+      console.log('Load in each scene template: <script src="assets/library/rules-series-kit/1.0.0/kit.js"></script><script src="assets/series/series-data.js"></script> (README.md in the kit).');
+    }
     else if (command === 'capture-ingest') {
       if (!opts.run) throw new Error('capture-ingest needs --run <reshoot run folder>, such as reshoot/takes/runs/<id> (docs/capture.md).');
       if (!opts.task) throw new Error('capture-ingest needs --task <id>: the feature/task id this recording evidences.');

@@ -1,0 +1,27 @@
+{
+  "id": "quiet-line",
+  "name": "The Quiet Line",
+  "overlay": {
+    "label": "QUIET LINE",
+    "unit": "CALL",
+    "danger": "#e5322d"
+  },
+  "persona": "A calm helpline operator talking the caller through the night, one instruction at a time, never hurried and never surprised.",
+  "twist": "You never dialled. They called you.",
+  "signOff": "This call may be monitored. It always has been.",
+  "sound": {
+    "seed": 4409,
+    "key": "E",
+    "scale": "phrygian",
+    "bed": "dread",
+    "texture": "hiss",
+    "motif": [
+      0,
+      5,
+      1
+    ]
+  },
+  "counter": 0,
+  "issues": [],
+  "createdAt": "2026-11-01T00:00:00.000Z"
+}
