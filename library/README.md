@@ -29,3 +29,9 @@ reusable creative assets and should not be published as such.
 
 `motion-explainer@1.0.0` bundles pinned MIT camera/motion examples, prompts and a native Canvas
 timeline bridge. See [usage and profile guidance](../docs/motion-explainer.md).
+
+## Rules-series kit
+
+`rules-series-kit@1.0.0` is the locked frame of series horror films (case-file HUD, sentence captions, rule
+card, exhibit card, marks, glitch and film finish). `series-kit --job <job>` installs it and writes the series
+data; see its README.md and `personalities/rules-story/PROFILE.md`.

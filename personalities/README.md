@@ -5,7 +5,7 @@ Choose by treatment, not just topic. The user's explicit direction wins.
 | Intent | Profile |
 |---|---|
 | Teach a concept or mechanism | [explainer](explainer/PROFILE.md) |
-| Original uncanny fiction or survival rules | [rules-story](rules-story/PROFILE.md) |
+| Original uncanny fiction or survival rules (series horror; identities in `rules-story/identities/`) | [rules-story](rules-story/PROFILE.md) |
 | Markets, earnings or financial reporting | [news-financial](news-financial/PROFILE.md) |
 | Elections, government or political reporting | [news-political](news-political/PROFILE.md) |
 | Actually test or demonstrate software | [app-review](app-review/PROFILE.md) |

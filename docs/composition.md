@@ -79,6 +79,10 @@ are not the delivered soundtrack. Put optional effects in film.json `sounds` and
 `music` as described in [audio.md](audio.md), so they pass through the verified pipeline mix.
 Retained source speech for news uses [news.md](news.md).
 
+Series horror (rules-story) films share a locked frame from `rules-series-kit@1.0.0`: load its `kit.js` and the
+generated `assets/series/series-data.js` in each scene template and call `RulesSeries.mount` on the scene root.
+The kit drives its HUD, captions and finish from the scene timeline, so seeking stays deterministic.
+
 ## Build and inspect
 
 ```bash
