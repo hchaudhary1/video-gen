@@ -2,7 +2,7 @@
 
 A 8–14 minute finance commentary video modelled on the Finance Deep Dive channel
 (youtube.com/@Financedeepdive-x1n): chaptered CNBC clips of a famous market voice first, then our own
-explainroo commentary on what was said. **More than 50% of the runtime must be our own content**; this
+explainroo commentary on what was said. **CNBC excerpts must occupy 30–40% of the measured runtime, aiming near 40%, with 60–70% original commentary**; this
 is measured and enforced by `npm run video -- cnbc assemble`/`cnbc ratio` (ffprobe on every part and the
 final file), never estimated.
 
@@ -33,19 +33,18 @@ fair use; say so when reporting, and never claim a licence or permission from CN
    company/market moment. Write `cnbc/clips.json`:
    `{"person": "Jim Cramer", "clips": [{"id": "ai-risk", "chapter": "Cramer's biggest AI risk", "in": 812.4, "out": 861.0, "speaker": "Jim Cramer"}]}`.
    3–6 clips, each ≥ 10 s (a YouTube chapter), cut on word gaps (the tool rejects mid-word cuts), with
-   chapter titles phrased as the reference does ("Is AI investment generating returns?"). Keep the
-   clips together under roughly 40% of the planned runtime. Check every quotation against the audio
+   chapter titles phrased as the reference does ("Is AI investment generating returns?"). Plan the excerpts for 30–40% of the finished runtime, aiming near 40%; budget the commentary for the remaining 60–70%. Check every quotation against the audio
    rather than trusting ASR.
 5. `npm run video -- cnbc cut --project <slug>` → `cnbc/clips/<id>.mp4` (1920×1080, 30 fps, 48 kHz,
    "Source: CNBC <show>, <date>" credit burned in).
-6. Commentary with explainroo (kai template, `script.md` + `scenes.js`): react to each clip in order, add
+6. Commentary with explainroo (kai template, `script.md` + `scenes.js`): The finance narration rules below override the Kai template’s hypothetical opening and scenario guidance. React to each clip in order, add
    context with dated, sourced facts (`sources/SOURCES.md`), separate what was said from our opinion,
    and end with what it means for investors plus a not-financial-advice line. Name chapters in scenes so
    explainroo writes `out/video.chapters.txt`. Its duration must exceed the clips' total. Then
    `explainroo voice`, `check`, `still`/`sheet`, `render`, `verify` as in the kai-explainer profile.
 7. `npm run video -- cnbc assemble --project <slug>` → `cnbc/final.mp4` (clips first, then commentary),
    `cnbc/chapters.txt` (one chapter per clip, then the commentary chapters) and `cnbc/ratio.json`. It exits
-   non-zero when own content is not > 50%; lengthen the commentary or trim clips, never pad with silence.
+   non-zero unless CNBC occupies 30–40% of measured runtime. Adjust substantive excerpts or commentary to meet that range; never pad with silence.
 8. Thumbnail (1920×1080 JPEG < 2 MB), copied from the reference: black field, **2–3 words** in huge
    uppercase heavy type (last line accented yellow or red), the famous person's head-and-shoulders on the
    other side. Get the person from the recording (`cnbc frame --project <slug> --at <sec>`) or a
@@ -66,3 +65,9 @@ fair use; say so when reporting, and never claim a licence or permission from CN
     following `docs/publishing.md`.
 
 Disclose what was not checked, for example that the narration or clip audio was not listened to.
+
+## Finance narration
+
+Open directly with the market issue and our opinion. Explain what the viewer needs to know, why it matters, and what evidence supports the view. Do not use the Kai template’s “Okay, so picture this” opening.
+
+Avoid invented scenarios, assumed portfolios and made-up company or cash-flow examples, so narration needs no “this is hypothetical” or “we are assuming” disclaimers. Use sourced real examples and direct analysis instead. State opinions as opinions, retain material uncertainty, and never present invented figures or assumptions as reported facts. Keep production and research-process commentary out of the narration.
