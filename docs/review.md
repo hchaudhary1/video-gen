@@ -10,6 +10,12 @@ Three roles address visual understanding, narration fidelity and continuity/legi
 whole assigned interval, including intermediate states, handoffs and ending. The visual role records its
 initial picture observations before reading the intended narrative.
 
+For narration fidelity, compare the full measured transcript and alignment with the approved script and
+check available signal/mix evidence. Listen when the model and tools support audio; otherwise a
+`signal-verified` review can pass, with unheard audio and unseen motion disclosed. Check material ASR
+ambiguities against audio or a second transcript. Sampled frames may cover the interval when playback is
+unavailable; never claim to have heard audio or watched motion without doing so.
+
 ## Report
 
 Generate the schema with:
@@ -34,7 +40,7 @@ A repair describes the desired outcome rather than forcing the author's implemen
 
 Missing visual inspection means `inspection.visual: "unavailable"` and `verdict: "incomplete"`.
 Audio status is `listened` only after listening, otherwise `signal-verified` or `unavailable` with the
-limitation stated. Never turn still-frame inspection into a claim of playback review.
+limitation stated. Transcript and signal checks do not establish audible quality or exact synchronization.
 
 Submit using `review-submit --job <job> --file <report.json>`. The CLI validates identity, hashes,
 evidence and coverage. Producers do not edit reviewer verdicts. User decisions remain separate.
