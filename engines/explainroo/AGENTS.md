@@ -70,8 +70,9 @@ node bin/explainroo.js init videos/<name> --template kai --title "..."
   parts in `s.kai` (outlined cards, small caps labels, tags, stamps, filling
   grids, evidence cards with real quotes, a chapter bar, memory budget
   bars). It is tuned for AI and tech topics of 8 to 12 minutes. Read
-  `templates/kai/TEMPLATE.md` before you write: its narration rules replace
-  "How to write the narration" below for that template.
+  `templates/kai/TEMPLATE.md` before you write: its creative guidance is an
+  initial steer, with room to adapt the hook, structure and scenes. Its narration
+  guidance replaces "How to write the narration" below for that template.
 
 ## Making a video, step by step
 

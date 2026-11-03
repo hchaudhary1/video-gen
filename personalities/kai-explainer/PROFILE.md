@@ -4,6 +4,11 @@ A long-form (default 8–12 minute) first-person explainer in the style of tech 
 frame per scene that starts almost empty and builds to a single composed picture on the narration, then a hard
 cut. Tuned for AI and tech (models, local AI hardware, costs, papers); usable for any explainer topic.
 
+The template's creative guidance is a starting steer. Adapt the narrative,
+layouts, component choices and pacing to the subject while keeping the palette
+and typography consistent. Write an original, human hook without a fixed opening
+phrase. Retain the sourcing and honesty requirements.
+
 This profile is produced with the vendored explainroo engine in `engines/explainroo`, not with `project-new`
 and HyperFrames. Read `engines/explainroo/AGENTS.md` (steps, checks, Scene API) and
 `engines/explainroo/templates/kai/TEMPLATE.md`, whose narration rules replace explainroo's default ones.
@@ -18,7 +23,7 @@ Paths are relative to `engines/explainroo`. First use: `(cd engines/explainroo &
 1. Research and keep evidence in the project: `sources/` with local copies and `sources/SOURCES.md` (URLs, quotes used).
 2. `explainroo init videos/<slug> --template kai --title "..."` (defaults: camera still, cut transitions, Kokoro
    `am_michael`, quiet `calm` music, no watermark, 1920×1080).
-3. Write `script.md` under the template's rules: first person for the true research journey only, never invented
+3. Write `script.md` using the template's guidance: first person for the true research journey only, never invented
    personal experience; hypotheticals clearly marked; every number and on-screen quote from a retained source.
 4. `explainroo voice`, then plan and write `scenes.js` with `s.kai` and the Scene API; scenes of roughly 10–20 s.
 5. `explainroo check` (fix all errors and warnings), `still`/`sheet` and inspect the images, `render --draft`,
