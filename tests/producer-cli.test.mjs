@@ -1,3 +1,4 @@
+import {syntheticAsrEnv} from './speech-fixture.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm} from 'node:fs/promises';
@@ -44,7 +45,7 @@ test('prepare carries the frozen profile, the brief and script-stage producer pr
   const words=path.join(project,'words.json');
   await writeFile(words,JSON.stringify([{text:'The',start:0.1,end:0.3},{text:'setting',start:0.35,end:0.7},{text:'is',start:0.75,end:0.85},{text:'visible.',start:0.9,end:1.2}]));
   await exec('ffmpeg',['-nostdin','-v','error','-y','-f','lavfi','-i','sine=frequency=440:duration=4','-c:a','pcm_s16le',audio],{cwd:ROOT});
-  await exec(process.execPath,['scripts/video.mjs','prepare','--name',slug,'--audio',audio,'--script',script,'--profile','rules-story','--words',words,'--no-latest'],{cwd:ROOT})
+  await exec(process.execPath,['scripts/video.mjs','prepare','--name',slug,'--audio',audio,'--script',script,'--profile','rules-story','--words',words,'--no-latest'],{cwd:ROOT,env:await syntheticAsrEnv(project,'The setting is visible.')})
     .catch(error=>{error.message+=`\nstdout:\n${error.stdout||''}\nstderr:\n${error.stderr||''}`;throw error;});
   const manifest=JSON.parse(await readFile(path.join(job,'job.json'),'utf8'));
   assert.equal(manifest.productionProfile.id,'rules-story');

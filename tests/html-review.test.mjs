@@ -1,3 +1,4 @@
+import {syntheticSpeechEvidence} from './speech-fixture.mjs';
 import {nativeFixture} from './helpers/native-fixture.mjs';
 // Reviews of the built HTML (no render before the final review), the person's own review, and one render at the end.
 import {test} from 'node:test';
@@ -27,11 +28,12 @@ async function fixture(t, {human} = {}) {
   await writeFile(path.join(job, 'assets/narration.wav'), 'Synthetic narration fixture');
   for (const id of ['opening', 'comparison', 'ending'])
     await put(job, `shots/${id}.json`, {scene: id, objects: id === 'opening' ? [{id: 'subject', type: 'circle', at: [960, 540], r: 100}] : [], actions: []});
+  await writeFile(path.join(job,'inputs/narration.txt'),'Synthetic script');
   await nativeFixture(job,film);
   return job;
 }
 
-// A synthetic html pack (what review-pack writes from the built film), then the three reviews.
+// A synthetic html pack (what review-pack writes from the built film), then the two visual reviews.
 async function htmlPack(job, {start = 0, end = 18, verdict = 'pass'} = {}) {
   const stage = 'final';
   await mkdir(path.join(job, `review/${stage}`), {recursive: true});
@@ -47,7 +49,7 @@ async function htmlPack(job, {start = 0, end = 18, verdict = 'pass'} = {}) {
   const context = await loadReviewPack(job, stage);
   for (const role of REVIEW_ROLES) await submitReview(job, {version: 1, stage, role, sourceHash, videoSha256: null, packSha256: context.packSha256,
     reviewer: {agentId: `/fixture/${stage}-${role}`, independent: true},
-    inspection: {mode: 'frame-sequence', visual: 'viewed', evidence: [evidence[0].path], limitations: ['Synthetic test judgment.'], ...(role === 'narration-fidelity' ? {audio: 'signal-verified'} : {})},
+    inspection: {mode: 'frame-sequence', visual: 'viewed', evidence: [evidence[0].path], limitations: ['Synthetic test judgment.'], },
     initialObservation: 'Synthetic fixture', coverage: [{start, end}], verdict, findings: []});
   return context;
 }
@@ -58,6 +60,7 @@ async function render(job, {integrity = true} = {}) {
   const videoSha256 = await fileHash(path.join(job, 'renders/video.mp4'));
   await put(job, 'review/render-source.json', {version: 1, sourceHash: await sourceFingerprint(job), videoSha256});
   await put(job, 'review/render-verification.json', {ok: true, sha256: videoSha256, narrationIntegrity: {ok: integrity}});
+  await syntheticSpeechEvidence(job);
   await put(job, 'review/pixels.json', {ok: true, errors: []});
   await writeFile(path.join(job, 'review/REPORT.md'), 'Production report fixture.');
 }

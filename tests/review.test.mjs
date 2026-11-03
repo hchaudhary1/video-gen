@@ -1,3 +1,4 @@
+import {syntheticSpeechEvidence} from './speech-fixture.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm, symlink} from 'node:fs/promises';
@@ -18,6 +19,7 @@ async function fixture(t) {
   await writeFile(path.join(job,'renders/video.mp4'),'synthetic render hash fixture, not actual video');
   await writeFile(path.join(job,'STORYBOARD.md'),'Subject operates and produces a result.');
   await writeFile(path.join(job,'review/REPORT.md'),'Reviewed the final film with documented limitations.');
+  await syntheticSpeechEvidence(job);
   return job;
 }
 
@@ -44,7 +46,7 @@ function review(context,role=REVIEW_ROLES[0]) {
   return {version:1,stage:pack.stage,role,reviewer:{agentId:`/root/reviewer-${role}`,independent:true},
     sourceHash:pack.sourceHash,videoSha256:pack.videoSha256,packSha256,
     inspection:{mode:'frame-sequence',visual:'viewed',evidence:pack.evidence.filter(e=>e.kind==='frames').map(e=>e.path),limitations:['Frames inspected; normal-speed playback and listening were unavailable.'],
-      ...(role==='narration-fidelity'?{audio:'signal-verified'}:{})},
+      },
     coverage:[pack.interval],initialObservation:'A constrained part changes the visible output.',findings:[],verdict:'pass'};
 }
 async function accept(job,context) {
@@ -63,7 +65,7 @@ test('source digest includes media, scene and storyboard edits but excludes rend
   assert.notEqual(await sourceFingerprint(job),initial);
 });
 
-test('delivery requires all three independent final reviews of current output',async t=>{
+test('delivery requires both independent final reviews of current output',async t=>{
   const job=await fixture(t);
   await assert.rejects(qualifyDelivery(job));
   const final=await freeze(job,'final');
@@ -74,7 +76,7 @@ test('delivery requires all three independent final reviews of current output',a
   const qualification=await qualifyDelivery(job);
   assert.equal(qualification.ok,true);
   assert.equal(qualification.videoSha256,final.pack.videoSha256);
-  assert.equal(qualification.reviewerIds.length,3);
+  assert.equal(qualification.reviewerIds.length,2);
 });
 
 test('source, render, evidence and receipt edits invalidate final reviews',async t=>{
@@ -149,19 +151,10 @@ test('timestamped blockers are retained, incomplete coverage never qualifies, co
   await accept(job,context);
   assert.equal((await reviewStatus(job,'final')).ok,true);
   const {readdir}=await import('node:fs/promises');
-  assert.equal((await readdir(path.join(job,'review/final/history'))).length,5);
+  assert.equal((await readdir(path.join(job,'review/final/history'))).length,4);
 });
 
-test('signal-only narration reports require frozen measured integrity evidence',async t=>{
-  const job=await fixture(t),context=await freeze(job,'final');
-  const r=review(context,'narration-fidelity');
-  context.pack.evidence=context.pack.evidence.filter(e=>e.kind!=='verification');
-  await put(job,'review/final/pack.json',context.pack);
-  const missing=await loadReviewPack(job,'final');
-  await assert.rejects(submitReview(job,review(missing,'narration-fidelity')),/frozen technical evidence/);
-  r.inspection.audio='unavailable';
-  assert.throws(()=>validateReview(r,context),/audio evidence/);
-});
+test('audio reviewer role is retired', () => { assert.deepEqual(REVIEW_ROLES, ['visual-mechanism','continuity-legibility']); });
 
 test('altered evidence and a pending report block delivery',async t=>{
   const job=await fixture(t),final=await freeze(job,'final');await accept(job,final);
@@ -199,11 +192,11 @@ test('external render symlink cannot be loaded as frozen local review media',asy
 
 test('a report with several problems lists them all, each with its field', async t => {
   const job=await fixture(t), context=await freeze(job,'final');
-  const r=review(context,'narration-fidelity');
+  const r=review(context,'continuity-legibility');
   r.inspection.mode='watched'; delete r.inspection.audio; r.coverage=[{start:0,end:99}];
   r.findings=[{id:'F1',severity:'blocking',start:1,end:2,subject:'label',requirement:'',observed:'cut off',repair:'',evidence:['review/final/missing.png']}];
   const error=assert.throws(()=>validateReview(r,context),error=>{
-    for (const field of ['inspection.mode','inspection.audio','coverage[0]','findings[0] (F1)','verdict']) assert(error.message.includes(field+':'),field);
+    for (const field of ['inspection.mode','coverage[0]','findings[0] (F1)','verdict']) assert(error.message.includes(field+':'),field);
     assert.match(error.message,/requirement, repair must be filled in/);
     assert.match(error.message,/evidence not in the pack: review\/final\/missing\.png/);
     assert.match(error.message,/^The report has \d+ problems/);
@@ -227,9 +220,9 @@ test('three failed rounds continue with disclosed findings, never fabricated pas
   manifest.reviewRounds = {final:3};
   await put(job,'job.json',manifest);
   const final = await freeze(job,'final');
-  for (const role of REVIEW_ROLES.slice(0,2)) await submitReview(job,blockedReview(final,role));
+  for (const role of REVIEW_ROLES.slice(0,1)) await submitReview(job,blockedReview(final,role));
   assert.equal((await reviewStatus(job,'final')).ok,false, 'never skip pending reviewers');
-  await submitReview(job,blockedReview(final,REVIEW_ROLES[2]));
+  await submitReview(job,blockedReview(final,REVIEW_ROLES[1]));
   const status = await reviewStatus(job,'final');
   assert.equal(status.ok,true);
   assert.equal(status.independentPassed,false);
@@ -237,7 +230,7 @@ test('three failed rounds continue with disclosed findings, never fabricated pas
   const result = await qualifyDelivery(job);
   assert.equal(result.reviewDisposition,'review-limit-reached');
   assert.equal(result.independentReviewPassed,false);
-  assert.equal(result.unresolvedFindings.length,3);
+  assert.equal(result.unresolvedFindings.length,2);
   await writeFile(path.join(job,'renders/video.mp4'),'tampered');
   await assert.rejects(qualifyDelivery(job));
 });
@@ -248,7 +241,7 @@ test('review limit cannot bypass incomplete inspection or invalid evidence', asy
   const context = await freeze(job,'final');
   for (const role of REVIEW_ROLES) {
     const report = blockedReview(context,role);
-    if (role === REVIEW_ROLES[2]) {report.verdict = 'incomplete';report.inspection.visual = 'unavailable';}
+    if (role === REVIEW_ROLES[1]) {report.verdict = 'incomplete';report.inspection.visual = 'unavailable';}
     await submitReview(job,report);
   }
   assert.equal((await reviewStatus(job,'final')).ok,false);
@@ -278,7 +271,7 @@ test('readability blockers cannot be waived after three or more review rounds',a
     }
     const status=await reviewStatus(job,'final');
     assert.equal(status.ok,false);assert.equal(status.continued,false);
-    assert.equal(status.nonWaivableFindings.length,3);
+    assert.equal(status.nonWaivableFindings.length,2);
   }
 });
 

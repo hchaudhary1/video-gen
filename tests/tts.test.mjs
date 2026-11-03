@@ -61,7 +61,7 @@ test('Ming receives the complete plan once, records continuity and preserves exi
   const files = await fixture(t), calls = [];
   const performance = { segments: [{ text: 'First paragraph.' }, { text: 'Second paragraph.' }] };
   const options = { ...files, text: 'First paragraph.\n\nSecond paragraph.', narration: true, provider: 'ming', performance };
-  const engines = {
+  const engines = {verify: async () => ({ok:true}),
     ming: async (text, output, opts) => { calls.push({ text, opts }); await writeFile(output, wav()); },
   };
   await generateSpeech(options, engines);
@@ -95,7 +95,7 @@ test('a short take fails its duration target without replacing existing narratio
   assert.equal(status.durationSeconds, 0.1);
   assert.equal(status.targetSeconds, 60);
   assert.equal((await readFile(status.rejectedOutput)).toString('ascii', 0, 4), 'RIFF');
-  await generateSpeech({...options, targetSeconds: 0.1, durationTolerance: 0.01}, {ming});
+  await generateSpeech({...options, targetSeconds: 0.1, durationTolerance: 0.01}, {ming, verify:async()=>({ok:true})});
   assert.equal((await readTtsStatus(files.statusFile)).status, 'complete');
 });
 
@@ -109,4 +109,13 @@ test('a model failure keeps partial audio for diagnosis without approving or rep
   assert.equal(status.status, 'failed');
   assert.deepEqual(await readFile(status.rejectedOutput), wav());
   assert.equal(await readFile(files.output, 'utf8'), 'prior take');
+});
+
+test('failed automatic speech verification preserves the existing take and marks generation failed', async t => {
+  const files = await fixture(t); await writeFile(files.output,'approved old take');
+  await assert.rejects(generateSpeech({...files,text:'Complete approved script.'}, {
+    ming:async (_,output)=>writeFile(output,wav()), verify:async()=>({ok:false})
+  }), /speech verification failed/);
+  assert.equal(await readFile(files.output,'utf8'),'approved old take');
+  assert.equal((await readTtsStatus(files.statusFile)).status,'failed');
 });

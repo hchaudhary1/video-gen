@@ -30,13 +30,16 @@ Use `docs/audio.md` only when narration is needed. Generate one complete narrati
 shared reference through the continuity adapter. Supplied recordings remain unchanged.
 For generated narration, pass the requested `--target-seconds` to TTS and `--full-script true` to start;
 duration and full-script coverage are separate checks. A take within ±20% of the requested duration (or 2
-seconds, whichever is larger) is approved; the coverage check still decides whether the entire script was
+seconds, whichever is larger) satisfies the duration check; automatic speech verification still decides whether the entire script was
 spoken. A matching excerpt is not a complete take.
 
 ## Review and completion
 
 Build and inspect the real composition. `review-pack` freezes evidence of the full film before final render.
-Use `docs/review.md` for report schemas. Review findings describe demonstrated defects and viewer
+Commission only `visual-mechanism` and `continuity-legibility` independent reviewers.
+Parakeet v2 automatically checks generated/prepared narration and the encoded final mix; missing,
+failed or stale speech receipts block delivery even after a visual waiver. ASR never establishes
+listening or naturalness. Use `docs/review.md` for report schemas. Review findings describe demonstrated defects and viewer
 impact; aesthetic preferences are advisory. Missing evidence or failed technical checks is not a creative pass.
 The configured review budget may end with disclosed findings; never call that an independently passed film.
 

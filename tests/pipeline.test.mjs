@@ -1,3 +1,4 @@
+import {syntheticSpeechEvidence, syntheticAsrEnv} from './speech-fixture.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm} from 'node:fs/promises';
@@ -12,7 +13,7 @@ import {sourceFingerprint, fileHash, loadReviewPack, REVIEW_ROLES} from '../lib/
 import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const testCache = path.join(ROOT, '.cache', 'cleanup-tests');
-const run = (command, job) => spawnSync(process.execPath, [path.join(ROOT,'scripts/video.mjs'),command,'--job',job], {encoding:'utf8'});
+const run = (command, job) => spawnSync(process.execPath, [path.join(ROOT,'scripts/video.mjs'),command,'--job',job], {encoding:'utf8',env:{...process.env,PATH:path.join(job,'review/asr-bin')+path.delimiter+process.env.PATH}});
 async function fixture(t) {
   await mkdir(testCache, {recursive: true});
   const job = await mkdtemp(path.join(testCache, 'video-pipeline-'));
@@ -87,8 +88,11 @@ test('CLI qualifies real encoded media only after the independent final review r
   manifest.width=320;manifest.height=180;manifest.fps=30;
   manifest.audio.sha256=await fileHash(path.join(job,'assets/narration.wav'));
   await writeFile(path.join(job,'job.json'),JSON.stringify(manifest));
+  await mkdir(path.join(job,'inputs'),{recursive:true});
+  await writeFile(path.join(job,'inputs/narration.txt'),'local machine');
+  await syntheticAsrEnv(job,'local machine');
   assert.equal((await buildFixture(job)).ok, true);
-  await writeFile(path.join(job, 'review/pixels.json'), JSON.stringify({ok: true}));
+  await writeFile(path.join(job,'review/pixels.json'),JSON.stringify({ok:true}));
   assert.equal(run('verify',job).status,0);
   const before=run('deliver',job);
   assert.equal(before.status,1);
@@ -102,7 +106,7 @@ test('CLI qualifies real encoded media only after the independent final review r
     const packResult=spawnSync(process.execPath,[path.join(ROOT,'scripts/video.mjs'),'review-pack','--job',job,'--stage',stage,'--from','render'],{encoding:'utf8'});
     assert.equal(packResult.status,0,packResult.error?.message || packResult.stderr);
     const dispatch=JSON.parse(packResult.stdout);
-    assert.equal(dispatch.assignments.length,3);
+    assert.equal(dispatch.assignments.length,2);
     assert.equal(dispatch.packSha256,await fileHash(path.join(job,`review/${stage}/pack.json`)));
     assert.equal(dispatch.assignments[0].contract, 'docs/review.md');
     const context=await loadReviewPack(job,stage);
@@ -110,7 +114,7 @@ test('CLI qualifies real encoded media only after the independent final review r
       const report={version:1,stage,role,reviewer:{agentId:`/fixture/${role}`,independent:true},
         sourceHash:context.pack.sourceHash,videoSha256:context.pack.videoSha256,packSha256:context.packSha256,
         inspection:{mode:'frame-sequence',visual:'viewed',evidence:context.pack.evidence.filter(e=>e.kind==='frames').map(e=>e.path),limitations:['Synthetic reviewer test fixture, not a production judgment.'],
-          ...(role==='narration-fidelity'?{audio:'signal-verified'}:{})},
+          },
         coverage:[context.pack.interval],initialObservation:'Test pattern changes.',findings:[],verdict:'pass'};
       const input=path.join(job,`review/${stage}-${role}-input.json`);
       await writeFile(input,JSON.stringify(report));
@@ -120,11 +124,12 @@ test('CLI qualifies real encoded media only after the independent final review r
     const status=spawnSync(process.execPath,[path.join(ROOT,'scripts/video.mjs'),'review-status','--job',job,'--stage',stage],{encoding:'utf8'});
     assert.equal(status.status,0,status.stderr);
   }
+  await syntheticSpeechEvidence(job);
   const delivery=run('deliver',job);
   assert.equal(delivery.status,0,delivery.stderr);
   assert.equal(JSON.parse(await readFile(path.join(job,'job.json'))).status,'complete');
   const qualified=JSON.parse(await readFile(path.join(job,'review/delivery.json')));
-  assert.equal(qualified.reviewerIds.length,3);
+  assert.equal(qualified.reviewerIds.length,2);
   await writeFile(path.join(job,'compositions/opening.html'),(await readFile(path.join(job,'compositions/opening.html'),'utf8'))+'\n<!-- revised -->');
   // A delivered job is final: production commands refuse it unless explicitly reopened.
   const refused=run('deliver',job);
