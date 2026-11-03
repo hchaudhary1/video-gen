@@ -25,3 +25,8 @@ Video and thumbnail dimensions match the saved canvas. After delivery and thumbn
 the orchestrator uploads to abdupdates as unlisted unless the user opts out; use approved publishing
 copy and `docs/publishing.md`. Send Discord notifications only when requested, through
 `scripts/discord-notify.mjs` with one stable request ID per pending checkpoint. A ping is not approval.
+
+Typography: use thick fonts such as Inter/Poppins ExtraBold or Black, Fira Code Bold,
+or JetBrains Mono Bold/ExtraBold, or similarly heavy faces. Never use thin, light or
+regular weights in authored video/thumbnail text. Load the actual font and preserve
+its natural proportions; do not stretch text or silently substitute a system font.

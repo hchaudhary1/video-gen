@@ -38,6 +38,11 @@ project and writes `video.json` with these defaults:
 
 ## How to write the narration
 
+Apply the repository's [hook and thumbnail brief](../../../../docs/kai-hooks-and-thumbnails.md).
+Plan the title, thumbnail promise and opening together. Begin with a specific viewer
+problem, develop an expectation mismatch, and make the explanation worth staying for.
+Do not require a stock opener, a personal anecdote or a roadmap in the first 30 seconds.
+
 This section replaces "How to write the narration" in AGENTS.md for this
 template. The general rules about sources still apply: never make up a
 number, a quote or a claim.
@@ -203,11 +208,13 @@ immediately legible visual idea. Compose the thumbnail separately from the video
 - **Colors:** white `#ffffff`, warm yellow `#ffce33`, bright red `#ff001a`,
   electric blue `#008fe5`. Use white for the setup and yellow for the payoff.
   Pair white lettering with blue or red offsets, and yellow lettering with red.
-- **Type:** heavy, compact bold/black sans serif, ALL CAPS, tight tracking and
-  line spacing. Start at 180–260 px for stacked headlines or 330–500 px for
+- **Type:** use Inter or Poppins ExtraBold/Black (800–900), Fira Code Bold,
+  JetBrains Mono Bold/ExtraBold (at least 700), or a similarly thick licensed face.
+  Never use thin, light or regular weights or silent system-font fallbacks. Load
+  the actual font file and preserve natural glyph proportions; do not stretch text.
+  Use ALL CAPS, tight tracking and readable line spacing. Start at 180–260 px for stacked headlines or 330–500 px for
   one dominant word, with 12–28 px visible gaps between lines. Adjust to fit
-  the composition. Choose a licensed face matching the reference's glyph
-  width and weight; Kai's exact font is unverified.
+  the composition.
 - **Shadows:** duplicate lettering behind itself, offset 12–22 px right and
   10–20 px down, and fill red or blue. Keep edges sharp, with no blur or glow.
 - **Graphics:** one large cutout, bold flat cartoon, or simple chart. Use black

@@ -4,6 +4,8 @@ A long-form (default 8–12 minute) first-person explainer in the style of tech 
 frame per scene that starts almost empty and builds to a single composed picture on the narration, then a hard
 cut. Tuned for AI and tech (models, local AI hardware, costs, papers); usable for any explainer topic.
 
+For hooks and thumbnails, apply [the production brief](../../docs/kai-hooks-and-thumbnails.md).
+
 The template's creative guidance is a starting steer. Adapt the narrative,
 layouts, component choices and pacing to the subject while keeping the palette
 and typography consistent. Write an original, human hook without a fixed opening
