@@ -6,7 +6,8 @@ import { mkdir, mkdtemp, writeFile, readFile, rm, access } from 'node:fs/promise
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
-import { generateSpeech } from '../lib/narration.mjs';
+import { generateSpeech as productionSpeech } from '../lib/narration.mjs';
+const generateSpeech = options => productionSpeech(options, {verify:async()=>({ok:true})});
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function until(predicate) {

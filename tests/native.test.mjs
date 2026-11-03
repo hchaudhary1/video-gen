@@ -1,3 +1,4 @@
+import {syntheticAsrEnv} from './speech-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm, access} from 'node:fs/promises';
@@ -17,6 +18,7 @@ async function fixture(t) {
   const manifest = {name:'native-fixture', duration:4, width:320, height:180, fps:30, status:'prepared'};
   const put = (name, value) => writeFile(path.join(job, name), JSON.stringify(value));
   await put('job.json', manifest);
+  await writeFile(path.join(job,'inputs/narration.txt'),'one two');
   await freezePersonality(job, loadPersonality('rules-story'));
   await put('alignment.json', {matchRatio:1, words:[{id:'w0',text:'one',start:0,end:1},{id:'w1',text:'two',start:2,end:3}]});
   await put('film.json', {version:2,title:'Native',concept:'A direct composition',scenes:[
@@ -51,7 +53,7 @@ test('native film builds without a world runtime and captures the actual second 
   assert.equal(saved.scenes.length,2);
   assert.ok(saved.evidence.some(e=>e.kind==='frames'&&e.start>=2));
   const run=promisify(execFile);
-  await run(process.execPath,[path.resolve('scripts/video.mjs'),'render','--job',job,'--reuse-build','true','--workers','1'],{maxBuffer:2*1024*1024});
+  await run(process.execPath,[path.resolve('scripts/video.mjs'),'render','--job',job,'--reuse-build','true','--workers','1'],{maxBuffer:2*1024*1024,env:await syntheticAsrEnv(job,'one two')});
   for(const [time,expected] of [[1,[255,0,0]],[3,[0,255,255]]]) {
     const {stdout}=await run('ffmpeg',['-v','error','-ss',String(time),'-i',path.join(job,'renders/video.mp4'),'-frames:v','1','-vf','crop=2:2:280:150,scale=1:1,format=rgb24','-f','rawvideo','pipe:1'],{encoding:'buffer'});
     assert.equal(stdout.length,3);expected.forEach((channel,index)=>assert.ok(Math.abs(stdout[index]-channel)<15));

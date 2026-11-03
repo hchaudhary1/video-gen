@@ -6,15 +6,12 @@ inspection of images and, when available, playback. The editorial standard below
 
 `review-pack --job <job> --stage final` captures the full built composition. Render-source packs also
 include encoded clips. A successful full build is required; missing scenes/evidence prevent review.
-Three roles address visual understanding, narration fidelity and continuity/legibility. Each reviews the
-whole assigned interval, including intermediate states, handoffs and ending. The visual role records its
-initial picture observations before reading the intended narrative.
-
-For narration fidelity, compare the full measured transcript and alignment with the approved script and
-check available signal/mix evidence. Listen when the model and tools support audio; otherwise a
-`signal-verified` review can pass, with unheard audio and unseen motion disclosed. Check material ASR
-ambiguities against audio or a second transcript. Sampled frames may cover the interval when playback is
-unavailable; never claim to have heard audio or watched motion without doing so.
+Two independent roles, `visual-mechanism` and `continuity-legibility`, review the
+whole interval, including intermediate states, handoffs and ending. The visual role records
+initial picture observations before reading the intended narrative. Audio has no independent
+reviewer requirement. Automated Parakeet v2 evidence checks speech separately (see docs/audio.md).
+Old jobs' retired narration reviewer files and requiredRoles entries are ignored; missing current
+automated receipts still block delivery and require transcribe/verify. Visual reviews remain independent.
 
 ## Report
 
@@ -27,7 +24,7 @@ npm run video -- review-template --job <job> --stage final --role <role>
 It writes `review/final/incoming/<role>.json` with current source/pack hashes. Fill the generated fields:
 
 - `reviewer.agentId`: actual session identity; `independent` is truthful.
-- `inspection`: actual mode, visual/audio availability, frozen evidence paths inspected and limitations.
+- `inspection`: actual mode, visual availability, frozen evidence paths inspected and limitations.
 - `coverage`: intervals actually inspected, covering the assigned film.
 - `initialObservation`: the visual role's account before reading the intended story.
 - `verdict`: `pass`, `revise`, or `incomplete`.
@@ -39,8 +36,7 @@ current `evidence` paths. Blockers also name a category (`readability`, `truth`,
 A repair describes the desired outcome rather than forcing the author's implementation.
 
 Missing visual inspection means `inspection.visual: "unavailable"` and `verdict: "incomplete"`.
-Audio status is `listened` only after listening, otherwise `signal-verified` or `unavailable` with the
-limitation stated. Transcript and signal checks do not establish audible quality or exact synchronization.
+Transcript and signal checks do not establish audible quality or exact synchronization.
 
 Submit using `review-submit --job <job> --file <report.json>`. The CLI validates identity, hashes,
 evidence and coverage. Producers do not edit reviewer verdicts. User decisions remain separate.

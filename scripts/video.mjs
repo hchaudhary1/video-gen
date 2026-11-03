@@ -10,6 +10,7 @@ import {fileHash, submitReview, reviewStatus, waiveReview, qualifyDelivery, writ
 import {createReviewPack} from '../lib/review-pack.mjs';
 import {parseStages, parseNote, recordHumanReview} from '../lib/review.mjs';
 import {thumbnailStep, thumbnailStatus, recordVerdict, recordRanking, addThumbnailFeedback, chooseThumbnail, exportThumbnail, MAX_THUMBNAILS} from '../lib/thumbnails.mjs';
+import {verifySpeech, ASR_MODEL} from '../lib/speech.mjs';
 import {compareNarration} from '../lib/audio.mjs';
 import {audioEnv, audioPython} from '../lib/audio.mjs';
 import {planCheck, buildFilm, snapshot, filmAudit, renderFilm, remixFilm, nextStep, jobProgress, reviewAssignments, reviewTemplate, writeProductionReport, printSpecError} from '../lib/film.mjs';
@@ -130,10 +131,8 @@ async function prepare(opts) {
   const config = await loadConfig(ROOT), settings = resolveSettings(opts, config, Number(metadata.format.duration));
   const {start, duration, format, fps} = settings;
   for (const w of settings.warnings) console.warn(`Warning: ${w}`);
-  const language = opts.language || 'en', model = opts.model || (language === 'en' ? 'small.en' : 'small');
-  const engine = opts.engine || 'faster-whisper';
-  if (!['faster-whisper', 'hyperframes'].includes(engine)) throw new Error('--engine must be faster-whisper or hyperframes.');
-  if (language !== 'en' && model.endsWith('.en')) throw new Error('Non-English audio requires a multilingual model.');
+  const language = opts.language || 'en', model = ASR_MODEL, engine = 'parakeet-v2';
+  if (language !== 'en' || (opts.engine && opts.engine !== engine) || (opts.model && opts.model !== model)) throw new Error('ASR requires English Parakeet v2; no fallback.');
   await mkdir(path.dirname(job), {recursive: true});
   await hf(['init', job, '--non-interactive', '--resolution', format === 'vertical' ? 'portrait' : format], {capture: true, env: {HYPERFRAMES_SKIP_SKILLS: '1'}});
   const pointer = `# Job ${opts.name}\n\nThis is a pipeline job. Do not run hyperframes or npx commands here and never upgrade HyperFrames.\n\n` +
@@ -165,29 +164,31 @@ async function prepare(opts) {
     audio: {path: 'assets/narration.wav', source: path.relative(ROOT, audio), sourceStart: start,
       sha256: await digest(path.join(job, 'assets/narration.wav'))},
     ...(hasBrief ? {brief:{path:'inputs/brief.md',source:path.relative(ROOT,sourceBrief)}} : {}),
-    script: {path: 'inputs/source-script.md', source: path.relative(ROOT, script), sha256: await digest(script), fullScript: opts['full-script'] === 'true'},
+    script: {path: 'inputs/source-script.md', source: path.relative(ROOT, script), sha256: await digest(script), fullScript: opts['full-script'] === 'true' || await exists(audio + '.speech.json')},
     ...(visuals ? {visuals: {path: VISUALS_FILE, source: path.relative(ROOT, visuals), sha256: await digest(visuals)}} : {}),
     transcription: {language, model, engine, suppliedWords: !!opts.words},
     productionProfile, reviewDepth, creativeMode: 'agent-discretion', workflow: personality.profile.workflow, status: 'awaiting-transcription',
     review: {producerAgentIds: [...new Set(producerHistory.map(r=>r.agentId))], producerAgentRecords: producerHistory, producerIdentityStatus: producerHistory.length ? 'recorded' : 'unrecorded',
       ...(producerHistory.length ? {} : {producerIdentityIssue: 'No runner-provided producer identity has been recorded yet.'}),
-      requiredRoles: ['visual-mechanism', 'narration-fidelity', 'continuity-legibility']},
+      requiredRoles: ['visual-mechanism', 'continuity-legibility']},
     canvas: '#151915'};
   await save(path.join(job, 'job.json'), manifest);
-  if (opts.words) await copyFile(path.resolve(ROOT, opts.words), path.join(job, 'transcript.json'));
-  else await transcribe(job, manifest);
+  if (opts.words) await copyFile(path.resolve(ROOT, opts.words), path.join(job, 'inputs/supplied-words.json'));
+  await transcribe(job, manifest);
   await finishPreparation(job, manifest, narration, {updateLatest: !opts['no-latest']});
 }
 async function transcribe(job, manifest) {
-  const {model, language, engine = 'faster-whisper'} = manifest.transcription;
-  if (engine === 'hyperframes') await hf(['transcribe', 'assets/narration.wav', '--dir', job, '--engine', 'whisper', '--model', model, '--language', language], {cwd: job});
-  else await run('uv', ['run', '--locked', '--script', path.join(ROOT,'scripts/transcribe.py'),
-    path.join(job,'assets/narration.wav'), path.join(job,'transcript.json'), '--model', model, '--language', language]);
+  if (manifest.transcription?.language && manifest.transcription.language !== 'en') throw new Error('Parakeet v2 is English only; no language fallback.');
+  manifest.transcription = {...manifest.transcription, language:'en', model:ASR_MODEL, engine:'parakeet-v2'};
+  // finishPreparation recognizes once, writes the receipt, and uses those measured words for alignment.
 }
 async function finishPreparation(job, manifest, narration, {updateLatest = true} = {}) {
   const actualDuration = manifest.duration;
-  const words = normalizeWords(await json(path.join(job, 'transcript.json')), actualDuration);
-  const alignment = reconcile(words, narration, {fullScript: manifest.script.fullScript});
+  const speech = await verifySpeech({audio:path.join(job,'assets/narration.wav'), script:narration, duration:actualDuration, output:path.join(job,'review/speech-narration.json'), fullScript:Boolean(manifest.script?.fullScript), language:manifest.transcription.language});
+  if (!speech.ok) throw new Error('Narration speech verification failed; inspect review/speech-narration.json.');
+  await save(path.join(job,'transcript.json'),speech.transcript);
+  const words = normalizeWords(speech.transcript, actualDuration);
+  const alignment = reconcile(words, narration, {fullScript: manifest.script?.fullScript});
   await save(path.join(job, 'alignment.json'), alignment);
   await writeFile(path.join(job, 'SCRIPT.md'), `# Recorded excerpt\n\n${words.map(w => w.text).join(' ')}\n`);
   await writeFile(path.join(job, 'review/REPORT.md'), '# Production review\n\nPending creative build and validation.\n');
@@ -276,11 +277,13 @@ async function verify(job) {
       samplePeakDb: mixReport.samplePeakDb, mono: mixReport.mono, peaksOk: mixReport.peaksOk, limitedBy: mixReport.limitedBy, ...(mixReport.limiter ? {limiter: mixReport.limiter} : {})}, soundEffects: mixReport.soundEffects,
     music: mixReport.music, voiceMasked: mixReport.voiceMasked, voiceClose: mixReport.voiceClose, soundsUnderMusic: mixReport.soundsUnderMusic} : null;
   const narrationIntegrity = {...await compareNarration(file, reference), ...(soundtrack ? {reference: soundtrack.reference} : {})};
-  const report = {ok: true, output: path.relative(ROOT, file), duration: Number(metadata.format.duration),
+  const speech = await verifySpeech({audio:file, script:await readFile(path.join(job,'inputs/narration.txt'),'utf8'), duration:manifest.duration, output:path.join(job,'review/speech-final-mix.json'), fullScript:Boolean(manifest.script?.fullScript), stage:'final-mix'});
+  const report = {ok: speech.ok && narrationIntegrity.ok, speech, output: path.relative(ROOT, file), duration: Number(metadata.format.duration),
     width: video.width, height: video.height, fps: video.avg_frame_rate, audioCodec: audio.codec_name,
     meanVolumeDb: mean, sha256: await fileHash(file), narrationIntegrity, ...(soundtrack ? {soundtrack} : {})};
   await writeReviewFile(job,'review/render-verification.json',JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify(report, null, 2));
+  if (!report.ok) throw new Error('Final audio verification failed; inspect speech and integrity reports.');
 }
 
 async function setupAudio() {
@@ -417,8 +420,8 @@ setup-audio                          check ffmpeg, install librosa (beat analysi
 music --src <url|file> --name music/<x>.mp3 --source "<page>" --license "<licence>" [--title ..]  bring in a licensed track; finds its beats
 
 prepare --name <slug> --audio <file> --script <file> --profile <id> [--start 0 --length 30 --format landscape|vertical] [--review-depth fast|standard|deep]
-        [--language en --model small.en --engine faster-whisper|hyperframes]
-        [--words measured-words.json --fps 30]
+        [--language en --engine parakeet-v2 (fixed nvidia/parakeet-tdt-0.6b-v2)]
+        [--words measured-words.json --fps 30] (supplied words retained as provenance; Parakeet remeasures timing)
 transcribe [--job jobs/<slug>]       resume a failed transcription/preparation
 audit | check | preview | render | verify [--job jobs/<slug>]
 render [--quality delivery --workers 3 --reuse-build true]  render + mix + verify, once, after the final reviews; reuse-build requires a current successful full build
@@ -546,7 +549,7 @@ try {
     await guardDelivered(job, command, opts);
     if (command === 'transcribe') {
       const manifest = await json(path.join(job,'job.json'));
-      if (await exists(path.join(job,'film.json'))) throw new Error('Prepared job already exists; create a new job to change transcription.');
+      if ((opts.model && opts.model !== ASR_MODEL) || (opts.engine && opts.engine !== 'parakeet-v2')) throw new Error('Only Parakeet v2 is supported.');
       if (opts.model) manifest.transcription.model = opts.model;
       if (opts.engine) manifest.transcription.engine = opts.engine;
       await save(path.join(job,'job.json'), manifest);
