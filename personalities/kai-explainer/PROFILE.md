@@ -46,3 +46,18 @@ Paths are relative to `engines/explainroo`. First use: `(cd engines/explainroo &
 `--profile kai-explainer` on `project-new` stops with a pointer to this file. The output is
 `engines/explainroo/videos/<slug>/out/video.mp4` with `.srt`, `.vtt`, `.chapters.txt` and a cover image.
 Disclose what was not checked, for example that the narration was not listened to.
+
+## Visual direction
+
+Establish a focal subject and make each visual change explain a cause, mechanism or consequence.
+Carry a meaningful object or action across scene boundaries when it helps the viewer follow the
+explanation. Motivate camera movement by the information it reveals; a hold can give a mechanism
+time to become clear. Plan within measured narration cues and the existing Scene API, keeping the
+palette and actual loaded heavy fonts. These choices support original drawings, not a required
+character-drama structure or AI-video prompt format.
+
+Use [concept development](../../skills/script-writing/references/concept-development.md) when choosing
+the question, hook or visual analogy. Check where each analogy breaks down so its staging and motion
+do not imply a false technical relationship. Concept notes and self-checks do not replace independent
+review. Visual-direction guidance is adapted from Serge Shima's Visual Skills;
+[attribution and pinned sources](../../docs/creative-reference-sources.md).

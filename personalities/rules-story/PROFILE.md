@@ -84,3 +84,11 @@ The title is the first line of the narration.
   boundaries are the series' editing grammar; use pushes, holds and glitch transitions for emphasis.
 - During revisions, preserve approved narration and successful visual details unless the requested change
   requires altering them. Correct defects rather than layering duplicate body parts or props over them.
+
+## Concept and staging references
+
+When inventing a new story, use [concept development](../../skills/script-writing/references/concept-development.md)
+to connect the anomaly, rule, consequence and twist. During picture planning, use
+[staging and tension](../../skills/hyperframes/references/staging-and-tension.md) for threat geography,
+controlled reveals, concrete reactions and motivated camera moves. Apply these inside the locked
+series frame and measured narration; they do not change the identity, title formula or editing grammar.
