@@ -6,6 +6,9 @@ description: Produce or continue a video in this repository, including its revie
 Use the user's brief as the creative authority. Choose an approach that serves the audience and material;
 there is no required visual metaphor, scene count, cut rate, motion vocabulary or sound-effect quota.
 
+For technical/AI explainers, read `docs/kai-hooks-and-thumbnails.md` when choosing the title,
+thumbnail wording, hook and narration. This writing brief does not change the profile's visual style.
+
 The CLI tracks production state: `npm run video -- help`, `status`, and `next --project <slug>`
 (or `next --job jobs/<slug>` after preparation). Use explicit project/job names. Completed artifacts
 and user decisions determine what remains; avoid regenerating completed work without a reason.

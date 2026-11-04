@@ -7,6 +7,14 @@ outlined cards, small uppercase mono labels, big bold numerals, quotes from
 real sources on white cards, a chapter bar. Tuned for AI and tech topics
 (models, local AI hardware, costs, papers), and usable for any explainer.
 
+Treat the creative guidance below as an initial steer, not hard and fast
+instructions. Keep the consistent palette and typography, but use judgment
+about the hook, narrative arc, scene layout, component choices and pacing.
+Adapt, combine or skip suggestions when another approach explains the subject
+better. The starter files are examples, not a sequence to reproduce in every
+video. Factual accuracy, honest attribution and technical requirements still
+apply.
+
 It has its own identity: no watermark, no borrowed assets, no channel name.
 
 ```bash
@@ -30,39 +38,26 @@ project and writes `video.json` with these defaults:
 
 ## How to write the narration
 
+Plan the title, thumbnail promise and opening together. Begin with a specific viewer
+problem, develop an expectation mismatch, and make the explanation worth staying for.
+Do not require a stock opener, a personal anecdote or a roadmap in the first 30 seconds.
+
 This section replaces "How to write the narration" in AGENTS.md for this
 template. The general rules about sources still apply: never make up a
 number, a quote or a claim.
 
-**Voice.** First person, talking to one viewer. "I" is for the research
-journey only: what you read, what surprised you, how you reasoned. Never
+**Voice.** Aim for a personal, conversational voice, talking to one viewer.
+"I" is for the research journey only: what you read, what surprised you, how you reasoned. Never
 invent personal experiences: no hardware you own, nothing you ran or tested,
 no stories that happened to you. A scenario that is not real must be
 clearly hypothetical ("picture this", "say you have..."). "You" is the
-viewer, often 60 to 90 times in a ten minute video.
+viewer; use it naturally rather than aiming for a count.
 
-**Structure.**
-
-1. Open with "Okay, so" and a relatable, clearly hypothetical situation in
-   the second person ("Okay, so picture this. You have...").
-2. The trigger: the release, paper, post or claim that started it, with a
-   date.
-3. The reaction journey, true to your research: "I read the model card, the
-   blog and the report, and went from skeptical to impressed to careful."
-   Show it with `s.kai.gauge`.
-4. An explicit roadmap of 3 to 5 chapters ("Here's the plan. First...
-   Then... Finally..."), mirrored by `s.kai.progress`. Put `chapter="..."`
-   on the first scene of each chapter and show the bar at the top of those
-   scenes.
-5. Layer by layer explanation. Each scene answers one small question and
-   ends on one composed picture. Quote the real source on screen with
-   `s.kai.evidence` when a claim matters.
-6. Callbacks: bring back an earlier number or picture ("Remember the six
-   times gap?").
-7. A fine print or reality check chapter: what the claim does not say, who
-   measured it, what was left out.
-8. A grounded ending about what it means for the viewer, and one plain
-   sentence that sums up the point.
+**Structure.** Follow one central question. Establish the familiar approach and the surprising alternative
+with a concrete task when useful, introduce the advertised evidence early, then explain mechanism,
+conditions, limitations and implications. Choose the order for the promise. Do not defer the title's
+subject behind an unrelated tour of every source. Avoid stock reaction journeys, repeated prerequisites
+and mandatory roadmaps. Use truthful editorial judgment rather than fabricated personal experience.
 
 **Sentences.** Conversational and spoken. Short sentences, one idea each.
 Rhetorical questions are welcome ("So why do it?"). Contractions are fine.
@@ -75,9 +70,10 @@ acronyms (`{KV|K V}`, `{GGUF|G G U F}`, `{Qwen|Kwen}`). Words that sound like
 other words ("picks"/"pix", "write"/"right", "tight"/"tied") fail the speech
 check; reword them.
 
-**Length and pace.** About 155 to 175 words a minute. A 10 minute video is
-about 1,600 words in 40 to 50 scenes. Scene length: median 12 to 16 seconds,
-most under 20, none over about 30. One scene is 2 to 4 sentences.
+**Length and pace.** As a planning guide, about 155 to 175 words a minute.
+A 10 minute video is about 1,600 words in 40 to 50 scenes. Scene length: median 12 to 16 seconds,
+most under 20, rarely over about 30. A typical scene is 2 to 4 sentences.
+Adjust these ranges to the brief and the time needed to understand the visual.
 
 **Markers.** Put a `[#marker]` wherever something new appears. Aim for a new
 element every 2 to 4 seconds; long holds are fine when the narration talks
@@ -85,15 +81,23 @@ about what is already on screen.
 
 ## Visual grammar
 
-- **Locked frame.** No camera moves. Never use `s.camera`.
-- **Build up, then cut.** A scene starts empty or with one element and adds
-  the rest on its cues. Nothing leaves (`out`) unless it is replaced. The last
-  frame is one composed picture. Then a hard cut.
-- **Start top left.** The first element sits near the top left or the left
-  third; later ones fill the space to the right and below. Leave room for
-  what arrives.
-- **Density.** Three to seven elements at the end of a scene. Lots of dark
-  space is fine. Keep content inside about x 140 to 1780, y 90 to 990.
+These are useful defaults for the Kai look. Keep the shared palette and type,
+but choose compositions and components for the idea being explained. Reuse
+parts when helpful; create custom visuals with the Scene API, including
+`s.draw`, when they serve the scene better. Avoid repeating the same layouts
+or set of components across every video.
+
+- **Locked frame.** Prefer a still camera so the picture carries the explanation.
+  Use `s.camera` when a move would make the subject clearer.
+- **Build up, then cut.** A useful default is to start empty or with one element,
+  add the rest on its cues, and end on one composed picture before a hard cut.
+  Usually keep elements until replaced, but use `out`, transformations or other
+  staging when they help the viewer follow the explanation.
+- **Start top left.** One useful layout starts near the top left or left third,
+  then fills to the right and below. Choose another arrangement when it better
+  expresses the idea. Leave room for what arrives.
+- **Density.** Three to seven elements is a useful starting range, not a quota.
+  Lots of dark space is fine. Keep content inside about x 140 to 1780, y 90 to 990.
 - **Color meaning.** Blue for the main quantity, yellow for the thing that
   matters most or the new thing, red for problems, costs and warnings, grey
   (`muted`, `gray`) for context and comparisons, white outlines for
@@ -101,15 +105,19 @@ about what is already on screen.
 - **Type.** Small uppercase mono labels (`s.kai.label`, 24 to 28 px) name
   things. Words and numerals use the display font. Big numerals are 110 to
   170 px. Body text is rare: quotes go on evidence cards.
-- **Evidence.** Every important claim from a source gets an evidence card
-  with the exact quote, the key phrase marked in yellow, and a source chip.
+- **Evidence.** An evidence card is a useful way to present an important sourced
+  claim: an exact quote, the key phrase marked in yellow, and a source chip.
+  A sourced chart, annotated document or another clear treatment can work too.
+  Retain evidence for material claims regardless of how they appear on screen.
   Keep quotes short (one or two sentences).
-- **Stamps** (`s.kai.stamp`) are the narrator's verdict: one per scene at
-  most, at the end.
-- **Recurring scenes.** The chapter bar at chapter starts; the same numbers
-  in the same colors whenever they come back.
+- **Stamps** (`s.kai.stamp`) can convey the narrator's verdict; use sparingly,
+  usually no more than one at the end of a scene.
+- **Recurring scenes.** Consider a chapter bar at chapter starts. Keep returning
+  numbers in the same colors so the viewer recognises them.
 
 ## The kit: `s.kai`
+
+Choose from these reusable parts as needed; no component is required in every video.
 
 All parts take `at` and `out` (seconds, a spoken word or `"#marker"`), and
 `x`, `y` as the center unless noted. They make one light sound on entrance
@@ -166,13 +174,73 @@ made again. `check` takes a few minutes for a ten minute video. Render the
 draft first (`render --draft`), then the final; `render` uses up to 8
 workers (`--workers n`).
 
+## Thumbnails
+
+Match [Kai's thumbnail style](https://www.youtube.com/@kaiexplainsYT/videos):
+huge uppercase type, saturated flat colors, crisp offset shadows and one
+immediately legible visual idea. Compose the thumbnail separately from the video scenes.
+
+### Design
+
+- **Canvas:** 1920×1080, PNG/JPEG under 2 MB. Use a flat near-black background
+  (`#090909`). A pale background with black text also works for hardware lineups.
+- **Colors:** white `#ffffff`, warm yellow `#ffce33`, bright red `#ff001a`,
+  electric blue `#008fe5`. Use white for the setup and yellow for the payoff.
+  Pair white lettering with blue or red offsets, and yellow lettering with red.
+- **Type:** use Inter or Poppins ExtraBold/Black (800–900), Fira Code Bold,
+  JetBrains Mono Bold/ExtraBold (at least 700), or a similarly thick licensed face.
+  Never use thin, light or regular weights or silent system-font fallbacks. Load
+  the actual font file and preserve natural glyph proportions; do not stretch text.
+  Use ALL CAPS, tight tracking and readable line spacing. Start at 180–260 px for stacked headlines or 330–500 px for
+  one dominant word, with 12–28 px visible gaps between lines. Adjust to fit
+  the composition.
+- **Shadows:** duplicate lettering behind itself, offset 12–22 px right and
+  10–20 px down, and fill red or blue. Keep edges sharp, with no blur or glow.
+- **Graphics:** one large cutout, bold flat cartoon, or simple chart. Use black
+  internal lines, a white outer contour around 6–12 px, and an optional hard
+  red/blue offset. Hardware photos need clean cutout edges. Illustrated faces,
+  hands and characters can carry the metaphor.
+- **Spacing:** use a few large elements and clean empty space. Keep important
+  text 80–100 px from the edges and clear of the lower-right duration overlay.
+  A hero graphic may deliberately crop at the frame edge.
+
+### Layouts
+
+Choose the layout that best communicates the topic. Coordinates are starting
+points at 1920×1080; adjust to the headline and artwork.
+
+| Layout | Composition |
+|---|---|
+| Headline + hero | 2–4 stacked lines on the left, approximately x 100–940, y 150–880; one large graphic on the right, approximately x 1000–1800, y 150–900. |
+| Headline + comparison | Same left text block; two large bars or outcomes on the right, with minimal labels and prominent values. Keep quantitative bar heights accurate. |
+| Huge verdict | White setup across the upper quarter; one enormous yellow word or acronym across the remaining width. |
+| Top hook + hardware/character | One headline across the top; a large character/prop arrangement or hardware lineup fills the lower two thirds. |
+| Before / after | Two panels separated by a thin white vertical line, with large numbers or labels above contrasting images. |
+| Graphic only | One central object linked to a few recognizable symbols; omit the headline when the graphic communicates the hook. |
+
+### Copy and delivery
+
+- Write one short, direct hook, usually 2–7 words, with deliberate line breaks.
+  Emphasize one word, phrase or number through scale and color. Use verdicts,
+  warnings or comparisons only when supported by the film; put detail in the title.
+- Numbers, objects and faces are optional. Text-only compositions are valid.
+  Small tilted tags, arrows and model tiles can support the main idea; keep
+  scene UI, chapter bars, evidence cards and decorative fine print out.
+- Use original or appropriately sourced artwork; record reused asset provenance.
+  Omit Kai's channel signature and watermark.
+- Retain an editable source and thumbnail brief with the title, headline,
+  description, chosen reference, font and asset sources.
+- Export full size and a 320×180 preview. Inspect text weight, color offsets,
+  object scale and readability at both sizes. Obtain independent image review
+  and selection; follow repository-root `docs/publishing.md` for publishing.
+
 ## Checklist
 
 1. Research and keep `sources/SOURCES.md` with URLs and the exact quotes.
-2. Write `script.md` with the rules above; `voice`; fix unconfirmed words.
+2. Write `script.md` using the guidance above; `voice`; fix unconfirmed words.
 3. `scenes.js`; `check` until there are no errors.
 4. `still` and `sheet --scene <id>` to see the build up; compare with the
-   look you want.
+   look you want, checking readability and unnecessary repetition too.
 5. `render --draft`, look, `render`, `verify`.
-6. Thumbnail: dark background, one big claim in display type, one yellow or
-   blue numeral, one object drawing. No faces, no watermark.
+6. Create the thumbnail using the guidelines above; inspect the full-size export
+   and feed preview, then obtain independent review and selection.

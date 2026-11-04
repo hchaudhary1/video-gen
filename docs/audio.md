@@ -139,3 +139,54 @@ narration bus itself is not processed separately. `"limiter": false` keeps a sin
 Build writes `review/sounds.md`. Render writes `review/mix.json`, encoded verification and sound evidence.
 The mix applies ducking and a master gain; loudness/peak targets are measured on the exported file. Inspect
 masking findings and report measurement limits. Only claim listening when someone actually listened.
+
+## Automatic speech verification (Parakeet v2)
+
+Ming remains the only TTS generator. Generated candidates are verified before replacing the output;
+failed candidates and a failed status are retained. Preparation independently recognizes the prepared
+recording, including when supplied word timings exist. Final verification recognizes the encoded MP4
+mix again. Supplied recordings and approved scripts are never rewritten to make a check pass.
+
+All new ASR uses NVIDIA [Parakeet TDT 0.6B v2](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2),
+English only, locally through NeMo. Attribution: NVIDIA, model licensed CC-BY-4.0; the model is unmodified.
+There is no Whisper or v3 fallback. Legacy jobs must rerun `transcribe` then `verify` to obtain current
+receipts. Remeasured timing and changed sources invalidate earlier builds/reviews: rebuild,
+review and render again when needed before verifying/delivering. Old non-English jobs cannot be
+verified with this English model. Supplied word files are kept in inputs/supplied-words.json for
+provenance; alignment uses newly measured Parakeet words.
+
+Runtime setup: install ffmpeg and uv, then run from the repository:
+
+```bash
+UV_CACHE_DIR="$PWD/.cache/video-gen/uv" uv sync --script scripts/parakeet.py --locked
+npm run video -- transcribe --job jobs/<slug>
+npm run video -- verify --job jobs/<slug>
+```
+
+The pinned isolated runtime lock is scripts/parakeet.py.lock. The CLI keeps uv, Hugging Face,
+NeMo, Torch and temporary files under .cache/video-gen (or repository-local VG_CACHE).
+The first recognition downloads the model. NVIDIA GPU/CUDA is preferred; CPU inference is selected
+when CUDA is unavailable and can be slow. Setup needs network access and substantial disk/RAM.
+Validation on this CPU-only host: the isolated runtime installed and real local v2 inference on
+NVIDIA's linked LibriSpeech sample produced a transcript with word timestamps (23 words).
+An initial PyArrow/NumPy import incompatibility was fixed by pinning PyArrow 19.0.1 alongside
+NeMo 2.5.3. GPU execution and production-film speech accuracy were not tested. The sample source is
+https://dldata-public.s3.us-east-2.amazonaws.com/2086-149220-0033.wav (linked from the model card).
+Keep downloaded test samples and model outputs in .cache; they are diagnostics, not delivery evidence.
+
+Audio is decoded to mono 16 kHz PCM and recognized in chunks of at most 30 seconds. Reports expose
+raw word timestamps/transcripts, localized expected text, match rates, unconfirmed words and estimated
+intervals. Vendored Explainroo spoken/display and number normalization is used for comparison.
+Generated narration always checks the full script, including omitted opening/endings; supplied recordings
+may match an excerpt. Preparation also retains its script reconciliation for visual cue timing.
+
+Reports: `<output>.speech.json`, review/speech-narration.json and review/speech-final-mix.json.
+Inserted/repeated speech reduces the score even when all expected words were recognized.
+Narration requires >=90% overall; final mix >=85%; every chunk requires >=80%. Below-threshold,
+missing, failed or stale checks block delivery, irrespective of visual waivers or review-round budgets.
+Unconfirmed words longer than three characters, unexpected spoken tokens and chunks below 90% are explicit warnings even above blocking thresholds. Inspect and
+resolve material ambiguities before delivery; warnings do not constitute acoustic confirmation.
+Chunk cuts can split words and fuzzy normalization can accept similar words. ASR is neither listening
+nor proof of naturalness, pronunciation or intelligibility. Unconfirmed timestamps are estimates.
+Receipts bind audio and script hashes; frozen review packs include available speech reports. Existing
+waveform export integrity, duration, silence, masking and loudness measurements remain in place.

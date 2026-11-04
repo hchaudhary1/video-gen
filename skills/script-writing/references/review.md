@@ -5,6 +5,10 @@ it, whether it earns its claims, and whether the chosen length serves the materi
 against saved sources, preserving scope, qualifications and attribution. Check invented first-person
 experiences and unsupported promises in proposed packaging.
 
+For technical/AI explainers, read PACKAGE.md and check the
+opening against the actual title/thumbnail promise. Flag unsupported hooks, repeated prerequisites,
+delayed advertised payoffs and extra sections that do not earn their runtime. Preserve requested depth.
+
 Give concrete findings: the affected passage, evidence, impact on the viewer, severity and desired outcome.
 An unconventional opening or visual approach is not itself a defect. Visual notes express intent; do not
 require a scene schema, fixed number of concepts or a design recipe. The director owns implementation.

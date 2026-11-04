@@ -1,13 +1,15 @@
 # {{title}}
 
 > Kai template starter. Read templates/kai/TEMPLATE.md before you write.
+> This is an API demonstration, not a required hook, story arc or scene list.
+> Write an original, human opening and choose the structure for your subject.
 > First person is for your research journey only. Every number needs a source.
 
 ## hook {chapter="The question"}
-Okay, so picture this. It's late, and you type a question into an AI chat. [#ask] [#answer] The answer shows up one word at a time. [#why] And you wonder why it can't just appear all at once.
+An AI answer arrives in pieces. [#ask] [#answer] You can watch the words appear. [#why] What is happening between one word and the next?
 
 ## journey
-So I went looking for the reason. [#read] I read how these models produce text, [#gauge] and went from confused to curious to a little surprised.
+[#read] The explanation connects how a model generates text with the hardware running it. [#gauge] We'll move from the visible answer, through the model, to the hardware.
 
 ## roadmap
 Here's the plan. [#c1] First, the question. [#c2] Then, what happens for every word. [#c3] And finally, what it means for you.
