@@ -1,74 +1,121 @@
-# Explainer hooks and thumbnails: Kai reference brief
+# Explainer titles, thumbnail text, hooks and scripts
 
-Apply this brief to the kai-explainer profile. Use its techniques with original language and artwork; retain our sourcing, personal-experience and asset-provenance rules.
+Use this writing brief for technical/AI explainers. It combines the packaging and hook guidance with
+script structure and audience-promise guidance. The user's audience, purpose and explicit direction
+take precedence. Use original wording; examples are not stock openings to reproduce across videos.
 
-## Plan the package together
+This document covers copy and narration only. It does not change the saved profile's visual style,
+fonts, palette, typography treatment, layouts, diagrams, camera, animation, transitions or review rules.
+Use the existing style guide for those decisions and docs/publishing.md for the publishing contract.
 
-Before drafting the narration, write:
+## Plan one promise
 
-1. Viewer: who faces this problem, and what are they trying to do?
-2. Stakes: what could they waste or gain—money, time, capability, access?
-3. Mismatch: what seems true, and what evidence complicates it?
-4. Title: name the subject and practical question clearly.
-5. Thumbnail: express one consequence, verdict or question that adds to the title.
-6. Opening: make the problem concrete and create a reason to investigate it.
-7. Payoff: name the later explanation and the evidence that will deliver the promise.
+Before drafting narration, write a short project-local PACKAGE.md containing:
 
-The three surfaces must describe the same story. If the image warns about overpaying, the opening should establish a buying/value problem, and the film must eventually give a defensible decision rule. Do not choose a stronger accusation than the sources support.
+- Intended viewer, what they already know, and the question they want answered.
+- Stakes: what they could gain, lose or misunderstand, grounded in the evidence.
+- One learning outcome or investigation the film will deliver.
+- The expectation, obstacle or surprising alternative that makes the question interesting.
+- Three accurate title candidates, a working selection and its rationale.
+- Thumbnail wording and how it complements the title.
+- The first spoken passage and the specific unanswered question it establishes.
+- The headline evidence and when the viewer first encounters it in the script.
+- Scope, expected runtime and the additional payoff earned by deeper sections.
 
-## Write the first 30 seconds as a problem unfolding
+The title, thumbnail text and opening must set the same expectation. A film advertised around one
+result must establish that result early, then investigate it. Do not make viewers traverse unrelated
+experiments before reaching the advertised subject. A broad topic explainer can instead promise a
+clear mental model. Revisit the copy after writing and after measuring the narration: metadata must
+describe the finished film. Word-count estimates do not establish actual runtime.
 
-Begin inside a specific, recognizable situation. Useful approaches include an interrupted task, a disappointing purchase comparison, a puzzling bill, or a confusing search for a straightforward answer. Choose the approach for the topic; vary it across videos.
+## Titles
 
-Give the viewer an expectation, then a concrete obstacle or contradiction. Make them want the cause or solution. Explain why it matters before introducing architecture, a paper summary or a chapter list. A conversational question, understated humor or self-correction can help when natural. Do not require a greeting, channel intro, engagement request, stock confession or repeated opening phrase.
+Name the topic or recognizable capability, and communicate a concrete reason to watch. For specialist
+viewers, the actual technical term can be more useful than a vague superlative. A concise learning
+promise, credible surprise or unanswered technical question can create intrigue without inflated claims.
+A time promise is optional and must match measured runtime. Do not assume more sensational copy wins.
 
-As a drafting guide, use the first few seconds to identify the situation/stakes, develop its expectation through roughly 10–15 seconds, and use the rest of the opening to sharpen the problem or begin its reversal. Permit a longer setup only if each sentence advances the story.
+Keep numerical claims and comparisons within their source conditions. A narrowly successful example
+does not establish that training is obsolete, that general intelligence has improved or that a method
+works universally. Do not choose a stronger accusation or conclusion than the sources support.
 
-Aim for about 65–85 spoken words as an initial 30-second draft, then measure the actual narration. Never claim that a word estimate establishes runtime. By the end of the opening, the viewer should recognize the problem and have a specific unanswered question. The complete solution can come later; do not postpone every meaningful detail.
+## Thumbnail wording
 
-Use first person only for real work or experience that can honestly be attributed to our narrator. Never turn Kai's claimed purchase, bill, ownership or testing into our own. If no personal account exists, use a sourced real example or explicitly frame a hypothetical. Do not fabricate dates, usage figures, prices or quotes to make an opening feel concrete.
+Write one short, direct topic, question, consequence or payoff. Usually about 2–7 words is a useful
+starting point, not a limit; keep the wording understandable at a glance. Select a dominant word,
+number or phrase through the copy itself. Do not compress an entire title into the headline.
 
-### Original example (illustrative wording; no new factual claims)
+Title and thumbnail text should add to one another. They may share important terms, but should not
+both become the same long sentence. A specific topic plus learning promise, or an accurately framed
+before/after result, are useful copy directions. Avoid unrelated claims merely to attract attention.
+Keep qualifiers needed to avoid a misleading inference; put supporting detail in the title or description
+when that preserves an accurate headline. Typography and graphic treatment follow the existing style guide.
 
-Title direction: deciding how much GPU memory a local model needs.
-Thumbnail direction: a short warning about buying excess capacity, paired with two clearly identified hardware options.
-Opening direction: “Say you're choosing a machine for local AI. The larger memory option looks like the safer bet. Before you pay for it, there’s another question: does the extra capacity let you run a model you actually need? Let's work backward from the model and its context, then compare the hardware.”
+## Hook: establish a question worth answering
 
-This is an explicitly hypothetical setup, not a claim that we bought or benchmarked anything. Replace it with topic-specific writing; do not adopt it as a stock opener.
+Begin with a meaningful task, result, technical puzzle or recognizable situation. Establish the familiar
+approach, its limitation and the surprising alternative when that contrast explains why the topic matters.
+Keep the explanation anchored to the same task while describing the change, so the viewer can follow it.
+Other hook forms are welcome when they create a similarly concrete reason to investigate.
 
-## Stage the opening picture
+Give the viewer an expectation, then a specific obstacle or contradiction. Make them want the cause or
+solution. Begin delivering information during the opening rather than withholding every meaningful detail.
+The hook is a question the film answers, not merely a dramatic first sentence. Do not force a greeting,
+channel intro, engagement request, hypothetical, narrator reaction or chapter list ahead of the substance.
+Avoid repeated starter phrases and the same hook across videos.
 
-Use the profile's near-black canvas, thin outlines, short labels and restrained accent colors. Start with an immediately meaningful object—a warning, invoice, GPU, browser result, or price tag. Avoid spending the opening on an empty title card.
+As a planning guide, the opening passage should establish the situation and stakes, expose the mismatch,
+and sharpen the unanswered question. About 65–85 spoken words can be an initial 30-second draft, but
+measure the generated or supplied performance. Permit a longer setup only when each sentence advances
+the explanation. The complete solution can come later; do not postpone all useful substance.
 
-Build the situation in narration order: introduce the object, add the relevant cost/specification, then expose the mismatch. Hold an object while its meaning changes. Use cuts when the explanatory unit changes. Keep the frame spacious; fill it with information only as the narration gives that information purpose. Numbers should be large enough to read; labels should be short. A sourced screenshot or cutout can be clearer than a custom diagram.
+Use first person only for genuine work or experience attributable to the narrator. A researcher's
+experiment is not our own test. If no personal account exists, use a sourced example or explicitly
+frame a hypothetical. Never fabricate ownership, benchmarks, dates, usage figures, prices or quotes.
+Separate reported findings, demonstrations, interpretation and speculation.
 
-Plan the opening with approximate time ranges, spoken beats, visible objects and evidence references. After narration is measured, align entrances to the relevant words. Inspect the full first 30 seconds for legibility, synchronization and actual story progression.
+## Build the script around an argument
 
-## Design a separate thumbnail
+Follow one central question rather than a source-by-source inventory. Choose experiments that advance
+that question; integrate further sources where they strengthen a mechanism, caveat or practical conclusion.
+Introduce a prerequisite immediately before it becomes useful. For AI enthusiasts, avoid restarting a
+generic introduction to neurons or training after establishing the technical question.
 
-Communicate one idea at feed size. A normal scene still with labels, chapter navigation or evidence-card text is rarely the right composition.
+Introduce the advertised evidence early, then explain its mechanism, conditions, limitations and implications.
+Do not defer the title's subject behind an unrelated tour of every source. Avoid stock reaction journeys,
+repeated prerequisites and mandatory roadmaps. Remove repeated explanations and transitions that merely
+announce the next explanation without adding meaning.
 
-- Use a flat black/near-black background as the default for this treatment. Use a pale background only when it makes the idea clearer.
-- Use thick, heavy lettering: Inter Black/ExtraBold, Poppins Black/ExtraBold, Fira Code Bold, JetBrains Mono Bold/ExtraBold, or a similarly substantial licensed font. Prefer weight 800–900 for headline sans serif and the heaviest available weight of at least 700 for monospace. Never use thin, light or regular weights. Load the actual font file; do not silently fall back to a system font. Preserve natural glyph proportions—never stretch lettering to fill a box. Fit copy by changing font size, line breaks or layout. Use uppercase headlines and tight but readable line spacing.
-- Usually write about 2–7 words, with deliberate line breaks. Select one dominant word, number or phrase. Avoid shrinking everything to fit a long title.
-- Use white for setup and yellow for emphasis. Either place black text inside a yellow rectangle or apply a crisp red/blue offset behind light text. Shadows have hard edges; avoid blurred glow.
-- Choose one visual device: large recognizable logo/cutout, two-way result comparison, cropped subject icon, a few blocks/tiles, an expressive illustrated figure, or an instantly clear metaphor. Characters and hardware are options, not quotas. Text and graphics should have a clear hierarchy.
-- For a comparison, make both subjects and values readable. Match units, workload, baseline and conditions. Keep chart proportions honest; avoid implying that marketing and measured values are directly comparable without evidence.
-- Let the image communicate a consequence while the title supplies subject specificity. They may share important words; they should not both become the same long sentence.
-- Use original or properly sourced artwork, with provenance. Do not copy Kai's signature, exact illustration or channel identity.
+Earn the runtime. Preserve requested depth and worked examples; do not shorten merely to hit a benchmark.
+Longer sections must provide a distinct benefit the viewer can recognize. Consider a separate worked-example
+follow-up when it would otherwise interrupt the main argument, but do not silently drop requested material.
 
-Use the saved project canvas. The kai-explainer default is 1920×1080; follow the current profile's export requirements. Keep critical text away from edges and the bottom-right duration overlay. Retain the editable source and a brief stating title, thumbnail copy, visual device, source reference, fonts and asset provenance.
+Write conversationally with a clear editorial judgment: why the result matters, what explanation fits,
+and which evidence limits that explanation. Use truthful reasoning rather than invented first-person
+experience to simulate personality. End with an answer to the opening question and a grounded implication;
+avoid several successive conclusions that repeat the same validation language.
 
-Export and inspect both the full-size image and a 320×180 preview. At feed size, the main phrase, subject and contrast must remain readable without the tiny supporting labels. Compare a few distinct concepts if the strongest visual idea is unclear; choose based on the film's actual promise. Follow the existing independent review and user-selection workflow. Do not claim approval or performance evidence that does not exist.
+## Shorts and calls to action
 
-## Acceptance questions
+Write a short as its own explanation even when using a long-form excerpt. Establish the surprising
+question or consequence immediately, give one mechanism or proof, then a brief next step. Preserve a
+supplied excerpt when explicitly requested, but do not assume a long-form opening automatically hooks
+a Shorts viewer.
 
-- Does the opening give a recognizable situation and a concrete reason to care?
-- Does each sentence deepen the problem or advance toward its explanation?
-- Is the story truthful about personal experience and supported details?
-- Does the first picture mean something before all the other elements arrive?
-- Do the title, thumbnail and opening create the same expectation?
-- Can a viewer read the thumbnail's main idea at 320×180?
-- Does the film deliver the advertised verdict with the necessary caveats?
+A full-video CTA should be brief, name the correct video and explain the additional value it offers.
+Avoid spending a substantial fraction of the spoken short on promotion. A user-requested exact CTA
+or excerpt takes precedence over these defaults.
 
-These checks guide revision; they are not a claim that engagement has been measured.
+## Writing checks
+
+- Do the title, thumbnail wording and opening create the same expectation?
+- Does the opening establish a concrete reason to care and a specific unanswered question?
+- Does each sentence advance the problem or its explanation?
+- Is the story truthful about personal experience, reported findings and supporting details?
+- Does the advertised result arrive early enough for the promise being made?
+- Do deeper sections earn their length without repeated prerequisites or conclusions?
+- Does the ending answer the opening question with the necessary caveats?
+
+These are writing checks, not new visual-review gates or claims of measured engagement. Treat performance
+explanations as hypotheses unless supported by analytics. Audience size, publication age, impressions and
+traffic source matter; public views alone cannot isolate title, thumbnail or script quality.

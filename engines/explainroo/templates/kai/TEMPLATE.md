@@ -38,7 +38,6 @@ project and writes `video.json` with these defaults:
 
 ## How to write the narration
 
-Apply the repository's [hook and thumbnail brief](../../../../docs/kai-hooks-and-thumbnails.md).
 Plan the title, thumbnail promise and opening together. Begin with a specific viewer
 problem, develop an expectation mismatch, and make the explanation worth staying for.
 Do not require a stock opener, a personal anecdote or a roadmap in the first 30 seconds.
@@ -54,31 +53,11 @@ no stories that happened to you. A scenario that is not real must be
 clearly hypothetical ("picture this", "say you have..."). "You" is the
 viewer; use it naturally rather than aiming for a count.
 
-**Structure.** This is a useful starting arc. Adapt its order and emphasis,
-or leave out beats that do not help the subject; there is no required chapter
-count or recurring scene sequence.
-
-1. Open with a natural, human hook specific to the subject. Choose the
-   approach and wording freely; no stock phrase or hypothetical setup is
-   required. Avoid reusing the starter opening or the same hook across videos.
-2. The trigger: the release, paper, post or claim that started it, with a
-   date.
-3. The reaction journey, true to your research: "I read the model card, the
-   blog and the report, and went from skeptical to impressed to careful."
-   A component such as `s.kai.gauge` can help if the reaction is worth visualising.
-4. Consider an explicit roadmap of 3 to 5 chapters ("Here's the plan. First...
-   Then... Finally..."), optionally mirrored by `s.kai.progress`. When using
-   chapters, put `chapter="..."` on the first scene of each chapter for metadata;
-   a bar at the top of those scenes can help orientation.
-5. Layer by layer explanation. Each scene answers one small question and
-   usually ends on one composed picture. Consider quoting the real source
-   on screen with `s.kai.evidence` when a claim matters.
-6. Callbacks: bring back an earlier number or picture ("Remember the six
-   times gap?").
-7. A fine print or reality check chapter: what the claim does not say, who
-   measured it, what was left out.
-8. A grounded ending about what it means for the viewer, and one plain
-   sentence that sums up the point.
+**Structure.** Follow one central question. Establish the familiar approach and the surprising alternative
+with a concrete task when useful, introduce the advertised evidence early, then explain mechanism,
+conditions, limitations and implications. Choose the order for the promise. Do not defer the title's
+subject behind an unrelated tour of every source. Avoid stock reaction journeys, repeated prerequisites
+and mandatory roadmaps. Use truthful editorial judgment rather than fabricated personal experience.
 
 **Sentences.** Conversational and spoken. Short sentences, one idea each.
 Rhetorical questions are welcome ("So why do it?"). Contractions are fine.

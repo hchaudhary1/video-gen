@@ -21,7 +21,31 @@
       1
     ]
   },
-  "counter": 0,
-  "issues": [],
+  "counter": 1,
+  "issues": [
+    {
+      "number": 1,
+      "project": "the-sleep-channel",
+      "at": "2026-11-02T13:57:59.151Z"
+    },
+    {
+      "number": 1,
+      "project": "the-sleep-channel-short-1",
+      "parent": "the-sleep-channel",
+      "at": "2026-11-03T03:09:00.349Z"
+    },
+    {
+      "number": 1,
+      "project": "the-sleep-channel-short-2",
+      "parent": "the-sleep-channel",
+      "at": "2026-11-03T03:09:00.911Z"
+    },
+    {
+      "number": 1,
+      "project": "the-sleep-channel-short-1-final",
+      "parent": "the-sleep-channel",
+      "at": "2026-11-03T04:07:16.983Z"
+    }
+  ],
   "createdAt": "2026-11-01T00:00:00.000Z"
 }

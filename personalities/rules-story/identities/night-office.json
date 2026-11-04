@@ -21,7 +21,7 @@
       4
     ]
   },
-  "counter": 1,
+  "counter": 2,
   "issues": [
     {
       "number": 1,
@@ -42,6 +42,11 @@
       "parent": "the-last-knock-series",
       "format": "vertical",
       "at": "2026-11-01T08:15:41.797Z"
+    },
+    {
+      "number": 2,
+      "project": "last-lift",
+      "at": "2026-11-03T14:44:23.140Z"
     }
   ],
   "createdAt": "2026-11-01T00:00:00.000Z"
