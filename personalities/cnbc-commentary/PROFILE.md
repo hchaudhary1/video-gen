@@ -6,8 +6,10 @@ explainroo commentary on what was said. **CNBC excerpts must occupy 30–40% of 
 is measured and enforced by `npm run video -- cnbc assemble`/`cnbc ratio` (ffprobe on every part and the
 final file), never estimated.
 
-Like kai-explainer, this is produced with the vendored explainroo engine, not `project-new`. Read
-`engines/explainroo/AGENTS.md` and `engines/explainroo/templates/kai/TEMPLATE.md` for the commentary.
+This is produced with the vendored ExplainRoo engine, not `project-new`. Use its built-in
+**Midnight** look; do not use Kai or the kai-explainer template.
+Read `engines/explainroo/AGENTS.md` for the commentary API.
+Read [MOTION-DESIGN.md](MOTION-DESIGN.md) before visual planning and include it in film-review briefs.
 Paths below are relative to the repository; `<slug>` is the project under `engines/explainroo/videos/`.
 
 ## Source footage
@@ -26,7 +28,11 @@ fair use; say so when reporting, and never claim a licence or permission from CN
 
 1. `npm run video -- cnbc latest` and choose the recording (default: newest; Mad Money and Closing Bell
    tend to carry the most quotable personalities). Weekend runs use Friday's shows.
-2. `npm run video -- explainroo init videos/<slug> --template kai --title "..."`.
+2. Create `engines/explainroo/videos/<slug>/video.json` with
+   `{"title":"...","theme":"midnight","voice":"am_michael","size":"16:9","fps":30}`.
+   Run `npm run video -- cnbc style --project <slug>` to install the news look, motion primitives
+   and actual Inter 800/900 fonts. Author `script.md` and `scenes.js` for this story in step 6;
+   no engine template is required.
 3. `npm run video -- cnbc transcribe --project <slug> [--recording <file>]` writes `cnbc/source.json`,
    measured `cnbc/transcript-words.json` and readable `cnbc/transcript.txt`.
 4. Pick the story: one famous person (Jim Cramer, Tom Lee, Dan Ives, Jensen Huang, a CEO guest...) or
@@ -37,14 +43,15 @@ fair use; say so when reporting, and never claim a licence or permission from CN
    rather than trusting ASR.
 5. `npm run video -- cnbc cut --project <slug>` → `cnbc/clips/<id>.mp4` (1920×1080, 30 fps, 48 kHz,
    "Source: CNBC <show>, <date>" credit burned in).
-6. Commentary with explainroo (kai template, `script.md` + `scenes.js`): The finance narration rules below override the Kai template’s hypothetical opening and scenario guidance. React to each clip in order, add
+6. Commentary with ExplainRoo (Midnight-derived news look, `script.md` + `scenes.js`): Follow the finance narration rules below. React to each clip in order, add
    context with dated, sourced facts (`sources/SOURCES.md`), separate what was said from our opinion,
    and end with what it means for investors plus a not-financial-advice line. Name chapters in scenes so
    explainroo writes `out/video.chapters.txt`. Its duration must exceed the clips' total. Then
-   `explainroo voice`, `check`, `still`/`sheet`, `render`, `verify` as in the kai-explainer profile.
+   `explainroo voice`, `check`, representative temporal `still`/`sheet` sequences and rendered excerpts,
+   then `render` and `verify` using the engine commands.
 7. `npm run video -- cnbc assemble --project <slug>` → `cnbc/final.mp4` (clips first, then commentary),
    `cnbc/chapters.txt` (one chapter per clip, then the commentary chapters) and `cnbc/ratio.json`. It exits
-   non-zero unless CNBC occupies 30–40% of measured runtime. Adjust substantive excerpts or commentary to meet that range; never pad with silence.
+   non-zero unless CNBC occupies 30–40% of measured runtime. Adjust substantive excerpts or commentary to meet that range; never pad with silence. Run `cnbc verify --project <slug>` after the commentary engine’s `verify`; it checks final-file signal, format and the saved commentary speech report.
 8. Thumbnail (1920×1080 JPEG < 2 MB), copied from the reference: black field, **2–3 words** in huge
    uppercase heavy type (last line accented yellow or red), the famous person's head-and-shoulders on the
    other side. Get the person from the recording (`cnbc frame --project <slug> --at <sec>`) or a
@@ -58,8 +65,10 @@ fair use; say so when reporting, and never claim a licence or permission from CN
    Punchy, ≤ 70 characters, and true to what was actually said. Description: 2–3 sentence summary
    naming the person, `cnbc/chapters.txt`, sources, 4–6 hashtags, the CNBC credit and a not-financial-advice
    disclaimer. Then `npm run video -- cnbc publish-check --project <slug> --title "..." --person "Jim Cramer"`.
-10. Independent review as in kai-explainer (script against sources and the clip quotes; film review of
-    stills, thumbnail and the clip/commentary transitions). Producers do not review their own work.
+10. Independent script and film review (script against sources and the clip quotes; film review of
+    temporal sequences, rendered excerpts, thumbnail and the clip/commentary transitions). Include
+    `MOTION-DESIGN.md` in the brief; evaluate its visual direction as a requirement of the brief.
+    Producers do not review their own work.
 11. Deliver: `npm run video -- youtube-upload --file engines/explainroo/videos/<slug>/cnbc/final.mp4 --title ...
     --description ... --thumbnail engines/explainroo/videos/<slug>/cnbc/thumbs/thumbnail.jpg --privacy unlisted`,
     following `docs/publishing.md`.
@@ -68,6 +77,15 @@ Disclose what was not checked, for example that the narration or clip audio was 
 
 ## Finance narration
 
-Open directly with the market issue and our opinion. Explain what the viewer needs to know, why it matters, and what evidence supports the view. Do not use the Kai template’s “Okay, so picture this” opening.
+Open directly with the market issue and our opinion. Explain what the viewer needs to know, why it matters, and what evidence supports the view. Start with the actual story rather than a hypothetical scenario.
 
 Avoid invented scenarios, assumed portfolios and made-up company or cash-flow examples, so narration needs no “this is hypothetical” or “we are assuming” disclaimers. Use sourced real examples and direct analysis instead. State opinions as opinions, retain material uncertainty, and never present invented figures or assumptions as reported facts. Keep production and research-process commentary out of the narration.
+
+## Original-content evidence
+
+Before assembly run `cnbc narration-evidence --project <slug>` after the final commentary render.
+It binds the current script, timeline, narration files and commentary render by SHA-256, measures
+non-silent narration using ffmpeg. Keep reused-media provenance in the source ledger.
+The ratio gate also requires this measured narration to exceed half the final runtime. This
+establishes duration and file identity, not semantic originality: independently review the script
+against source quotations and retain a media ledger. Reused footage does not count as original imagery.

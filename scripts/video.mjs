@@ -482,7 +482,7 @@ explainroo <command> [args]          run the explainroo engine, e.g. explainroo 
                                      explainroo voice|check|still|sheet|render|verify videos/<slug>; see engines/explainroo/AGENTS.md
 
 CNBC commentary (cnbc-commentary; personalities/cnbc-commentary/PROFILE.md)
-cnbc [latest|transcribe|cut|assemble|ratio|frame|thumb|publish-check] ...   run "cnbc" alone for usage
+cnbc [latest|style|transcribe|cut|narration-evidence|assemble|ratio|verify|frame|thumb|publish-check] ...   run "cnbc" alone for usage
 
 The latest prepared job is used when --job is omitted.
 Creative design is performed by the agent; see docs/orchestrator.md.

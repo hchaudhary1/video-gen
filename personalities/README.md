@@ -6,7 +6,7 @@ Choose by treatment, not just topic. The user's explicit direction wins.
 |---|---|
 | Long-form first-person tech/AI explainer, locked frame that builds up per scene | [kai-explainer](kai-explainer/PROFILE.md) (vendored explainroo engine, not `project-new`) |
 | Original uncanny fiction or survival rules (series horror; identities in `rules-story/identities/`) | [rules-story](rules-story/PROFILE.md) |
-| CNBC clips of a famous market voice + our commentary (30–40% CNBC, 60–70% own), Finance Deep Dive style | [cnbc-commentary](cnbc-commentary/PROFILE.md) (explainroo engine + `npm run video -- cnbc ...`) |
+| CNBC clips of a famous market voice + original finance commentary (30–40% CNBC, 60–70% own), authored motion design with selective B-roll | [cnbc-commentary](cnbc-commentary/PROFILE.md) (ExplainRoo Midnight + `npm run video -- cnbc ...`) |
 
 Load only the selected profile. Ask a routing question only when the treatment is genuinely ambiguous.
 `project-new --profile rules-story` saves its instructions with the project; kai-explainer and cnbc-commentary follow
