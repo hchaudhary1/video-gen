@@ -1,15 +1,14 @@
 // Deterministic vector objects for the finance story. No presentation chrome.
-export const C={bg:'#080e1b',white:'#f5f3e9',muted:'#9caec6',cyan:'#39d8e6',blue:'#5d8fff',gold:'#ffc65c',red:'#f27776',dark:'#142238',paper:'#eee9de',ink:'#13243c'};
+export const C={bg:'#ffffff',white:'#13243c',muted:'#53657a',cyan:'#007a87',blue:'#3159be',gold:'#8c5900',red:'#a7273c',dark:'#edf1f7',paper:'#f3f5f8',ink:'#13243c'};
 export const clamp=v=>Math.max(0,Math.min(1,v));
 export const lerp=(a,b,p)=>a+(b-a)*p;
 export const ease=p=>1-Math.pow(1-clamp(p),3);
 export const prog=(s,at,dur=1)=>ease((s.t-s.time(at))/dur);
 export function txt(s,str,x,y,size=48,at=0,out=undefined,o={}){
- if(o.color===C.ink || o.color==='#53657a')o={bg:C.paper,padding:0,radius:0,...o};
  return s.text(str,{x,y,size,font:'display',weight:900,color:C.white,at,out,enter:'fade',dur:.35,outDur:.25,maxWidth:1640,...o});
 }
 export function canvas(s,fn,at=0,out=undefined){s.draw({at,out,enter:'none'},ctx=>fn(ctx));}
-export function base(s,light=false){s.theme.shadow=null;s.bg(light?C.paper:C.bg);}
+export function base(s,light=false){s.theme.shadow=null;s.bg(C.bg);}
 export function rr(ctx,x,y,w,h,fill,stroke=null,r=16){ctx.beginPath();ctx.roundRect(x-w/2,y-h/2,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=3;ctx.stroke()}}
 export function line(ctx,pts,color=C.cyan,width=4,p=1,dashed=false){
  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';if(dashed)ctx.setLineDash([12,13]);

@@ -1,6 +1,6 @@
 {
-  "extends": "midnight", "name": "finance-news", "bg": "#080f1e",
-  "surface": "#111d33", "ink": "#f2f6ff", "muted": "#b2c1d8",
+  "extends": "midnight", "name": "finance-news", "bg": "#ffffff",
+  "surface": "#edf1f7", "ink": "#13243c", "muted": "#53657a",
   "accent": "teal", "background": "plain", "transition": "cut",
   "fonts": {
     "display": {"family": "News Inter", "weight": 900},
@@ -8,5 +8,5 @@
     "hand": {"family": "News Inter", "weight": 800},
     "mono": {"family": "News Inter", "weight": 800}
   },
-  "stroke": {"rough": false, "width": 3, "glow": 4}, "radius": 16
+  "stroke": {"rough": false, "width": 3, "glow": 0}, "radius": 16
 }

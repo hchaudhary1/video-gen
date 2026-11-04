@@ -7,7 +7,7 @@ is measured and enforced by `npm run video -- cnbc assemble`/`cnbc ratio` (ffpro
 final file), never estimated.
 
 This is produced with the vendored ExplainRoo engine, not `project-new`. Use its built-in
-**Midnight** look; do not use Kai or the kai-explainer template.
+**Midnight** look adapted to a consistent white background; do not use Kai or the kai-explainer template.
 Read `engines/explainroo/AGENTS.md` for the commentary API.
 Read [MOTION-DESIGN.md](MOTION-DESIGN.md) before visual planning and include it in film-review briefs.
 Paths below are relative to the repository; `<slug>` is the project under `engines/explainroo/videos/`.

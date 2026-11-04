@@ -1,14 +1,20 @@
 # CNBC commentary motion design
 
 Default for future CNBC videos; an explicit new brief takes precedence.
-The user approved [this revised video](https://youtu.be/sZ3BYteNpJo?t=198)
-(commentary begins at 3:18). Use its motion treatment, not the earlier slide version.
+Use [Finance Deep Dive’s commentary from 4:30](https://www.youtube.com/watch?v=sJUaHJol03g&t=270s)
+as the reference for information-rich animated financial explainers. Combine its text and charts
+with the motion treatment of [our earlier approved video](https://youtu.be/sZ3BYteNpJo?t=198).
 
 ## Visual direction
 
 - Explain the spoken mechanism with objects that move, split, transform or change relationships
-  on narration cues. Follow the action with purposeful framing and close-ups. Text labels the
-  picture rather than transcribing narration into panels.
+  on narration cues. Follow the action with purposeful framing and close-ups. Use a concise
+  takeaway headline, key number and one or two supporting lines when they clarify the argument;
+  do not transcribe the full narration into panels.
+- Use sourced financial charts, graphs, thresholds, timelines and annotated comparisons when
+  they clarify the analysis. Label units, dates and sources; distinguish illustrative diagrams
+  from reported data. Build the headline, evidence, comparison and conclusion in stages on
+  narration cues. Vary charts, diagrams, text-led explanations and visual summaries.
 - Examples: follow payments through operating cash into equipment; open a timing gap between
   bills and receipts; show equity creating ownership claims and debt creating repayment obligations.
   Vary visual forms and staging to fit each story; do not repeat one diagram layout throughout.
@@ -21,7 +27,9 @@ The user approved [this revised video](https://youtu.be/sZ3BYteNpJo?t=198)
 - Keep footage provenance in the source ledger and description, CNBC attribution on CNBC excerpts,
   and concise credits beside material company figures. Never invent financial quantities, ownership
   proportions, stock histories or cash-flow projections; schematic tokens are not company data.
-- Use Midnight with cyan/blue for facts, amber for interpretation and red for risk. Load actual heavy
+- Use a consistent pure white background throughout all authored commentary scenes; do not alternate
+  white and dark backgrounds. Adapt the look with dark text and contrasting accents for facts,
+  interpretation and risk. Load actual heavy
   fonts at natural proportions. Check contrast and cropping throughout camera moves, including
   small details such as clock hands.
 
@@ -33,7 +41,8 @@ Author story-specific staging in `scenes.js` with measured narration cues, `s.dr
 and explicit `s.camera` moves. `camera: "still"` disables automatic moves, not authored keys.
 
 Inspect representative temporal sheets (`sheet --scene <id> --every 2`) and rendered excerpts
-before the full render. Check that movement develops the explanation; end-frame readability and
+before the full render. Check that viewers can understand the claim and its supporting evidence
+from the picture, and that movement develops the explanation; end-frame readability and
 technical checks alone cannot establish this. Fix long settled passages that lose their purpose.
 Include this guide and temporal evidence in independent film review; returning to the rejected
 slide treatment is a brief mismatch. State whether inspection used playback, sampled frames or
