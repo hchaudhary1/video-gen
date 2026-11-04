@@ -62,6 +62,17 @@ source context, a broken transition, missing media, or a picture that materially
 meaning or requested treatment. Explain the timestamp, observed defect and effect on the viewer.
 Suggestions based on taste are advisory. Coherence matters; a prescribed palette or library does not.
 
+For the kai-explainer treatment, apply the saved template's action-led scene guidance. Check whether
+scenes develop toward meaningful final images or outcomes, with compositions and moving subjects that
+express the script. Inspect intermediate states and scene boundaries, not just readable end frames.
+A repeated heading/card layout with only entrance effects can be a demonstrated treatment mismatch,
+not merely a preference for more motion. A recurring top title with information beneath it fails this
+treatment even if the titles change and dots move between boxes. Sample unrelated timestamps and
+inspect temporal sequences: look for drawn subjects performing the explanation and a causal story
+carried across shots. Identify the specific passages and what action or relationship
+is missing from the picture. Do not require a camera move, a custom primitive, a fixed number of
+reveals or continuous motion in every shot; deliberate holds and stationary shots can serve the scene.
+
 Inspect actual images or playback. Automated measurements and written plans are diagnostics, not proof of
 quality. Disclose inspection limits. Still images do not establish motion quality; signal checks do not
 establish that audio was heard. 

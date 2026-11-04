@@ -1,8 +1,12 @@
 # kai-explainer
 
-A long-form (default 8–12 minute) first-person explainer in the style of tech explainer channels: one locked
-frame per scene that starts almost empty and builds to a single composed picture on the narration, then a hard
-cut. Tuned for AI and tech (models, local AI hardware, costs, papers); usable for any explainer topic.
+A long-form (default 8–12 minute) first-person tech/AI explainer told as a continuously moving
+visual story. Be fully creative and visualize the narration through original drawings, acting
+subjects and evolving mechanisms. Follow subjects and causal relationships across shots; scene
+outcomes are moments in the story, not slides. A repeated title-at-top/content-below arrangement
+or text-box explanation does not satisfy this treatment. Camera, composition and transitions are
+free to follow the action. Keep the shared palette and heavy typography. Invent visual storytelling for the subject: follow actions into mechanisms, show their consequences,
+and carry meaningful motion and causal relationships across shots.
 
 The template's creative guidance is a starting steer. Adapt the narrative,
 layouts, component choices and pacing to the subject while keeping the palette
@@ -22,14 +26,18 @@ Paths are relative to `engines/explainroo`. First use: `(cd engines/explainroo &
 
 1. Research and keep evidence in the project: `sources/` with local copies and `sources/SOURCES.md` (URLs, quotes used).
 2. `explainroo init videos/<slug> --template kai --title "..."` (defaults: camera still, cut transitions, Kokoro
-   `am_michael`, quiet `calm` music, no watermark, 1920×1080).
+   `am_michael`, quiet `calm` music, no watermark, 1920×1080). These initializer settings are not camera
+   or transition restrictions; choose project settings and authored moves for the film.
 3. Write `script.md` using the template's guidance: first person for the true research journey only, never invented
    personal experience; hypotheticals clearly marked; every number and on-screen quote from a retained source.
-4. `explainroo voice`, then plan and write `scenes.js` with `s.kai` and the Scene API; scenes of roughly 10–20 s.
+4. `explainroo voice`, then plan the actions, visual development, final outcome and handoff of each scene.
+   Author `scenes.js` with the full Scene API, including custom drawings, transformations and camera moves
+   where they serve the script. `s.kai` supplies optional parts, not a repeated layout recipe.
 5. `explainroo check` (fix all errors and warnings), `still`/`sheet` and inspect the images, `render --draft`,
    `render`, `verify`.
 6. Independent review: the host commissions a script reviewer (claims against sources, first-person honesty) and a
-   film reviewer who can view images (stills, sheets, layout, build-up behaviour). Producers do not review their work.
+   film reviewer who inspects actual scene development, moving actions, intermediate states and handoffs,
+   as well as readable final images. Producers do not review their work.
 7. Thumbnail at 1920×1080 (PNG/JPEG under 2 MB) and publishing copy (title, description with sources and chapters
    from `out/video.chapters.txt`, tags).
 8. Deliver with `npm run video -- youtube-upload --file engines/explainroo/videos/<slug>/out/video.mp4 --title ...

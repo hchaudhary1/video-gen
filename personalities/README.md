@@ -4,7 +4,7 @@ Choose by treatment, not just topic. The user's explicit direction wins.
 
 | Intent | Profile |
 |---|---|
-| Long-form first-person tech/AI explainer, locked frame that builds up per scene | [kai-explainer](kai-explainer/PROFILE.md) (vendored explainroo engine, not `project-new`) |
+| Long-form first-person tech/AI explainer, a continuously moving story visualized through original drawings | [kai-explainer](kai-explainer/PROFILE.md) (vendored explainroo engine, not `project-new`) |
 | Original uncanny fiction or survival rules (series horror; identities in `rules-story/identities/`) | [rules-story](rules-story/PROFILE.md) |
 
 Load only the selected profile. Ask a routing question only when the treatment is genuinely ambiguous.

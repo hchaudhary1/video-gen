@@ -65,14 +65,12 @@ node bin/explainroo.js init videos/<name> --template kai --title "..."
 ```
 
 - `starter` (the default) is the plain start described below.
-- `kai` is a calm, dark long-form explainer: a locked frame, scenes that
-  build up piece by piece on the narration and hard cuts, with a kit of
-  parts in `s.kai` (outlined cards, small caps labels, tags, stamps, filling
-  grids, evidence cards with real quotes, a chapter bar, memory budget
-  bars). It is tuned for AI and tech topics of 8 to 12 minutes. Read
-  `templates/kai/TEMPLATE.md` before you write: its creative guidance is an
-  initial steer, with room to adapt the hook, structure and scenes. Its narration
-  guidance replaces "How to write the narration" below for that template.
+- `kai` is a dark tech/AI explainer told as a continuously moving visual story through original
+  drawings, acting subjects and evolving mechanisms. Repeated top titles with content below fail
+  this treatment. Its palette and typography are consistent; compositions, moving subjects, camera work
+  and transitions follow the script. The optional `s.kai` parts do not limit the full Scene API or
+  custom `s.draw` authoring. Read `templates/kai/TEMPLATE.md` before writing: it contains the
+  visual-storytelling guidance and replaces the default narration guidance below.
 
 ## Making a video, step by step
 
@@ -112,14 +110,12 @@ node bin/explainroo.js init videos/<name> --template kai --title "..."
    `render` and `preview` also make missing narration, so start them after
    `voice` has finished, not at the same time.
 
-5. **Plan the pictures.** For each scene, decide what is on screen when each
-   marker or important word is spoken. Decide where each thing sits and what
-   leaves the screen. Keep things in the same place from scene to scene.
-   Answer four questions for each scene. What is the one thing the viewer
-   should look at? Which relationship does the layout show: an order, a
-   comparison, the parts of a whole or a cause? What appears and what leaves
-   on each cue? What stays in the same place in the next scene? "Layouts that
-   work" below has four layouts to start from.
+5. **Plan the pictures.** Read each passage as something the viewer can see happen. Identify the
+   subject, its initial state, the actions or changes that develop the explanation, and the final
+   image or outcome. Plan what is added, moves, transforms or leaves on each cue, and how the next
+   scene relates to it. Preserve identities when useful; recompose freely when the idea changes.
+   For Kai, follow its template's visual-storytelling section. Do not make a heading plus changing
+   cards the default for every scene. Use the full Scene API and custom drawing as needed.
 
 6. **Make images, if the video needs them.** Icons and diagrams cover most
    technical topics. Everyday how-to topics like cooking, cars or gardening
@@ -137,8 +133,8 @@ node bin/explainroo.js init videos/<name> --template kai --title "..."
 
    Fix every error and every warning. You decide what to do with the hints.
 
-9. **Look at the frames.** You cannot watch the video, so this is how you see
-   it.
+9. **Inspect the film.** Use playback when available. Use frames and temporal sheets to inspect
+   scene development, action, camera moves and handoffs, and disclose what was not actually viewed.
 
    ```bash
    node bin/explainroo.js still videos/<name>                 # the end of each scene
@@ -148,9 +144,11 @@ node bin/explainroo.js init videos/<name> --template kai --title "..."
    ```
 
    Open the images and judge them like a viewer would. Is the text big
-   enough? Is anything cut off or on top of something else? Is half the frame
-   empty? Does the sheet show something new every few seconds? Fix what is
-   wrong and look again.
+   enough? Is anything accidentally clipped or overlapping during motion? Does
+   the subject visibly act or change as the narration develops? Does the scene
+   reach a clear outcome, and does its handoff make sense? Use space deliberately.
+   Inspect playback when available; sampled frames alone cannot verify smoothness.
+   Fix observed problems and inspect again.
 
    For Reddit and other feeds, also run `check videos/<name> --view-width
    854`. It warns when visible text shrinks below 16px in that player.
@@ -254,18 +252,20 @@ Narration for this scene. [#marker] A marker names a moment you can animate on.
   screen with `out` before the next idea.
 - **Big and readable.** Titles 80 to 110 px, labels 40 to 56 px, small text
   at least 32 px on a 1920 x 1080 canvas. Stay inside `s.safe`.
-- **Same meaning, same color.** Give each thing one color and one place and
-  keep them. Use the accent color for the one thing that matters most.
+- **Recognisable subjects.** Keep visual identities and color meanings coherent
+  as subjects move or transform. Preserve positions when they help orientation;
+  recompose when the explanation needs it. Use accent color to guide attention.
 - **Real examples.** A command you can run, a number with its source or a
   picture of the real screen is better than three boxes with general words.
 - **A clear last frame** that shows the main point.
 
 ### Layouts that work
 
-These four layouts cover many scenes: one big number, a comparison, steps in
-order, and one main thing with its parts. Start from the one that fits and
-change the words, colors and cues. Each one also works in tall and square
-frames.
+These four examples demonstrate API basics: one big number, a comparison, steps
+in order, and one main thing with its parts. They are not a film-wide scene
+recipe. Design each scene around its subject, actions and final outcome; use
+custom drawings, moving subjects and camera work as needed. Adapt composition
+to tall or square frames rather than merely shrinking a landscape layout.
 
 ```js
 export default {

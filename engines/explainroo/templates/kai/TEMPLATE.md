@@ -1,11 +1,11 @@
 # The Kai template
 
-A calm, dark explainer in the style of long-form tech explainer channels:
-one locked frame, a scene that starts almost empty and builds up piece by
-piece on the narration, then a hard cut to the next near-empty scene. Thin
-outlined cards, small uppercase mono labels, big bold numerals, quotes from
-real sources on white cards, a chapter bar. Tuned for AI and tech topics
-(models, local AI hardware, costs, papers), and usable for any explainer.
+A dark tech/AI explainer told as a continuously moving visual story. Be fully creative: visualize
+what the narration says through original drawings, acting subjects and changing mechanisms. The
+picture carries the explanation. Text names, measures or annotates what the viewer can already see.
+Do not build the film as a succession of top titles with information arranged beneath them.
+Scene outcomes are moments in an unfolding story, not completed slides followed by fresh layouts.
+Keep the shared palette and heavy typography while freely inventing the visual language of the topic.
 
 Treat the creative guidance below as an initial steer, not hard and fast
 instructions. Keep the consistent palette and typography, but use judgment
@@ -27,8 +27,8 @@ project and writes `video.json` with these defaults:
 | Setting | Value | Why |
 |---|---|---|
 | `theme` | `kai.json` (extends `midnight`) | near-black `#0e1010`, blue `#1e8fe1`, yellow `#ffd23f`, red `#e0313b`, Space Grotesk 700 for words and numerals, JetBrains Mono for labels |
-| `camera` | `"still"` | the frame never moves; the picture builds up instead |
-| `transition` | `"cut"` | hard cuts between scenes |
+| `camera` | `"still"` | initializer setting only; author moving or stationary views as needed |
+| `transition` | `"cut"` | initializer setting only; choose cuts or authored handoffs for the scene |
 | `voice` | `am_michael`, `speed` 1.1 | a calm male narrator at about 160 words a minute |
 | `music` | `{ "style": "calm", "volume": 0.3 }` | a quiet bed under the voice |
 | `sfx` | `"minimal"` | only the kit's own light sounds (pops, blips, a thud for stamps) |
@@ -75,45 +75,97 @@ A 10 minute video is about 1,600 words in 40 to 50 scenes. Scene length: median 
 most under 20, rarely over about 30. A typical scene is 2 to 4 sentences.
 Adjust these ranges to the brief and the time needed to understand the visual.
 
-**Markers.** Put a `[#marker]` wherever something new appears. Aim for a new
-element every 2 to 4 seconds; long holds are fine when the narration talks
-about what is already on screen.
+**Markers.** Put a `[#marker]` on meaningful narrated events: an action, value change, reveal,
+transformation or shift in attention. A build can change an existing subject instead of adding a
+new element. Pace these events for comprehension and interest; do not treat entrance frequency as
+proof of animation quality. Deliberate holds are useful when there is something substantive to read.
 
-## Visual grammar
+## Visual storytelling
 
-These are useful defaults for the Kai look. Keep the shared palette and type,
-but choose compositions and components for the idea being explained. Reuse
-parts when helpful; create custom visuals with the Scene API, including
-`s.draw`, when they serve the scene better. Avoid repeating the same layouts
-or set of components across every video.
+The consistent identity is the palette and typography. It does not require a consistent layout,
+fixed camera, identical subject scale or a repeated title/content hierarchy. Use the engine to author
+an animated explanation, not a presentation assembled from headings and cards.
 
-- **Locked frame.** Prefer a still camera so the picture carries the explanation.
-  Use `s.camera` when a move would make the subject clearer.
-- **Build up, then cut.** A useful default is to start empty or with one element,
-  add the rest on its cues, and end on one composed picture before a hard cut.
-  Usually keep elements until replaced, but use `out`, transformations or other
-  staging when they help the viewer follow the explanation.
-- **Start top left.** One useful layout starts near the top left or left third,
-  then fills to the right and below. Choose another arrangement when it better
-  expresses the idea. Leave room for what arrives.
-- **Density.** Three to seven elements is a useful starting range, not a quota.
-  Lots of dark space is fine. Keep content inside about x 140 to 1780, y 90 to 990.
-- **Color meaning.** Blue for the main quantity, yellow for the thing that
-  matters most or the new thing, red for problems, costs and warnings, grey
-  (`muted`, `gray`) for context and comparisons, white outlines for
-  neutral containers, cream (`paper`) for documents.
-- **Type.** Small uppercase mono labels (`s.kai.label`, 24 to 28 px) name
-  things. Words and numerals use the display font. Big numerals are 110 to
-  170 px. Body text is rare: quotes go on evidence cards.
-- **Evidence.** An evidence card is a useful way to present an important sourced
-  claim: an exact quote, the key phrase marked in yellow, and a source chip.
-  A sourced chart, annotated document or another clear treatment can work too.
-  Retain evidence for material claims regardless of how they appear on screen.
-  Keep quotes short (one or two sentences).
-- **Stamps** (`s.kai.stamp`) can convey the narrator's verdict; use sparingly,
-  usually no more than one at the end of a scene.
-- **Recurring scenes.** Consider a chapter bar at chapter starts. Keep returning
-  numbers in the same colors so the viewer recognises them.
+### Author a continuous visual story
+
+Be fully creative. Start with what physically or conceptually happens in the narration and invent a
+way to draw and animate it. Give the viewer subjects to follow, places to explore, mechanisms to
+enter, decisions to observe and consequences to discover. Use the whole canvas for the story.
+A scene builds interest by developing an action toward a consequence, not by filling a slide.
+
+Compose across narration scene boundaries. Carry a subject, action, spatial relationship or causal
+thread into the next shot: follow a signal into a mechanism, track a participant toward a choice,
+or pull out from one event to reveal a population. Cuts, changes of setting and reading holds are
+available; the viewer should still experience an unfolding explanation. An engine scene boundary
+is a timing unit, not an instruction to clear the screen and add a new heading.
+
+Do not use a recurring title-at-top/content-below architecture, even with different titles, layouts,
+entrance effects or occasional moving dots. Do not replace a paragraph with the same text inside
+boxes. Draw the event or relationship itself. Labels belong beside the subject they identify;
+headlines should be exceptional editorial moments rather than the frame's permanent scaffold.
+
+Invent topic-specific drawings and connected actions: a subject acts, the camera follows the cause
+into a mechanism, and its output changes the surrounding situation. Preserve recognizable subjects
+and causal relationships through changes of scale and viewpoint. Inspect rendered temporal sequences
+as well as code. Do not claim playback from sampled stills.
+
+### Animate the subject, not just its entrance
+
+Make what is being discussed visibly happen: an agent receives information and makes a choice; a
+vehicle reverses and accelerates; values travel through a circuit; a coefficient changes and affects
+an output. A diagram can evolve through successive states. Illustrative reconstructions must remain
+honest about what they depict; invented example messages are not experimental transcripts.
+
+Use moving animation across the film to explain these actions and consequences. Fading in a card,
+label or counter is an entrance effect, not a substitute for animating the subject. Repeating a shared
+`head()` plus fixed cards with new text is a slideshow pattern even if the cards pop or fade.
+That architecture does not satisfy this treatment. Cards, counters and text can support a specific
+measurement or source, but must not become the film's main visual vocabulary.
+
+### Use the full engine deliberately
+
+Use custom drawings through `s.draw`, timed transformations and groups, paths, diagrams, images or
+clips, and the rest of the Scene API as needed. The `s.kai` kit is a toolbox, not the boundary of what
+you can draw. Reusable code should support subjects and actions rather than impose one composition.
+Do not call every API merely for variety; select the capabilities that make the script visible.
+
+Moving cameras are fully allowed. Pan to follow a subject, track a value, zoom into a mechanism,
+pull back to reveal context or change viewpoint when it improves the explanation. A stationary shot
+is equally valid when the subject's own action carries the scene. Camera and transition choices are
+at the author's discretion; there is no preference or requirement for a locked frame. Use cuts when
+the thought changes and visual handoffs when an object or action connects the next scene. A slide
+wipe or generic zoom applied to otherwise static cards does not repair a presentation-like sequence.
+
+Keep time-driven drawings deterministic and seekable. Use measured narration cues; consult the Scene
+API's camera/group/drawing documentation for integration. Changing project-local camera/transition
+settings to support the authored film is allowed; do not change shared dependencies or repository config.
+
+### Retain clarity and the visual identity
+
+- Keep the dark palette: blue for existing quantities/computation, yellow for focus or change, red for
+  a problem, muted tones for context, and cream for source documents when appropriate.
+- Use actual loaded heavy font files at natural proportions. Labels and numerals should be readable
+  and proportionate to their purpose. Text is available to the composition, not a mandatory top header.
+- Choose density and placement for the scene; there is no fixed element count or top-left starting rule.
+  Respect safe areas and avoid accidental overlap or clipping during movement as well as at the end.
+- Ground material claims in retained evidence. Use readable annotated source passages, charts or other
+  treatments appropriate to the claim. Do not replace evidence with an ornamental document prop.
+- Optional chapter bars, stamps and other kit parts must remain subordinate to the explanation.
+  Avoid persistent presentation scaffolding that makes every scene feel like the same slide.
+
+### Inspect the progression
+
+Describe the scene's action, build, final outcome and next handoff in visual planning; a free-form
+plan is sufficient. A list of headings and component names alone does not describe the intended film.
+Inspect opening, intermediate, final and boundary states from the actual composition or encoded film.
+Use playback when available to assess motion and pacing. If only sampled frames are available, inspect
+sequences closely enough to see state changes and disclose that smoothness/listening remain unverified.
+Review whether the picture performs the narration rather than merely restating it in changing text.
+Sample unrelated moments across the film and inspect sequences across boundaries. If the samples
+mostly show a top title and information beneath it, or the action is confined to dots moving between
+otherwise static text boxes, the treatment has failed. Check whether the core action remains visually
+understandable with explanatory headings hidden. Decorative motion cannot substitute for that action.
+Do not approve a repeated slide sequence solely because its text is legible or its charts are accurate.
 
 ## The kit: `s.kai`
 
@@ -169,7 +221,7 @@ budget(s) {
 
 ## Long videos
 
-40 to 60 scenes work. `voice` caches each scene, so only changed scenes are
+Choose scene count and boundaries for the explanation. `voice` caches each scene, so only changed scenes are
 made again. `check` takes a few minutes for a ten minute video. Render the
 draft first (`render --draft`), then the final; `render` uses up to 8
 workers (`--workers n`).
@@ -240,7 +292,8 @@ points at 1920×1080; adjust to the headline and artwork.
 2. Write `script.md` using the guidance above; `voice`; fix unconfirmed words.
 3. `scenes.js`; `check` until there are no errors.
 4. `still` and `sheet --scene <id>` to see the build up; compare with the
-   look you want, checking readability and unnecessary repetition too.
+   intended actions and scene development, checking intermediate states and handoffs as well as
+   readability and unnecessary layout repetition.
 5. `render --draft`, look, `render`, `verify`.
 6. Create the thumbnail using the guidelines above; inspect the full-size export
    and feed preview, then obtain independent review and selection.
