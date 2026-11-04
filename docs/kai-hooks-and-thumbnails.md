@@ -119,3 +119,12 @@ or excerpt takes precedence over these defaults.
 These are writing checks, not new visual-review gates or claims of measured engagement. Treat performance
 explanations as hypotheses unless supported by analytics. Audience size, publication age, impressions and
 traffic source matter; public views alone cannot isolate title, thumbnail or script quality.
+
+## Explore the concept before choosing the package
+
+When the angle is unsettled, use [concept development](../skills/script-writing/references/concept-development.md)
+to explore materially different audience questions and hooks. Check each promise against retained
+evidence before selecting it. Choose a thumbnail metaphor that communicates the same promise
+without implying a stronger result. Record the chosen angle, rationale and relevant analogy limits
+in the existing PACKAGE.md; no additional concept document or scoring gate is required. Visual
+execution continues to follow the saved profile.

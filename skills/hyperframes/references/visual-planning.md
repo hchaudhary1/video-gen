@@ -49,3 +49,12 @@ behind several unrelated sentences is not a substitute for new pictures.
 If requested, create a board from real built scenes using pipeline snapshots. Keep it separate from
 generated root files. Label planned frames as plans; inspect actual snapshot files before claiming they
 show the intended shot. Follow the project's existing human checkpoints for decisions.
+
+## Concealment, geography and attention
+
+For tension or a reveal, distinguish what the viewer knows from what remains concealed. Establish
+the threat and exit positions where relevant, and maintain recognizable geography and prop positions
+across shots. Name the visible event that motivates a camera move, or the anticipated change that
+makes a hold useful and ends it. Carry viewer attention into the next picture without obscuring the
+new information. Use [staging and tension](staging-and-tension.md) for horror examples; adapt the
+questions to the beat rather than imposing a fixed shot pattern.

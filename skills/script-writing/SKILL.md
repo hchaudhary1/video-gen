@@ -27,3 +27,10 @@ speaking duration from word count when useful, then measure the actual generated
 
 The host commissions independent script review. Report what you produced, word count, duration estimate,
 review status and any unresolved evidence. A self-check is not independent review.
+
+## Developing a concept
+
+When inventing a premise, hook or treatment, or improving a predictable idea, use
+[concept development](references/concept-development.md). Apply the selected personality's guidance
+and retain useful decisions in existing project artifacts. This is optional ideation support, not a
+new deliverable or approval gate; do not reopen approved narration without a rewrite request.
