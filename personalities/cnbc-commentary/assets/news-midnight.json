@@ -1,0 +1,12 @@
+{
+  "extends": "midnight", "name": "finance-news", "bg": "#ffffff",
+  "surface": "#edf1f7", "ink": "#13243c", "muted": "#53657a",
+  "accent": "teal", "background": "plain", "transition": "cut",
+  "fonts": {
+    "display": {"family": "News Inter", "weight": 900},
+    "body": {"family": "News Inter", "weight": 800},
+    "hand": {"family": "News Inter", "weight": 800},
+    "mono": {"family": "News Inter", "weight": 800}
+  },
+  "stroke": {"rough": false, "width": 3, "glow": 0}, "radius": 16
+}

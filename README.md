@@ -5,14 +5,15 @@ the CLI handles measured timing, media operations, review evidence and delivery.
 application UI. Start with [AGENTS.md](AGENTS.md), the skills in `skills/` and the
 [profile index](personalities/README.md).
 
-## Two pipelines
+## Production routes
 
 | Profile | Makes | Engine and lifecycle |
 |---|---|---|
 | [rules-story](personalities/rules-story/PROFILE.md) | Series horror: a 5–8 minute video plus 1–3 vertical Shorts | HyperFrames scenes, Ming narration, synthesized sound; tracked by `project-new` → `next` → `status` |
 | [kai-explainer](personalities/kai-explainer/PROFILE.md) | Long-form (8–12 minute) first-person tech/AI explainers | The vendored [explainroo](engines/explainroo/VENDORED.md) engine, Kokoro narration; follows its own profile checklist |
+| [cnbc-commentary](personalities/cnbc-commentary/PROFILE.md) | Chaptered CNBC excerpts plus original finance commentary | ExplainRoo Midnight, authored motion design and selective B-roll |
 
-Both finish the same way: a thumbnail at the video's dimensions, then an unlisted upload to abdupdates with
+All routes finish the same way: a thumbnail at the video's dimensions, then an unlisted upload to abdupdates with
 `youtube-upload --thumbnail` (see [publishing](docs/publishing.md)).
 
 ### Horror (rules-story)
@@ -54,6 +55,11 @@ npm run video -- explainroo verify videos/<slug>
 The agent writes `script.md` (first person for the true research journey only, every claim sourced) and
 `scenes.js` with the Kai drawing kit (`s.kai`). Independent script and film review are commissioned by the
 host. Output: `out/video.mp4` with subtitles, chapters and a cover image.
+
+### CNBC commentary (cnbc-commentary)
+
+Follow the [CNBC profile](personalities/cnbc-commentary/PROFILE.md) for sourcing, measured
+content ratios, ExplainRoo Midnight motion design, thumbnails and publishing.
 
 ## Setup
 
@@ -114,13 +120,13 @@ The modules own concrete operational contracts; their source is not required age
 | `review`, `review-pack` | Independent/user decisions and frozen inspection evidence |
 | `watch` | Read-only review overview, playback and media serving |
 | `thumbnails`, `youtube-upload` | Packaging/selection and resumable authorised upload with custom thumbnails |
-| `engines/explainroo` | The Kai explainer engine (MIT, vendored as plain files); its audio core also drives horror sound |
+| `engines/explainroo` | The explainer/commentary engine (MIT, vendored as plain files); its audio core also drives horror sound |
 
 ## Local configuration and artifacts
 
 `video.config.json` sets canvas/frame-rate defaults; `chat.config.json` holds harness/provider model choices.
 Explicit user settings win. Horror jobs live in `jobs/<slug>/`, their scripts/sources in `jobs/scripts/<slug>/`;
-Kai projects in `engines/explainroo/videos/<slug>/`; local tools and models in `.cache/`. These artifacts are
+ExplainRoo projects in `engines/explainroo/videos/<slug>/`; local tools and models in `.cache/`. These artifacts are
 ignored by Git. Never put credentials in briefs.
 
 `VG_CACHE` may choose a cache under repository `.cache/`. `CHROME_PATH` selects an installed browser.
