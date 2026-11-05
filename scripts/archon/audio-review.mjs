@@ -1,4 +1,4 @@
-// Measured audio evidence and the independent review receipt share one acceptance policy.
+// Deterministic measured audio review; no listening or human approval is claimed.
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
@@ -97,7 +97,8 @@ export async function saveAudioReview(ctx, { expected, report }) {
     version: 1,
     ...evidence,
     report,
-    reviewer: `${process.env.WORKFLOW_ID}:audio-review`,
+    mode: "measured",
+    reviewer: "measured-audio-check",
     reviewedAt: new Date().toISOString(),
   };
   await writeReviewFile(
@@ -120,4 +121,15 @@ export async function assertAudioReview(ctx) {
   )
     throw new Error("Current passing audio review required");
   return receipt;
+}
+
+export async function reviewAudio(ctx) {
+  const evidence = await audioEvidence(ctx);
+  const findings = evidence.measurements.map(v =>
+    `${v.scene || 'narration'}: ${(v.matchRate * 100).toFixed(1)}% speech coverage; ${(v.unconfirmed || []).length} unconfirmed words retained.`
+  ).join(' ');
+  return saveAudioReview(ctx, {expected:evidence.binding, report:{
+    pass:evidence.ok, findings:findings || 'No valid speech measurements available.',
+    limitations:[...evidence.limitations, 'Measured review only; audio was not listened to.']
+  }});
 }

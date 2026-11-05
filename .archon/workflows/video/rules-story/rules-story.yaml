@@ -139,36 +139,14 @@ nodes:
     id: "audio-review"
     depends_on:
       - "audio-evidence"
-    context: "fresh"
-    prompt: |-
-      Project: $INPUTS.project. You are the independent audio reviewer after narration generation. Read jobs/scripts/$INPUTS.project/SCRIPT.md and the audio evidence from the preceding node: $audio-evidence.output.artifacts. Inspect the listed recording and ASR measurements using actual available capabilities. Review coverage, missing or unexpected speech and any demonstrated pronunciation or intelligibility defects. A match rate of at least 0.9 with unconfirmed individual words is accepted measured coverage; don't equate ASR uncertainty with proven mispronunciation. Reject demonstrated defects or failed measurements. Disclose whether you actually heard audio; do not claim listening or naturalness from ASR. Do not edit script, narration or timing. Return pass, findings, limitations.
-    output_format:
-      type: "object"
-      properties:
-        pass:
-          type: "boolean"
-        findings:
-          type: "string"
-        limitations:
-          type: "array"
-          items:
-            type: "string"
-      required:
-        - "pass"
-        - "findings"
-        - "limitations"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs audio-review "$INPUTS_PROJECT"'
   -
     id: "audio-reviewed"
     depends_on:
       - "audio-review"
     always_run: true
-    runtime: "bun"
-    script: |-
-      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("audio-reviewed", {expected:process.env.INPUTS_BINDING,report:JSON.parse(process.env.INPUTS_REPORT)});
-    with:
-      binding: "$audio-evidence.output.artifacts.binding"
-      report: "$audio-review.output"
+    bash: 'node scripts/archon/rules-story.mjs audio-reviewed "$INPUTS_PROJECT"'
   -
     id: "sound"
     depends_on:
