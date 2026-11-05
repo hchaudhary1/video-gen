@@ -54,6 +54,13 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
           ? { pass: true, findings: '' }
           : { version: 1, status: 'complete', stage: 'fixture', artifacts };
     }
+    if (w.name.endsWith('-script-cycle-round')) {
+      stubs['script-reviewed-state'].artifacts.ready = route !== 'repair';
+      if (route === 'cached') {
+        stubs['script-binding'].artifacts.ready = true;
+        stubs['script-state'].artifacts.needsWrite = false;
+      }
+    }
     if (route === 'repair') {
       if (stubs.build)
         stubs.build = { version: 1, status: 'repair', artifacts: { errors: ['Fixture scene defect'] } };
@@ -76,6 +83,12 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
       throw new Error(
         `${file}: ${route} expected ${expected}, got ${result.outcome}; inspect .cache/archon-validation/failure.json`,
       );
+    }
+    if (route === 'cached' && w.name.endsWith('-script-cycle-round')) {
+      for (const id of ['write', 'script-review', 'script-report']) {
+        if (result.trace.find((t: any) => t.nodeId === id)?.state !== 'skipped')
+          throw new Error(`Unchanged reviewed script unexpectedly re-executed ${id}`);
+      }
     }
     if (route === 'approve' && w.name.endsWith('-creative-review-round')) {
       for (const id of ['visual-review', 'revision']) {

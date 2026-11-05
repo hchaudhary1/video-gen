@@ -34,7 +34,7 @@ nodes:
     when: "$film-gate.output.artifacts.needsAnswer == true"
     wait:
       form: "select"
-      attention: "Review $film-gate.output.artifacts.artifact for $INPUTS.project. Binding: $film-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. An approval should include a short confirmation."
+      attention: "Review $film-gate.output.artifacts.artifact for $INPUTS.project. Binding: $film-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback."
       options:
         -
           id: "approve"

@@ -165,7 +165,8 @@ it derives machine output from the report instead of trusting an agent's complet
 A missing or mismatched report is an incomplete attempt and can reach the next bounded
 review attempt. It is never a passing review or an automatic rewrite request.
 
-On resume the reviewer runs again against the current binding. Existing substantive script
+On resume the reviewer runs again only when the current binding lacks a passing review.
+Approving an unchanged reviewed script skips the author and reviewer. Existing substantive script
 and visual intent are preserved unless a current review or operator decision requests a
 revision. New research evidence may require a new review without rewriting the narration.
 
@@ -177,8 +178,9 @@ available to the fresh run.
 ## Decisions and revisions
 
 Use the Archon console/CLI attention queue. Each checkpoint displays the artifact path
-and its binding hash. Select approve, revise, or stop, and provide your actual message
-as the answer text. Thumbnail attention offers the current passing variants plus revise
+and its binding hash. Select approve, revise, or stop. A bare `./bin/archon workflow approve <run-id>` is a real
+operator decision and needs no comment; its selected decision is recorded explicitly, without
+inventing a sentence. A revise decision requires your actual feedback as answer text. Thumbnail attention offers the current passing variants plus revise
 and stop. Publishing offers approve, revise, keep local, or stop. A requested revision
 is retained as operator feedback. Script and thumbnail cycles can return to their authors;
 the film itself has one independent visual review and one revision per run.

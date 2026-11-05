@@ -46,7 +46,7 @@ const hasAuthorOutputs = async (dir) =>
 
 export async function scriptBinding(dir) {
   const entries = await Promise.all(
-    ['SCRIPT.md', 'VISUALS.md', 'production-profile.json', 'SOURCES.md', 'research.md'].map(async (f) => [
+    ['BRIEF.md', 'PACKAGE.md', 'SCRIPT.md', 'VISUALS.md', 'production-profile.json', 'SOURCES.md', 'research.md'].map(async (f) => [
       f,
       await fileHash(path.join(dir, f)).catch((e) => {
         if (e.code === 'ENOENT') return null;
@@ -158,18 +158,20 @@ export async function checkpoint(ctx, { kind, answer, expected }) {
   if (!current.required || current.approved) return { ...current, done: true };
   if (expected !== current.binding)
     throw new Error('Artifact changed while attention was pending; ask again for current artifact');
-  const text = answer?.text;
-  if (typeof text !== 'string' || !text.trim())
-    throw new Error('Attention answer requires the actual operator text');
-  const decision = answer.decision;
-  if (!['approve', 'revise', 'reject', 'opt-out', ...current.options.map((o) => o.id)].includes(decision))
-    throw new Error('Invalid attention decision');
+  const decision = answer?.decision;
+  const allowed = current.options.length ? current.options.map(o => o.id) : ['approve', 'revise', 'reject', ...(kind === 'publishing' ? ['opt-out'] : [])];
+  if (!allowed.includes(decision)) throw new Error('Invalid attention decision');
+  if (answer.text != null && typeof answer.text !== 'string') throw new Error('Attention text must be a string');
+  const text = answer.text || '';
+  if (decision === 'revise' && !text.trim()) throw new Error('Revision requires the actual operator feedback');
   const record = {
     version: 1,
     source: 'archon-attention',
     kind,
     binding: current.binding,
-    quote: text,
+    quote: text.trim() ? text : decision,
+    quoteKind: text.trim() ? 'text' : 'decision',
+    answerText: text,
     decision:
       current.options.some((o) => o.id === decision) && !['revise', 'reject'].includes(decision)
         ? 'select'

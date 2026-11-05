@@ -200,3 +200,35 @@ test('a review cannot qualify missing author outputs', async t => {
   assert.match(result.findings,/VISUALS.md is missing or empty/);
   assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,true);
 });
+
+
+test('bare approval records the actual selected decision without inventing operator text', async t => {
+  const ctx=await fixture(t), expected=await scriptBinding(ctx.dir);
+  const result=await checkpoint(ctx,{kind:'script',expected,answer:{decision:'approve'}});
+  assert.equal(result.done,true);
+  const receipt=JSON.parse(await readFile(path.join(ctx.dir,'archon/script-decision.json')));
+  assert.equal(receipt.quote,'approve');
+  assert.equal(receipt.quoteKind,'decision');
+  assert.equal(receipt.answerText,'');
+  assert.equal((await gate('script',ctx)).approved,true);
+});
+
+test('approval still needs an explicit valid decision and revisions need feedback', async t => {
+  const ctx=await fixture(t), expected=await scriptBinding(ctx.dir);
+  await assert.rejects(checkpoint(ctx,{kind:'script',expected,answer:{}}),/Invalid attention decision/);
+  await assert.rejects(checkpoint(ctx,{kind:'script',expected,answer:{decision:'revise',text:''}}),/actual operator feedback/);
+  await checkpoint(ctx,{kind:'script',expected,answer:{decision:'approve',text:'Yes, I approve this exact script.'}});
+  const receipt=JSON.parse(await readFile(path.join(ctx.dir,'archon/script-decision.json')));
+  assert.equal(receipt.quoteKind,'text');
+  assert.equal(receipt.answerText,'Yes, I approve this exact script.');
+});
+
+test('editing the brief or packaging invalidates script review', async t => {
+  const ctx=await fixture(t), expected=await scriptBinding(ctx.dir);
+  await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${expected}\nDisposition: pass`);
+  await stageOperation('script-reviewed',ctx,{expected});
+  assert.equal((await stageOperation('script-status',ctx,{})).ready,true);
+  await writeFile(path.join(ctx.dir,'PACKAGE.md'),'Changed publishing promise.');
+  assert.equal((await stageOperation('script-status',ctx,{})).ready,false);
+  assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,false);
+});

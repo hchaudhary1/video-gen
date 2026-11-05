@@ -48,7 +48,7 @@ nodes:
     when: "$thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true"
     wait:
       form: "select"
-      attention: "Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbnail-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. An approval should include a short confirmation."
+      attention: "Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbnail-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback."
       options: "$thumbnail-gate.output.artifacts.options"
   -
     id: "thumbnail-answer"

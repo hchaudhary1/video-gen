@@ -5,8 +5,13 @@ it, whether it earns its claims, and whether the chosen length serves the materi
 against saved sources, preserving scope, qualifications and attribution. Check invented first-person
 experiences and unsupported promises in proposed packaging.
 
-For technical/AI explainers, read PACKAGE.md and check the
-opening against the actual title/thumbnail promise. Flag unsupported hooks, repeated prerequisites,
+This review happens before narration and visual production. Measured duration, alignment, audio,
+scene implementation and rendered thumbnails are not prerequisites. Estimate duration from words
+when needed; do not demand evidence from later stages.
+
+For technical/AI explainers, read PACKAGE.md when present and check the
+opening against that promise. Otherwise use the brief and script; missing packaging is not a
+reason to mark a script incomplete. Flag unsupported hooks, repeated prerequisites,
 delayed advertised payoffs and extra sections that do not earn their runtime. Preserve requested depth.
 
 Give concrete findings: the affected passage, evidence, impact on the viewer, severity and desired outcome.
