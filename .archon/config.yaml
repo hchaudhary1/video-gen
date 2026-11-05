@@ -1,0 +1,7 @@
+# Both video workflows use the existing authenticated Codex CLI.
+assistant: codex
+assistants:
+  codex:
+    model: gpt-6-luna
+    modelReasoningEffort: low
+    webSearchMode: live

@@ -1,7 +1,7 @@
 # Builder self-check
 
 This is the author's repair pass. The host commissions independent review through
-[docs/orchestrator.md](../../../docs/orchestrator.md) and [docs/review.md](../../../docs/review.md).
+[docs/production.md](../../../docs/production.md) and [docs/review.md](../../../docs/review.md).
 Do not submit a self-check as independent approval or fabricate a review receipt.
 
 Run the pipeline build and inspect diagnostics. Choose actual snapshot times for the opening,

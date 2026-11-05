@@ -1,16 +1,12 @@
-# Editorial profiles
+# Production treatments
 
-Choose by treatment, not just topic. The user's explicit direction wins.
+Choose the treatment that fits the user's intent; explicit direction wins. Both are
+scheduled entirely by Archon YAML, with frozen intent retained per project.
 
-| Intent | Profile |
-|---|---|
-| Long-form first-person tech/AI explainer, a continuously moving story visualized through original drawings | [kai-explainer](kai-explainer/PROFILE.md) (vendored explainroo engine, not `project-new`) |
-| Original uncanny fiction or survival rules (series horror; identities in `rules-story/identities/`) | [rules-story](rules-story/PROFILE.md) |
+| Profile | Intent | Workflow/runbook |
+|---|---|---|
+| [rules-story](rules-story/PROFILE.md) | Original uncanny fiction with a locked series identity | `rules-story`; [runbook](../docs/production.md) |
+| [kai-explainer](kai-explainer/PROFILE.md) | First-person technical research explained through moving drawings | `kai-explainer`; [runbook](../docs/production.md) |
 
-Load only the selected profile. Ask a routing question only when the treatment is genuinely ambiguous.
-`project-new --profile rules-story` saves its instructions with the project; kai-explainer follows its own
-PROFILE.md with the vendored engine. Provider/model settings are separate.
-Profiles establish purpose and evidentiary boundaries; agents choose the storytelling and implementation.
-
-rules-story uses the full [Motion Explainer reference](../docs/motion-explainer.md) during visual planning,
-for long videos and Shorts alike; editorial purpose determines its application.
+Profiles describe editorial intent. Authors retain creative ownership inside that frame;
+Archon owns stage dependencies, independent review, user decisions and publication.

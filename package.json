@@ -4,11 +4,8 @@
   "private": true,
   "description": "Narration-synchronized motion design with HyperFrames",
   "scripts": {
-    "video": "node scripts/video.mjs",
-    "dev": "node scripts/video.mjs preview",
-    "check": "node scripts/video.mjs check",
-    "render": "node scripts/video.mjs render",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "tools": "node scripts/tools.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "5.3.0",

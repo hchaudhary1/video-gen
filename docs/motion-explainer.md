@@ -36,9 +36,7 @@ combination as appropriate; the Canvas bridge below is one integration option.
 
 ## Install into a job
 
-```bash
-npm run video -- library-use --item motion-explainer@1.0.0 --job jobs/<slug>
-```
+Use the direct domain APIs from the corresponding Archon node; see `docs/production.md`.
 
 The bundle is copied to `assets/library/motion-explainer/1.0.0/`. Adapt drawings into scene files or
 separate assets, preserving the frozen originals. Use the job's canvas, frame rate and measured timing

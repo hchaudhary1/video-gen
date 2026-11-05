@@ -5,15 +5,22 @@ it, whether it earns its claims, and whether the chosen length serves the materi
 against saved sources, preserving scope, qualifications and attribution. Check invented first-person
 experiences and unsupported promises in proposed packaging.
 
-For technical/AI explainers, read PACKAGE.md and check the
-opening against the actual title/thumbnail promise. Flag unsupported hooks, repeated prerequisites,
+This review happens before narration and visual production. Measured duration, alignment, audio,
+scene implementation and rendered thumbnails are not prerequisites. Estimate duration from words
+when needed; do not demand evidence from later stages.
+
+For technical/AI explainers, read PACKAGE.md when present and check the
+opening against that promise. Otherwise use the brief and script; missing packaging is not a
+reason to mark a script incomplete. Flag unsupported hooks, repeated prerequisites,
 delayed advertised payoffs and extra sections that do not earn their runtime. Preserve requested depth.
 
 Give concrete findings: the affected passage, evidence, impact on the viewer, severity and desired outcome.
 An unconventional opening or visual approach is not itself a defect. Visual notes express intent; do not
 require a scene schema, fixed number of concepts or a design recipe. The director owns implementation.
 
-Write `review.md` in the assigned project. End with `Disposition: pass`, `Disposition: revise`, or
+Write `review.md` in the assigned project. Include a standalone `Binding: <exact hash>` line
+using the binding supplied by the workflow node; an old report cannot stand for changed text
+or evidence. End with `Disposition: pass`, `Disposition: revise`, or
 `Disposition: incomplete`. Incomplete means evidence needed to judge a material claim is unavailable;
 list it under `## Missing evidence`. On revision, resolve or retain previous findings against current text.
 Do not edit the script or claim independent review of your own work. Disclose whether you read text or

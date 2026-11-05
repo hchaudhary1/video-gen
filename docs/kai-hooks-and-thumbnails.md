@@ -10,7 +10,8 @@ Use the existing style guide for those decisions and docs/publishing.md for the 
 
 ## Plan one promise
 
-Before drafting narration, write a short project-local PACKAGE.md containing:
+Before drafting narration, decide the promise from the brief. When developing packaging at
+this stage, record it in a short project-local PACKAGE.md containing:
 
 - Intended viewer, what they already know, and the question they want answered.
 - Stakes: what they could gain, lose or misunderstand, grounded in the evidence.
@@ -27,6 +28,9 @@ result must establish that result early, then investigate it. Do not make viewer
 experiments before reaching the advertised subject. A broad topic explainer can instead promise a
 clear mental model. Revisit the copy after writing and after measuring the narration: metadata must
 describe the finished film. Word-count estimates do not establish actual runtime.
+
+For a script-only assignment, packaging can be deferred. Review the hook against BRIEF.md
+and the script itself; absent packaging and later measured narration are not script blockers.
 
 ## Titles
 

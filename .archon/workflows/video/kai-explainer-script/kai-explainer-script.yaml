@@ -1,0 +1,106 @@
+name: "kai-explainer-script"
+description: "Produce only the independently reviewed explainer script for a brief; copies the kai-explainer script stages and stops before narration."
+worktree:
+  enabled: false
+inputs:
+  project:
+    description: "Explicit lowercase project slug"
+    required: true
+  options:
+    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, optOut"
+    default: "{}"
+nodes:
+  -
+    id: "recover"
+    depends_on: []
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("init", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
+  -
+    id: "research"
+    depends_on:
+      - "recover"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep sources/SOURCES.md and local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
+  -
+    id: "script-cycle-state-1"
+    depends_on:
+      - "research"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-1"
+    depends_on:
+      - "script-cycle-state-1"
+    when: "$script-cycle-state-1.output.artifacts.done == false"
+    workflow: "kai-explainer-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle-state-2"
+    depends_on:
+      - "script-cycle-state-1"
+      - "script-cycle-round-1"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-2"
+    depends_on:
+      - "script-cycle-state-2"
+    when: "$script-cycle-state-2.output.artifacts.done == false"
+    workflow: "kai-explainer-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle-state-3"
+    depends_on:
+      - "script-cycle-state-2"
+      - "script-cycle-round-2"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-3"
+    depends_on:
+      - "script-cycle-state-3"
+    when: "$script-cycle-state-3.output.artifacts.done == false"
+    workflow: "kai-explainer-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle-state-4"
+    depends_on:
+      - "script-cycle-state-3"
+      - "script-cycle-round-3"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-4"
+    depends_on:
+      - "script-cycle-state-4"
+    when: "$script-cycle-state-4.output.artifacts.done == false"
+    workflow: "kai-explainer-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle"
+    depends_on:
+      - "script-cycle-state-4"
+      - "script-cycle-round-4"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-loop-check \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"

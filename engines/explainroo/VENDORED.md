@@ -32,4 +32,12 @@ upstream changes here while keeping the local changes listed. Then run `npm test
 revision in this file, and render a short Kai test project before relying on it.
 
 `npm install` here installs explainroo's own dependencies. Generated files stay ignored: `node_modules/`, `videos/`,
-`build/`, `out/`. Run commands through `npm run video -- explainroo ...` so caches stay under the repository `.cache/`.
+`build/`, `out/`. Archon nodes call the media APIs directly and keep caches under the repository `.cache/`.
+
+## Archon integration
+
+The standalone CLI executable and controller were removed. Both production treatments
+are scheduled by root Archon YAML packs; Kai adapters directly import the project,
+narration/timeline, QA and rendering APIs. Standalone-command tests were replaced with
+direct API tests; the media renderer and source/licence provenance remain intact.
+Project initialization for the Kai workflow copies its template through the root adapter.

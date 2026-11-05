@@ -1,0 +1,370 @@
+name: "rules-story"
+description: "Produce rules-story films with measured narration, independent evidence-bound review, human decisions and unlisted delivery."
+worktree:
+  enabled: false
+inputs:
+  project:
+    description: "Explicit lowercase project slug"
+    required: true
+  options:
+    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut"
+    default: "{}"
+nodes:
+  -
+    id: "recover"
+    depends_on: []
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+      await emit("init", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
+  -
+    id: "research"
+    depends_on:
+      - "recover"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.
+  -
+    id: "identity"
+    depends_on:
+      - "research"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\""
+  -
+    id: "script-cycle-state-1"
+    depends_on:
+      - "identity"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-1"
+    depends_on:
+      - "script-cycle-state-1"
+    when: "$script-cycle-state-1.output.artifacts.done == false"
+    workflow: "rules-story-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle-state-2"
+    depends_on:
+      - "script-cycle-state-1"
+      - "script-cycle-round-1"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-2"
+    depends_on:
+      - "script-cycle-state-2"
+    when: "$script-cycle-state-2.output.artifacts.done == false"
+    workflow: "rules-story-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle-state-3"
+    depends_on:
+      - "script-cycle-state-2"
+      - "script-cycle-round-2"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-3"
+    depends_on:
+      - "script-cycle-state-3"
+    when: "$script-cycle-state-3.output.artifacts.done == false"
+    workflow: "rules-story-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle-state-4"
+    depends_on:
+      - "script-cycle-state-3"
+      - "script-cycle-round-3"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-cycle-round-4"
+    depends_on:
+      - "script-cycle-state-4"
+    when: "$script-cycle-state-4.output.artifacts.done == false"
+    workflow: "rules-story-script-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "script-cycle"
+    depends_on:
+      - "script-cycle-state-4"
+      - "script-cycle-round-4"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs script-loop-check \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "narration"
+    depends_on:
+      - "script-cycle"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs narration \"$INPUTS_PROJECT\""
+  -
+    id: "prepare"
+    depends_on:
+      - "narration"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\""
+  -
+    id: "timing"
+    depends_on:
+      - "prepare"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\""
+  -
+    id: "audio-evidence"
+    depends_on:
+      - "timing"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs audio-evidence \"$INPUTS_PROJECT\""
+  -
+    id: "audio-review"
+    depends_on:
+      - "audio-evidence"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs audio-review "$INPUTS_PROJECT"'
+  -
+    id: "audio-reviewed"
+    depends_on:
+      - "audio-review"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs audio-reviewed "$INPUTS_PROJECT"'
+  -
+    id: "sound"
+    depends_on:
+      - "audio-reviewed"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\""
+  -
+    id: "register-director"
+    depends_on:
+      - "sound"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+      await emit("producer", {role:"director",runId:process.env.INPUTS_RUN});
+    with:
+      run: "$WORKFLOW_ID"
+  -
+    id: "direction"
+    depends_on:
+      - "register-director"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read skills/hyperframes/SKILL.md, docs/motion-explainer.md and docs/composition.md. Author film.json and series.json: series identity, rules and measured cue phrases. Use saved canvas and measured narration. Incorporate generated sound kit from review/archon-sound.json, series overlay, captions and -15 LUFS target. Your registered production identity is $WORKFLOW_ID:director. Recover existing valid direction; do not overwrite a completed film without findings.
+  -
+    id: "series"
+    depends_on:
+      - "direction"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs series \"$INPUTS_PROJECT\""
+  -
+    id: "register-scenes"
+    depends_on:
+      - "series"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+      await emit("producer", {role:"scene-author",runId:process.env.INPUTS_RUN});
+    with:
+      run: "$WORKFLOW_ID"
+  -
+    id: "production"
+    depends_on:
+      - "register-scenes"
+    workflow: "rules-story-production-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "delivery"
+    depends_on:
+      - "production"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\""
+  -
+    id: "thumbnail-cycle-state-1"
+    depends_on:
+      - "delivery"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "thumbnail-cycle-round-1"
+    depends_on:
+      - "thumbnail-cycle-state-1"
+    when: "$thumbnail-cycle-state-1.output.artifacts.done == false"
+    workflow: "rules-story-thumbnail-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "thumbnail-cycle-state-2"
+    depends_on:
+      - "thumbnail-cycle-state-1"
+      - "thumbnail-cycle-round-1"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "thumbnail-cycle-round-2"
+    depends_on:
+      - "thumbnail-cycle-state-2"
+    when: "$thumbnail-cycle-state-2.output.artifacts.done == false"
+    workflow: "rules-story-thumbnail-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "thumbnail-cycle-state-3"
+    depends_on:
+      - "thumbnail-cycle-state-2"
+      - "thumbnail-cycle-round-2"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "thumbnail-cycle-round-3"
+    depends_on:
+      - "thumbnail-cycle-state-3"
+    when: "$thumbnail-cycle-state-3.output.artifacts.done == false"
+    workflow: "rules-story-thumbnail-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "thumbnail-cycle-state-4"
+    depends_on:
+      - "thumbnail-cycle-state-3"
+      - "thumbnail-cycle-round-3"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "thumbnail-cycle-round-4"
+    depends_on:
+      - "thumbnail-cycle-state-4"
+    when: "$thumbnail-cycle-state-4.output.artifacts.done == false"
+    workflow: "rules-story-thumbnail-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "thumbnail-cycle"
+    depends_on:
+      - "thumbnail-cycle-state-4"
+      - "thumbnail-cycle-round-4"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs thumbnail-loop-check \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "publishing-cycle-state-1"
+    depends_on:
+      - "thumbnail-cycle"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "publishing-cycle-round-1"
+    depends_on:
+      - "publishing-cycle-state-1"
+    when: "$publishing-cycle-state-1.output.artifacts.done == false"
+    workflow: "rules-story-publishing-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "publishing-cycle-state-2"
+    depends_on:
+      - "publishing-cycle-state-1"
+      - "publishing-cycle-round-1"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "publishing-cycle-round-2"
+    depends_on:
+      - "publishing-cycle-state-2"
+    when: "$publishing-cycle-state-2.output.artifacts.done == false"
+    workflow: "rules-story-publishing-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "publishing-cycle-state-3"
+    depends_on:
+      - "publishing-cycle-state-2"
+      - "publishing-cycle-round-2"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "publishing-cycle-round-3"
+    depends_on:
+      - "publishing-cycle-state-3"
+    when: "$publishing-cycle-state-3.output.artifacts.done == false"
+    workflow: "rules-story-publishing-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "publishing-cycle-state-4"
+    depends_on:
+      - "publishing-cycle-state-3"
+      - "publishing-cycle-round-3"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "publishing-cycle-round-4"
+    depends_on:
+      - "publishing-cycle-state-4"
+    when: "$publishing-cycle-state-4.output.artifacts.done == false"
+    workflow: "rules-story-publishing-cycle-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
+  -
+    id: "publishing-cycle"
+    depends_on:
+      - "publishing-cycle-state-4"
+      - "publishing-cycle-round-4"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs publishing-loop-check \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "publish"
+    depends_on:
+      - "publishing-cycle"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs publish \"$INPUTS_PROJECT\""

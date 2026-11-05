@@ -17,13 +17,19 @@ MODEL = "nvidia/parakeet-tdt-0.6b-v2"
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("audio")
-    parser.add_argument("output")
+    parser.add_argument("audio", nargs="?")
+    parser.add_argument("output", nargs="?")
+    parser.add_argument("--setup", action="store_true", help="Load/cache the pinned model without transcribing audio")
     args = parser.parse_args()
+    if not args.setup and (not args.audio or not args.output):
+        parser.error("audio and output are required unless --setup is used")
     import torch
     import nemo.collections.asr as nemo_asr
     model = nemo_asr.models.ASRModel.from_pretrained(MODEL, map_location="cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
+    if args.setup:
+        print(json.dumps({"model": MODEL, "device": str(model.device), "ready": True}))
+        return
     result = {"model": MODEL, "device": str(model.device), "chunks": [], "words": []}
     with tempfile.TemporaryDirectory(prefix="parakeet-", dir=Path(args.output).parent) as work:
         decoded = Path(work) / "decoded.wav"

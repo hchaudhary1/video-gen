@@ -6,7 +6,7 @@ import {createProject} from '../lib/project.mjs';
 import {serveWatch} from '../lib/watch.mjs';
 import {watchInstructions} from '../lib/watch.mjs';
 
-test('T3 review serves the script and film read-only without starting the old UI', async t => {
+test('Read-only artifact inspection serves the script and film read-only without starting the old UI', async t => {
   const cache = path.resolve('.cache/tests');
   await mkdir(cache, {recursive: true});
   const root = await mkdtemp(path.join(cache, 'watch-'));
@@ -24,8 +24,8 @@ test('T3 review serves the script and film read-only without starting the old UI
   t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
 
   const instructions = watchInstructions(url, 'demo', false);
-  assert.ok(instructions.includes(`tailscale serve --bg ${url}`));
-  assert.ok(instructions.includes(`Review: ${url}`));
+  assert.ok(instructions.includes(url));
+  assert.ok(instructions.includes('Archon attention'));
   assert.doesNotMatch(instructions,/4310|existing video UI/);
   assert.doesNotMatch(instructions, /preview_open/);
 
@@ -33,7 +33,7 @@ test('T3 review serves the script and film read-only without starting the old UI
   assert.match(overview, /Fixture script/);
   assert.match(overview, /Disposition: pass/);
   assert.match(overview, /href="player\/"/);
-  assert.match(overview, /Reply in the chat to approve/);
+  assert.match(overview, /Archon attention/);
   const player = await fetch(url + 'player/').then(r => r.text());
   assert.match(player, /hyperframes-player/);
   const film = await fetch(url + 'player/film/index.html').then(r => r.text());

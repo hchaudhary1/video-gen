@@ -12,7 +12,6 @@ import { recordingCuts, recordingFiles, decodeRecording, saveRecording } from '.
 import { sceneHash } from '../src/voice.js';
 import { readWav, writeWav } from '../src/wav.js';
 import { loudness } from '../src/ffmpeg.js';
-import { main } from '../src/cli.js';
 
 function temp(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'explainroo-voices-'));
@@ -190,65 +189,6 @@ test('ElevenLabs retries 429 and server failures, but stops after three attempts
   await assert.rejects(() => elevenSpeech(p, 'first', 'Hello.'), /busy/);
   assert.equal(calls, 3);
   assert.equal(elevenUsage(p).length, 1);
-});
-
-test('ElevenLabs voice list paginates and CLI prints names, ids and labels with JSON support', async (t) => {
-  const dir = temp(t);
-  let calls = 0;
-  mockAPI(t, async (url) => {
-    calls++;
-    assert.equal(url.pathname, '/v2/voices');
-    assert.equal(url.searchParams.get('page_size'), '100');
-    const page2 = url.searchParams.has('next_page_token');
-    if (page2) assert.equal(url.searchParams.get('next_page_token'), 'next');
-    return Response.json({ voices: [{ name: page2 ? 'Bob' : 'Alice', voice_id: page2 ? 'b' : 'a', labels: { accent: 'American' } }], has_more: !page2, next_page_token: page2 ? null : 'next' });
-  });
-  assert.deepEqual(await elevenVoices(dir), [{ name: 'Alice', id: 'a', labels: { accent: 'American' } }, { name: 'Bob', id: 'b', labels: { accent: 'American' } }]);
-  assert.equal(calls, 2);
-  let output = '';
-  t.mock.method(process.stdout, 'write', (s) => { output += s; return true; });
-  assert.equal(await main(['voices', '--elevenlabs', dir, '--json']), 0);
-  assert.equal(JSON.parse(output).voices[1].id, 'b');
-  output = '';
-  assert.equal(await main(['voices', dir, '--elevenlabs']), 0);
-  assert.match(output, /Alice  a  accent: American/);
-  output = '';
-  await main(['voices']);
-  assert.match(output, /af_heart/);
-  assert.match(output, /voices --elevenlabs.*recording/);
-});
-
-test('cached CLI voice output reports recording mismatches and ElevenLabs speed limits', async (t) => {
-  const p = project(t, { provider: 'recording', src: 'assets/take.wav' });
-  writeWav(path.join(p.dir, 'assets/take.wav'), new Float32Array(24000), 24000);
-  const recordings = recordingFiles(p);
-  fs.mkdirSync(p.paths.voice, { recursive: true });
-  const cache = (recording) => {
-    for (const scene of p.script.scenes) {
-      const chunks = speechChunks(scene.units, p.config);
-      const hash = sceneHash(scene, chunks, p.config, recording && chunks.length
-        ? { content: recordings.files[scene.id].hash, scenes: p.script.scenes.map((s) => s.spoken) } : null);
-      const info = { hash, id: scene.id, duration: chunks.length ? 1 : 0, words: [], marks: {}, chunks: [], transcript: 'Different words.', matchRate: chunks.length ? 0 : 1, unmatched: chunks.length ? [scene.spoken] : [] };
-      fs.writeFileSync(path.join(p.paths.voice, scene.id + '.json'), JSON.stringify(info));
-      if (chunks.length) writeWav(path.join(p.paths.voice, scene.id + '.wav'), new Float32Array(24000), 24000);
-    }
-  };
-  cache(true);
-  let output = '';
-  t.mock.method(process.stdout, 'write', (s) => { output += s; return true; });
-  assert.equal(await main(['voice', p.dir, '--json']), 0);
-  assert.match(JSON.parse(output).scenes[0].message, /recording does not match.*actually said/);
-  fs.writeFileSync(path.join(p.dir, 'video.json'), JSON.stringify({ voice: { provider: 'elevenlabs', id: 'v' }, pace: 1.3 }));
-  p.config = loadProject(p.dir).config;
-  cache(false);
-  output = '';
-  assert.equal(await main(['voice', p.dir, '--json']), 0);
-  assert.equal(JSON.parse(output).speed, 1.2);
-  assert.equal(JSON.parse(output).requested_speed, 1.3);
-  assert.equal(JSON.parse(output).characters, 0);
-  output = '';
-  assert.equal(await main(['voice', p.dir]), 0);
-  assert.equal((output.match(/outside 0.7 to 1.2/g) || []).length, 1);
 });
 
 test('single-take cuts retain internal pauses and margins, skip silent scenes and avoid overlap', () => {

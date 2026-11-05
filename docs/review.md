@@ -1,51 +1,65 @@
-# Independent review contract
+# Evidence-bound independent review
 
-The host commissions reviewers who did not produce the work. Review evidence is frozen and hash-bound
-so findings and approval refer to the actual film. A plan, transcript or lint result cannot replace
-inspection of images and, when available, playback. The editorial standard below applies.
+Archon runs an audio review after generation, then one independent visual review and one
+revision for each film. Register producing identities before media edits. Producers never
+write reviewer verdicts. Missing inspection is disclosed and cannot be labelled a pass.
 
-`review-pack --job <job> --stage final` captures the full built composition. Render-source packs also
-include encoded clips. A successful full build is required; missing scenes/evidence prevent review.
-Two independent roles, `visual-mechanism` and `continuity-legibility`, review the
-whole interval, including intermediate states, handoffs and ending. The visual role records
-initial picture observations before reading the intended narrative. Audio has no independent
-reviewer requirement. Automated Parakeet v2 evidence checks speech separately (see docs/audio.md).
-Old jobs' retired narration reviewer files and requiredRoles entries are ignored; missing current
-automated receipts still block delivery and require transcribe/verify. Visual reviews remain independent.
+## Audio review
 
-## Report
+The audio-evidence node records script/recording hashes, per-scene match rates and unconfirmed
+words. The audio-review node applies a deterministic measured check, requiring unchanged files
+and at least 90% speech coverage for every narrated scene. The audio-reviewed node validates
+that receipt before visual work. Listening capability is not required. It writes `review/audio-review.json`. Unconfirmed individual
+words above that threshold remain disclosed ASR uncertainty; they do not become a new visual
+build failure. A failed measurement or rejected review stops before visual work. Repairing audio
+requires a new authorized take and dependent timing, rather than an edit by the visual author.
 
-Generate the schema with:
+The report records findings, `mode: "measured"`, and the explicit limitation that audio was
+not listened to. ASR is not listening, naturalness or proof of pronunciation. Encoded final-mix
+integrity and speech checks remain separate technical requirements.
 
-```bash
-npm run video -- review-template --job <job> --stage final --role <role>
-```
+## One visual review, one revision
 
-It writes `review/final/incoming/<role>.json` with current source/pack hashes. Fill the generated fields:
+The workflow builds a draft and freezes a copy of its evidence. One fresh `visual-review`
+agent inspects mechanism, continuity and legibility across the whole interval, then submits
+one report. An author gets one revision using that report and the build findings. It writes
+`review/revision-notes.md`, rebuilds, and records `review/visual-revision.json`. The workflow
+then proceeds to rendering and delivery without another creative review.
 
-- `reviewer.agentId`: actual session identity; `independent` is truthful.
-- `inspection`: actual mode, visual availability, frozen evidence paths inspected and limitations.
-- `coverage`: intervals actually inspected, covering the assigned film.
-- `initialObservation`: the visual role's account before reading the intended story.
-- `verdict`: `pass`, `revise`, or `incomplete`.
-- `findings`: concrete timestamped defects; use the template's schema.
+The original evidence and verdict remain immutable. The revision receipt binds that report
+to the new source hash and revision notes. Delivery states `reviewed-and-revised`, preserves
+original findings and explicitly says the revised film was not reviewed again. Source edits
+after the recorded revision invalidate delivery. Technical build/render/media failures still
+stop the run; creative warnings are reported rather than opening another review cycle.
 
-Each finding needs `id`, `severity`, `start`, `end`, `subject`, `requirement`, `observed`, `repair`, and
-current `evidence` paths. Blockers also name a category (`readability`, `truth`, `mechanism`, `style`,
-`evidence`) and scope (`scene`, `plan`, `evidence`); `sceneIds` can identify the responsible scene.
-A repair describes the desired outcome rather than forcing the author's implementation.
+## Report contract
 
-Missing visual inspection means `inspection.visual: "unavailable"` and `verdict: "incomplete"`.
-Transcript and signal checks do not establish audible quality or exact synchronization.
+The author reads the single visual report. Reviewers submit JSON directly with
+`submitReview(job, report)` from `lib/review.mjs`; the library validates identity,
+source/pack/video hashes, coverage, evidence paths and prior-finding responses.
 
-Submit using `review-submit --job <job> --file <report.json>`. The CLI validates identity, hashes,
-evidence and coverage. Producers do not edit reviewer verdicts. User decisions remain separate.
+A report includes `version: 1`, `stage: "final"`, `role: "visual-review"`, `sourceHash`,
+`videoSha256` (null for a built-timeline pack), `packSha256`, `reviewer: {agentId,
+independent: true}`, `inspection`, `coverage`, `initialObservation`, `verdict` and `findings`.
+Use actual declared execution identities and actual inspection; no placeholder identities
+or invented viewing/listening. `inspection` names mode, visual availability, inspected
+frozen evidence paths and limitations. Coverage lists the intervals actually inspected.
+The visual role records its initial observations before reading intended narrative.
 
-On revision, retain IDs for unresolved findings. Respond to prior blockers in `priorFindingResponses`
-with sourceHash, findingId, resolved/unresolved/disputed disposition and evidence-based reason.
-A new blocker needs current evidence, not a new aesthetic preference. Readability, broken evidence and
-technical failures cannot be cleared by exhausting the creative review budget. Delivery records whether
-review passed, reached its configured limit with unresolved findings, or was explicitly waived by the user.
+Verdicts are `pass`, `revise` or `incomplete`. Every finding contains a stable `id`,
+severity (`blocking` or `advisory`), numeric start/end seconds, subject, requirement,
+observed defect, repair outcome and current evidence paths. Category is readability,
+truth, mechanism, style or evidence; scope is scene, plan or evidence. `sceneIds` may
+identify ownership. A pass requires full coverage and no blocking findings. Unavailable
+visual inspection requires `incomplete`, never pass.
+
+Read review history. Respond to prior blockers with `priorFindingResponses`: sourceHash,
+findingId, resolved/unresolved/disputed disposition and an evidence-based reason. Retain
+IDs for unresolved defects. Repair describes an outcome, not a forced implementation.
+
+Human checkpoints are optional and separate from independent review. They bind to the
+current revised source and retain the operator's actual response. A rejection stops the run.
+A new requested creative pass requires a new run; there is no automatic second review loop.
 
 ## Editorial judgment
 
@@ -75,4 +89,4 @@ reveals or continuous motion in every shot; deliberate holds and stationary shot
 
 Inspect actual images or playback. Automated measurements and written plans are diagnostics, not proof of
 quality. Disclose inspection limits. Still images do not establish motion quality; signal checks do not
-establish that audio was heard. 
+establish that audio was heard.

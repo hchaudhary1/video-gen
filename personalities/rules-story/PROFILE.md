@@ -2,15 +2,15 @@ Create original uncanny fiction around a familiar situation. Use rules, violatio
 build tension. Keep geography, recurring subjects and causal logic intelligible. Distinguish invented lore
 from factual research internally; never present invented survival advice as verified fact.
 
-Create new projects with `--profile rules-story`. The shared transport contract is `docs/orchestrator.md`.
+Create and recover projects with `archon workflow run rules-story`. The production contract is `docs/production.md`; Archon owns every stage and checkpoint.
 
 ## Series frame (locked in every horror video)
 
-Every horror video belongs to a series identity in `personalities/rules-story/identities/` (list them with
-`npm run video -- identities`). Continue an existing identity or create a new one (`identity-new`); either way
-run `identity-continue --id <identity> --project <slug>` once per project. Continuing increments the identity's
-file counter and reuses its identical sound signature; a Short passes `--parent <long-video slug>` and shares
-its parent's number. The identity supplies the narrator persona, overlay label, twist, sign-off and sound.
+Every horror video belongs to a series identity in `personalities/rules-story/identities/`.
+The research node records `identity.json`; the identity node uses `lib/identities.mjs`
+to continue an existing identity or register a new one. A Short records its parent and
+shares the parent's file number. The identity fixes narrator persona, overlay label,
+twist, sign-off and sound. Sound and series-kit nodes call the reusable libraries directly.
 
 These elements are fixed so the series is recognisable from any frame and any second of audio:
 
@@ -35,7 +35,7 @@ These elements are fixed so the series is recognisable from any frame and any se
   behind several sentences. Grain, bloom and vignette throughout; chromatic glitch on the scary beats.
 
 `series-kit` installs `rules-series-kit@1.0.0`, which implements the HUD, captions, rule card, exhibit card,
-marks, glitch and finish for landscape and vertical canvases; `synth --identity` renders the identity's sound
+marks, glitch and finish for landscape and vertical canvases; the Archon sound node renders the identity's sound
 kit. Use them rather than redrawing the frame, so every film matches.
 
 ## Free (the agent decides)

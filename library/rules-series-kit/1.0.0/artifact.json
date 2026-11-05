@@ -25,7 +25,7 @@
     "fonts/inter-800.woff2",
     "fonts/OFL.txt"
   ],
-  "usage": "Run identity-continue for the project, write series.json, then npm run video -- series-kit --job jobs/<slug> (installs this bundle and writes assets/series/series-data.js). Load kit.js and series-data.js in each scene template, add cards with RulesSeries.ruleCard/exhibit/redX/sequence and call RulesSeries.mount last. See README.md.",
+  "usage": "The Archon identity node reserves a file number; author series.json, then the series node calls lib/series.mjs prepareSeries(job) (installs this bundle and writes assets/series/series-data.js). Load kit.js and series-data.js in each scene template, add cards with RulesSeries.ruleCard/exhibit/redX/sequence and call RulesSeries.mount last. See README.md.",
   "origin": {
     "source": "video-gen project-owned (library/rules-series-kit); fonts from @fontsource/inter 5.3.0",
     "license": "Project-owned code; Inter fonts SIL Open Font License 1.1"

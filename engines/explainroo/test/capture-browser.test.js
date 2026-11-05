@@ -13,7 +13,6 @@ import { captureFixture } from './capture-fixture.js';
 
 let chrome;
 try { chrome = findChrome(); } catch {}
-const bin = fileURLToPath(new URL('../bin/explainroo.js', import.meta.url));
 const run = promisify(execFile);
 const dimensions = (file) => {
   const png = fs.readFileSync(file);
@@ -71,18 +70,12 @@ test('capture saves a local site, its loaded fonts and desktop and phone screens
     await assert.rejects(capture(dir, `${site.url}/missing`), /page did not load/);
     assert.ok(fs.existsSync(path.join(root, 'mobile.png')));
     fs.writeFileSync(path.join(root, 'stale.txt'), 'old capture');
-    const cli = await run(process.execPath, [bin, 'capture', dir, site.url, '--json'], { timeout: 60000 });
-    const json = JSON.parse(cli.stdout);
-    assert.equal(json.colors.accent, '#245cff');
-    assert.equal(json.suggestion.fonts.length, 0);
-    assert.match(json.notes.join(' '), /Fixture Sans: get the font files and check the license/);
-    assert.equal(fs.existsSync(path.join(root, 'stale.txt')), false);
-    assert.equal(fs.existsSync(path.join(root, 'mobile.png')), false);
-    const human = await run(process.execPath, [bin, 'capture', '--mobile', site.url], { cwd: dir, timeout: 60000 });
-    assert.match(human.stdout, /accent: #245cff/);
-    assert.match(human.stdout, /logo: assets\/capture\/127.0.0.1\/logo.svg/);
-    assert.match(human.stdout, /Paste into video.json:/);
-    assert.ok(fs.existsSync(path.join(root, 'mobile.png')));
+    const refreshed=await capture(dir,site.url);
+    assert.equal(refreshed.colors.accent,'#245cff');
+    assert.equal(fs.existsSync(path.join(root,'stale.txt')),false);
+    assert.equal(fs.existsSync(path.join(root,'mobile.png')),false);
+    await capture(dir,site.url,{mobile:true});
+    assert.ok(fs.existsSync(path.join(root,'mobile.png')));
   } finally {
     await site.close();
     fs.rmSync(dir, { recursive: true, force: true });

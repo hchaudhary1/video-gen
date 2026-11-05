@@ -1,57 +1,43 @@
-# Titles and thumbnails
+# Publishing through Archon
 
-Make the topic and reason to watch understandable at feed size. The title and image should complement
-each other and accurately represent a payoff in the film. Curiosity, benefit, tension or a concrete question
-can work; negativity, secrecy, fixed word counts and a particular layout are not requirements.
+Both treatments use explicit thumbnail, independent review, selection, publishing-copy,
+attention and upload nodes. Use the [production runbook](production.md).
 
-Keep numbers, comparisons and implied outcomes supported. An editorial ranking is a prediction, not a
-measured click-through result. Preserve approved wording; a thumbnail selection does not implicitly
-approve a changed title or description. Obtain the publishing copy decision at the selection checkpoint.
+Thumbnails match the saved video's width and height. Compose for that canvas, load actual
+heavy fonts and inspect both full-size images and feed-sized previews. Keep editable SVG,
+PNG, preview and BRIEF.md per variant. `lib/thumbnails.mjs` exposes export, verdict,
+ranking, feedback and archive functions to node agents. A changed image invalidates its
+verdict and selection. PNG uploads must fit YouTube's 2 MB limit.
 
-## Format contract
+Titles, thumbnail claims and descriptions must be supported by the film and retained
+sources. Preserve approved wording. Selection does not approve a changed title or copy.
+The publishing attention node binds approval to the current copy, video and selected image.
 
-Every variant, preview, chosen thumbnail and archive follows the saved video's exact width and height:
-landscape 1920×1080, vertical 1080×1920; custom/square canvases keep their own dimensions. Compose for the
-frame rather than stretching or letterboxing another orientation. Preview sizes preserve the same ratio.
-The exporter derives dimensions from the job. Check readability in the actual feed-sized preview.
+## Authentication setup
 
-`thumbnails --job <job>` issues maker/reviewer briefs and tracks revisions and selection. Makers produce
-`BRIEF.md` (Title, Headline, Description), editable `thumbnail.svg`, and exported PNG/preview via
-`thumbnail-export`. The reviewer inspects both images and records `thumbnail-verdict` and ranking. When
-the person requested selection, preserve their choice and feedback. `thumbnail-choose` archives the set.
-
-# YouTube uploads
-
-The uploader uses the YouTube Data API v3 and the narrowly scoped OAuth permission
-`https://www.googleapis.com/auth/youtube.upload`. It uploads the video and metadata as a resumable transfer.
-
-## Authorization
-
-Save the supplied OAuth client JSON as `.cache/video-gen/youtube-oauth/credentials.json`, then run:
+Save the supplied Google Desktop OAuth client JSON privately under
+`.cache/video-gen/youtube-oauth/credentials.json`, then run:
 
 ```sh
-npm run video -- youtube-auth
+node scripts/tools.mjs youtube-auth
 ```
 
-Open the printed URL, sign in with the account that owns the channel, and approve upload access. The refresh token is
-stored at `.cache/video-gen/youtube-oauth/token.json`. Both files are Git-ignored; never commit or share them. Access
-tokens refresh automatically — rerun `youtube-auth` if authorization is revoked or expires.
+The operator signs in as the account that owns abdupdates. OAuth uses `youtube.upload`
+and `youtube.readonly` so the publication node can verify the actual channel ID and handle
+before any upload mutation. Obtain the exact channel ID from the operator/configuration;
+never invent it. `publishing.json` contains title, description, optional tags, privacy
+`unlisted` and that channel ID. Tokens remain ignored private cache files, never briefs or code.
 
-On a remote server, keep `youtube-auth` running there and forward its callback port to your laptop to finish sign-in.
+## Durable delivery
 
-## Upload a video
+The upload node calls `lib/youtube-upload.mjs` directly. It verifies qualified delivery,
+current review/approval hashes, selected image and approved metadata; uploads are unlisted.
+An opt-out never calls the uploader. The project-local session journal saves the resumable
+URL and remote video ID before thumbnail submission. Its path is
+`jobs/scripts/<slug>/archon/upload-session.json`. Changed video, copy or thumbnail bindings
+are rejected. Uncertain initiation or an expired unreconciled session fails closed. Resume reconciles accepted ranges or
+an already completed remote video instead of creating a duplicate.
 
-```sh
-npm run video -- youtube-upload --file jobs/<slug>/renders/video.mp4 --title "Video title" \
-  --description "Video description" --privacy unlisted --tag "AI" --tag "technology"
-```
-
-`--file` and `--title` are required. `--description`, repeatable `--tag` and `--thumbnail <png|jpg>` are optional.
-The thumbnail is checked before the video upload starts (PNG/JPEG, 2 MB maximum) and set right after it. Set or replace
-the thumbnail of an already uploaded video with `npm run video -- youtube-thumbnail --video <id|url> --file <png|jpg>`.
-Custom thumbnails need a verified channel; the existing `youtube.upload` authorization covers them. Privacy defaults to
-`unlisted`; choose `private` or `public` explicitly if wanted. Completed videos are uploaded as unlisted by default.
-Category defaults to `28` (Science & Technology) and can be changed with `--category <id>`.
-
-The video orchestrators run this command after the video is delivered and its thumbnail is chosen, using the video's
-approved title and `--privacy unlisted`. The YouTube link is included with the delivered MP4 and thumbnail.
+Do not delete an uncertain journal. A crashed process can leave its exclusive lock; first
+establish the owner is dead before removing only the lock. Report the actual video URL or
+precise failure. Neither an agent reply nor an unverified draft is successful delivery.
