@@ -1,0 +1,98 @@
+# Explicit Archon nodes; bounded rounds retain durable human checkpoints.
+name: "rules-story-creative-review-round"
+description: "One explicit creative-review pass; called by rules-story."
+worktree:
+  enabled: false
+inputs:
+  project:
+    description: "Explicit lowercase project slug"
+    required: true
+  options:
+    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut"
+    default: "{}"
+nodes:
+  -
+    id: "film-state"
+    depends_on: []
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs film-status \"$INPUTS_PROJECT\""
+  -
+    id: "register-author"
+    depends_on:
+      - "film-state"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+      await emit("producer", {role:"scene-author",runId:process.env.INPUTS_RUN});
+    with:
+      run: "$WORKFLOW_ID"
+    when: "$film-state.output.artifacts.ready == false"
+  -
+    id: "scenes"
+    depends_on:
+      - "register-author"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read skills/hyperframes/SKILL.md and docs/composition.md. Author or repair film.json and native scenes using measured alignment and actual heavy fonts. Read review/archon-findings.json, review/human/final.json and review/archon-technical.json; address all findings together. First pass authors the actual film. Preserve timing and recording. Your registered production identity is $WORKFLOW_ID:scene-author.
+    when: "$film-state.output.artifacts.ready == false"
+  -
+    id: "build"
+    depends_on:
+      - "film-state"
+      - "scenes"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "freeze"
+    depends_on:
+      - "build"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs freeze \"$INPUTS_PROJECT\""
+    when: "$build.output.status == 'complete'"
+  -
+    id: "visual-mechanism"
+    depends_on:
+      - "freeze"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Independent visual-mechanism review. Read docs/review.md. Open the actual frozen evidence in review/final/pack.json and inspect the full interval. Read review history and respond to prior findings. Submit a valid report with lib/review.mjs submitReview; your independent execution identity is $WORKFLOW_ID:visual-mechanism. Never edit production. Producers are $WORKFLOW_ID:director and $WORKFLOW_ID:scene-author, distinct fresh sessions. No inspection capability means incomplete, not pass.
+    when: "$build.output.status == 'complete'"
+  -
+    id: "continuity-legibility"
+    depends_on:
+      - "freeze"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Independent continuity-legibility review. Read docs/review.md. Open the actual frozen evidence in review/final/pack.json and inspect the full interval. Read review history and respond to prior findings. Submit a valid report with lib/review.mjs submitReview; your independent execution identity is $WORKFLOW_ID:continuity-legibility. Never edit production. Producers are $WORKFLOW_ID:director and $WORKFLOW_ID:scene-author, distinct fresh sessions. No inspection capability means incomplete, not pass.
+    when: "$build.output.status == 'complete'"
+  -
+    id: "review-join"
+    depends_on:
+      - "build"
+      - "visual-mechanism"
+      - "continuity-legibility"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs review-round \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+    when: "$build.output.status == 'complete'"
+  -
+    id: "film-round-result"
+    depends_on:
+      - "build"
+      - "review-join"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs film-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "round-result"
+    depends_on:
+      - "film-round-result"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs film-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+returns: "round-result"

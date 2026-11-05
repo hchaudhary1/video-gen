@@ -1,3 +1,7 @@
+For rules-story, [Archon](archon-rules-story.md) owns thumbnail generation/review/selection,
+publishing approval and the durable upload node. The CLI stage examples below are legacy
+compatibility and Kai utilities; do not invoke them from rules-story workflow nodes.
+
 # Titles and thumbnails
 
 Make the topic and reason to watch understandable at feed size. The title and image should complement
@@ -22,8 +26,7 @@ the person requested selection, preserve their choice and feedback. `thumbnail-c
 
 # YouTube uploads
 
-The uploader uses the YouTube Data API v3 and the narrowly scoped OAuth permission
-`https://www.googleapis.com/auth/youtube.upload`. It uploads the video and metadata as a resumable transfer.
+The uploader uses the YouTube Data API v3 with OAuth `youtube.upload` and `youtube.readonly` (channel identity verification before publication). It uploads the video and metadata as a resumable transfer.
 
 ## Authorization
 

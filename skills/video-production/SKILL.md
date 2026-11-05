@@ -3,6 +3,12 @@ name: video-production
 description: Produce or continue a video in this repository, including its review, thumbnail and delivery.
 ---
 
+For rules-story, read `docs/archon-rules-story.md`. Archon YAML owns all stages, review
+rounds, human checkpoints and publishing. Complete only your assigned node; do not run
+`npm run video`, `next`, `delegated` or launch your own agents. Use the direct library
+functions and internal adapters described by the runbook. The legacy CLI transport
+instructions below apply only to historical jobs; Kai keeps its own profile checklist.
+
 Use the user's brief as the creative authority. Choose an approach that serves the audience and material;
 there is no required visual metaphor, scene count, cut rate, motion vocabulary or sound-effect quota.
 

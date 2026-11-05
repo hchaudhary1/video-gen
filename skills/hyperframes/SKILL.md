@@ -3,6 +3,12 @@ name: hyperframes
 description: Author or edit native HTML video compositions in video-gen, with horror-first visual guidance and this repository's measured narration and rendering pipeline.
 ---
 
+For Archon rules-story assignments, `docs/archon-rules-story.md` defines transport.
+Complete only the assigned node, using direct adapters/libraries; never advance stages
+with `next`, `npm run video`, or a harness delegation. Creative, sourcing and inspection
+requirements below still apply.
+
+
 # HyperFrames in video-gen
 
 Own the scene HTML, CSS, JavaScript and local assets. The pipeline supplies the root composition,

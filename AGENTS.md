@@ -10,14 +10,13 @@ Load technical references only for the task at hand; there is no required readin
 
 Work within the requested project. Keep assets and caches inside the repository. Preserve supplied
 recordings and approved narration. Claims and reused media need evidence and provenance.
-Use `npm run video -- ...` for production commands; do not edit dependencies or `video.config.json`
+Rules-story production is scheduled exclusively by `.archon/workflows/video/rules-story/rules-story.yaml`; read `docs/archon-rules-story.md`. Its nodes call direct adapters/libraries, never `npm run video`, `next` or T3 handoffs. Kai/explainroo and shared setup utilities retain `npm run video -- ...`. Do not edit dependencies or `video.config.json`
 unless requested. Never manufacture review evidence, user approval or successful delivery.
 
-A role given a brief completes that assignment itself; the host advances the pipeline and commissions
-independent review. Reviewers do not approve their own production work. A tool limitation is a limitation,
+A role given a brief completes that assignment itself; Archon advances rules-story dependencies and starts fresh independent review nodes; the host retains this responsibility for Kai. Reviewers do not approve their own production work. A tool limitation is a limitation,
 not grounds to claim that an image was viewed or audio was heard.
 
-On resuming, recover the saved production profile with `status --project <slug> --json`.
+On resuming rules-story, use `archon workflow get <run-id>` and `archon workflow resume <run-id>`; deterministic nodes recover the saved profile and revalidate artifacts. For historical jobs, `status --project <slug> --json` remains read-only.
 For new work, choose the treatment that matches the user's intent; `personalities/README.md` is the index.
 The user's explicit direction takes precedence over a default personality.
 

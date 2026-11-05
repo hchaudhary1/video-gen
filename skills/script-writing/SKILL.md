@@ -3,6 +3,12 @@ name: script-writing
 description: Research, write or review narration scripts and concise visual intent for this video pipeline.
 ---
 
+For Archon rules-story assignments, `docs/archon-rules-story.md` defines transport.
+Complete only the assigned node, using direct adapters/libraries; never advance stages
+with `next`, `npm run video`, or a harness delegation. Creative, sourcing and inspection
+requirements below still apply.
+
+
 Write for the audience, purpose and duration in the brief. Choose the structure and voice that serve the
 material; openings, narrative arcs, sentence patterns and revision passes have no prescribed template.
 A duration estimated from words is not a measured recording duration.

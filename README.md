@@ -1,19 +1,19 @@
 # Video generation from a harness
 
 Use this repository from T3 Code or another agent harness. Agents research, write and author the picture;
-the CLI handles measured timing, media operations, review evidence and delivery. There is no supported
-application UI. Start with [AGENTS.md](AGENTS.md), the skills in `skills/` and the
+Archon schedules rules-story, while reusable libraries handle measured timing, media, evidence and delivery.
+Kai retains its engine CLI. Archon provides the workflow console; this repository has no separate application UI. Start with [AGENTS.md](AGENTS.md), the skills in `skills/` and the
 [profile index](personalities/README.md).
 
 ## Two pipelines
 
 | Profile | Makes | Engine and lifecycle |
 |---|---|---|
-| [rules-story](personalities/rules-story/PROFILE.md) | Series horror: a 5–8 minute video plus 1–3 vertical Shorts | HyperFrames scenes, Ming narration, synthesized sound; tracked by `project-new` → `next` → `status` |
+| [rules-story](personalities/rules-story/PROFILE.md) | Series horror: a 5–8 minute video plus 1–3 vertical Shorts | HyperFrames scenes, Ming narration, synthesized sound; scheduled entirely by Archon YAML nodes |
 | [kai-explainer](personalities/kai-explainer/PROFILE.md) | Long-form (8–12 minute) first-person tech/AI explainers | The vendored [explainroo](engines/explainroo/VENDORED.md) engine, Kokoro narration; follows its own profile checklist |
 
-Both finish the same way: a thumbnail at the video's dimensions, then an unlisted upload to abdupdates with
-`youtube-upload --thumbnail` (see [publishing](docs/publishing.md)).
+Both finish with a thumbnail at the video's dimensions and an unlisted upload to abdupdates. Rules-story uses
+its Archon publication node; Kai uses its existing uploader utility (see [publishing](docs/publishing.md)).
 
 ### Horror (rules-story)
 
@@ -24,18 +24,15 @@ case-file overlay, sentence captions, sound signature, ending, high contrast on 
 every sentence); the story and everything inside the scenes are the agent's.
 
 ```bash
-# Save the agreed brief to jobs/scripts/<slug>/BRIEF.md first
-npm run video -- project-new --name <slug> --profile rules-story --tts ming
-npm run video -- identity-continue --id <identity> --project <slug>     # a Short adds --parent <long slug>
-npm run video -- next --project <slug>                                  # repeat; it prints each step
-npm run video -- synth --job jobs/<slug> --identity <identity>          # bed, ident sting and effects as WAVs
-npm run video -- series-kit --job jobs/<slug>                           # overlay, captions, rule/exhibit cards
+archon workflow run rules-story \
+  --input project=<slug> \
+  --input 'options={"brief-file":"briefs/story.md","review":"script,final,thumbnail"}'
 ```
 
-`next` covers research, script and independent script review, Ming narration, scene authoring, independent
-film review, render, delivery and thumbnails. Use `status --project <slug> --json` for saved state and
-`watch --project <slug>` for a read-only review page; share only the URL it prints. Films set
-`"mix": {"targetLufs": -15}` in film.json.
+Archon owns every production stage and requested checkpoint. Nodes call media libraries
+through direct adapters; they never invoke `npm run video` or the old `next` controller.
+See [the Archon runbook](docs/archon-rules-story.md) for setup, supplied material, review
+and revision rounds, recovery, thumbnail selection, publishing and validation.
 
 ### Kai explainers (kai-explainer)
 
@@ -85,7 +82,8 @@ Read the relevant contract, not the whole folder.
 
 | Document | Needed for |
 |---|---|
-| [orchestrator](docs/orchestrator.md) | Harness handoffs, checkpoints, completion and the pipeline flowchart |
+| [Archon rules-story](docs/archon-rules-story.md) | YAML stages, checkpoints, revisions, recovery and delivery |
+| [orchestrator](docs/orchestrator.md) | Historical lifecycle compatibility |
 | [pipeline](docs/pipeline.html) | Standalone visual map of the horror production pipeline |
 | [composition](docs/composition.md) | Native HyperFrames integration, the series kit and build failures |
 | [Motion Explainer](docs/motion-explainer.md) | Camera/motion references and Canvas animation for rules-story scenes |
@@ -103,7 +101,8 @@ The modules own concrete operational contracts; their source is not required age
 
 | Modules | Responsibility |
 |---|---|
-| `project`, `film` | Project state, production lifecycle and data-only assignments |
+| `.archon/workflows/video`, `scripts/archon` | Rules-story stages, domain adapters, checkpoints and recovery |
+| `project`, `film` | Project metadata, reusable film operations and historical lifecycle compatibility |
 | `personalities` | Treatment selection and retained project intent |
 | `identities`, `series` | Series identities and file numbers; installing the series kit and its data |
 | `composition`, `timing` | Small scene manifest and measured narration cues |
@@ -118,7 +117,7 @@ The modules own concrete operational contracts; their source is not required age
 
 ## Local configuration and artifacts
 
-`video.config.json` sets canvas/frame-rate defaults; `chat.config.json` holds harness/provider model choices.
+`video.config.json` sets canvas/frame-rate defaults; Archon configuration holds rules-story provider/model choices; `chat.config.json` remains legacy harness configuration.
 Explicit user settings win. Horror jobs live in `jobs/<slug>/`, their scripts/sources in `jobs/scripts/<slug>/`;
 Kai projects in `engines/explainroo/videos/<slug>/`; local tools and models in `.cache/`. These artifacts are
 ignored by Git. Never put credentials in briefs.

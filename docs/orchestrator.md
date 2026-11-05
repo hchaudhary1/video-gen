@@ -1,4 +1,9 @@
-# Production transport
+# Historical production transport
+
+**Rules-story now uses [Archon](archon-rules-story.md).** Do not follow the `next` or
+T3 handoff instructions below for a new or Archon-managed production. This document
+retains historical-job compatibility details; Kai follows its saved profile.
+
 
 Agents make editorial and implementation decisions. The CLI tracks artifacts, evidence, requested
 checkpoints and delivery. Use `npm run video -- help` for commands, loading specialised docs as needed.

@@ -399,7 +399,7 @@ async function personDecision(job, command, opts) {
 
 const HELP = `Narration-driven HyperFrames pipeline
 
-Agents: run \`next\` and do exactly what it prints, until it says done.
+Rules-story: use Archon (docs/archon-rules-story.md). Legacy commands below support historical jobs only.
 
 start --audio <file> --script <file> --profile <id> [--format landscape|vertical --length 30 --start 0 --name slug --music <track> --visuals <VISUALS.md> --human-review final --review-depth fast|standard|deep]   create a job (a VISUALS.md beside the script is picked up automatically)
                                      defaults come from video.config.json; --length trims to the first N seconds (--duration is the same)
@@ -507,6 +507,15 @@ try {
     process.exit(code ?? 1);
   }
   const opts = options(args);
+  const archonMessage='Rules-story stages are owned by Archon. Run archon workflow run rules-story --input project=<slug> --input options=<json>; see docs/archon-rules-story.md.';
+  if(command==='project-new' && opts.profile==='rules-story') throw new Error(archonMessage);
+  const readOnly=new Set(['help','status','projects','stage-bar','watch','watch-serve']);
+  if(!readOnly.has(command)) {
+    const saved=opts.project ? await json(path.join(ROOT,'jobs/scripts',opts.project,'project.json')).catch(()=>null) : null;
+    const managedJob=opts.job ? await json(path.join(path.resolve(ROOT,opts.job),'job.json')).catch(()=>null) : null;
+    if(saved?.archon || managedJob?.orchestrator==='archon') throw new Error(archonMessage);
+  }
+
   if (ROLE_AGENT && (ORCHESTRATOR_ONLY.has(command) || (command === 'build' && !opts.scene)))
     throw new Error(`\`${command}${command === 'build' ? ' without --scene' : ''}\` advances the pipeline, which is the orchestrator's job. You are the ${ROLE}: finish the brief you were given and reply with its result. Do not start sub-agents.`);
   if (command === 'profiles') console.log(JSON.stringify(PERSONALITIES.map(id => loadPersonality(id).profile), null, 2));

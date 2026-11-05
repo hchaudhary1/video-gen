@@ -55,7 +55,7 @@ test('new production requires an explicit profile', () => {
 test('each personality has its own complete package, with truthful renderer readiness', () => {
   for (const id of PERSONALITIES) {
     const snapshot = loadPersonality(id);
-    assert.match(snapshot.files['PROFILE.md'], new RegExp(`--profile ${id}`));
+    assert.match(snapshot.files['PROFILE.md'], id === 'rules-story' ? /archon workflow run rules-story/ : new RegExp(`--profile ${id}`));
     assert.match(snapshot.sha256, /^[a-f0-9]{64}$/);
     assert.doesNotThrow(() => assertRenderReady(snapshot));
   }
