@@ -108,6 +108,14 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   assert.equal(preparations, 1);
   assert.equal(await readFile(audio, 'utf8'), 'SYNTHETIC recording fixture, not audio');
   await op('producer', { runId: 'synthetic-fixture', role: 'director' });
+  assert.deepEqual((await op('production-loop-result')).artifacts, { done: false });
+  const check = media.check;
+  media.check = async () => { throw new Error('scenes.js has no function for scene "shelf"'); };
+  assert.equal((await op('build')).status, 'repair');
+  assert.equal(JSON.parse(await readFile(path.join(job, 'review/build.json'))).ok, false);
+  media.check = async () => { throw new Error('Chrome executable unavailable'); };
+  await assert.rejects(op('build'), /Chrome executable unavailable/);
+  media.check = check;
   assert.equal((await op('build')).status, 'complete');
   await op('preview');
   await op('preview');

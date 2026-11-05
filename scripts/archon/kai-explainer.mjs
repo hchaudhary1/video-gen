@@ -267,7 +267,21 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       p = e.loadProject(job);
     await assertNarration(ctx, p, e);
     if (stage === 'build') {
-      const report = await e.check(p, { viewWidth: 854 });
+      let report;
+      try {
+        report = await e.check(p, { viewWidth: 854 });
+      } catch (error) {
+        // A missing scene export is a repairable production-authorship defect.
+        // Return it through the build adapter so the Archon scene-author node
+        // can repair the module instead of failing the enclosing workflow.
+        if (/scenes\.js has no function for scene/.test(String(error?.message || error))) {
+          const sourceHash = await sourceFingerprint(job);
+          artifacts = { ok: false, scope: 'all', sourceHash, report: null, error: String(error.message || error) };
+          await saveJSON(path.join(job, 'review/build.json'), artifacts);
+          return { version: 1, stage, status: 'repair', artifacts };
+        }
+        throw error;
+      }
       const ok = validateEngineChecks(report);
       artifacts = { ok, scope: 'all', sourceHash: await sourceFingerprint(job), report };
       await saveJSON(path.join(job, 'review/build.json'), artifacts);

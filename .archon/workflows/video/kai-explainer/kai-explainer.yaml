@@ -128,7 +128,7 @@ nodes:
       - "register-director"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read the frozen Kai profile, engines/explainroo/AGENTS.md Scene API and templates/kai/TEMPLATE.md. Author jobs/$INPUTS.project/scenes.js using measured build/timeline.json. Create moving explanations, intermediate states and coherent handoffs; load actual heavy fonts. Use the full Scene API. Preserve script.md, voice configuration and approved recordings. This node owns only direction and scene authoring; Archon owns progression. Registered producer identity: $WORKFLOW_ID:director.
+      Project: $INPUTS.project. Read jobs/scripts/$INPUTS.project/production-profile.json, engines/explainroo/AGENTS.md Scene API and engines/explainroo/templates/kai/TEMPLATE.md. Author jobs/$INPUTS.project/scenes.js using jobs/$INPUTS.project/build/timeline.json. Implement an exported scene function for every measured timeline scene ID. Create moving explanations, intermediate states and coherent handoffs; load actual heavy fonts. Use the full Scene API. Preserve script.md, voice configuration and approved recordings. This node owns only direction and scene authoring; Archon owns progression. Registered producer identity: $WORKFLOW_ID:director.
   -
     id: "production-state-1"
     depends_on:

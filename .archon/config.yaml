@@ -2,6 +2,6 @@
 assistant: codex
 assistants:
   codex:
-    model: gpt-6.1-sol
+    model: gpt-6-luna
     modelReasoningEffort: low
     webSearchMode: live

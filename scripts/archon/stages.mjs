@@ -200,7 +200,7 @@ export async function stageOperation(stage, ctx, opts) {
     const state = await stageOperation('film-status', ctx, {});
     return { done: state.ready, reviews: state.reviews };
   }
-  if (stage === 'production-result' || stage === 'production-loop-check') {
+  if (stage === 'production-result' || stage === 'production-loop-check' || stage === 'production-loop-result') {
     const technical = await optional(path.join(job, 'review/archon-technical.json'));
     if (!technical) return { done: false };
     const g = await gate('film', ctx);

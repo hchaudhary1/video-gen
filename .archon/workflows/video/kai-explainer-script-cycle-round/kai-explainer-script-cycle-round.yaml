@@ -23,7 +23,7 @@ nodes:
     context: "fresh"
     prompt: |-
       Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-      Read skills/script-writing/SKILL.md. Write or revise SCRIPT.md, research.md and VISUALS.md; read review.md and archon/script-decision.json for feedback. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work.
+      Read skills/script-writing/SKILL.md. The Archon invocation and this node assignment authorize creation of this project’s outputs; missing SCRIPT.md, VISUALS.md, review.md, or archon/script-decision.json is expected on a new project and is never a reason to stop or self-discover whether this is the active author node. Research/SOURCES.md and local evidence must already exist from the upstream research node; use those cited sources before writing factual claims. Create SCRIPT.md, research.md, and VISUALS.md in the project directory (jobs/scripts/$INPUTS.project) and ensure they are substantive. Read review.md and archon/script-decision.json only when present. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work; do not report success unless required files were actually written.
     when: "$script-state.output.artifacts.needsWrite == true"
   -
     id: "script-binding"
@@ -40,7 +40,7 @@ nodes:
     context: "fresh"
     prompt: |-
       Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-      Independently review SCRIPT.md, VISUALS.md and sources with skills/script-writing/SKILL.md. Write review.md with explicit Disposition: pass / revise / incomplete and demonstrated findings. Return pass and findings; unavailable evidence is not a pass.
+      This Archon invocation commissions you as the independent reviewer; do not require a pre-existing review.md or script-decision.json. Inspect the author’s SCRIPT.md and VISUALS.md and verify factual claims against the actual SOURCES.md/research evidence using skills/script-writing/SKILL.md. Create review.md in the project directory with explicit Disposition: pass / revise / incomplete and demonstrated findings. Return pass and findings only after the file is written; missing expected outputs from earlier stages must be reported as incomplete with evidence, not silent success.
     output_format:
       type: "object"
       properties:
