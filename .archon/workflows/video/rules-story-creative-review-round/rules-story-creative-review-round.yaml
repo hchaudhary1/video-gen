@@ -1,4 +1,3 @@
-# Explicit Archon nodes; bounded rounds retain durable human checkpoints.
 name: "rules-story-creative-review-round"
 description: "One explicit creative-review pass; called by rules-story."
 worktree:
@@ -12,39 +11,10 @@ inputs:
     default: "{}"
 nodes:
   -
-    id: "film-state"
+    id: "build"
     depends_on: []
     always_run: true
-    bash: "node scripts/archon/rules-story.mjs film-status \"$INPUTS_PROJECT\""
-  -
-    id: "register-author"
-    depends_on:
-      - "film-state"
-    always_run: true
-    runtime: "bun"
-    script: |-
-      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("producer", {role:"scene-author",runId:process.env.INPUTS_RUN});
-    with:
-      run: "$WORKFLOW_ID"
-    when: "$film-state.output.artifacts.ready == false"
-  -
-    id: "scenes"
-    depends_on:
-      - "register-author"
-    context: "fresh"
-    prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-      Read skills/hyperframes/SKILL.md and docs/composition.md. Author or repair film.json and native scenes using measured alignment and actual heavy fonts. Read review/archon-findings.json, review/human/final.json and review/archon-technical.json; address all findings together. First pass authors the actual film. Preserve timing and recording. Your registered production identity is $WORKFLOW_ID:scene-author.
-    when: "$film-state.output.artifacts.ready == false"
-  -
-    id: "build"
-    depends_on:
-      - "film-state"
-      - "scenes"
-    always_run: true
-    bash: "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
-    trigger_rule: "none_failed_min_one_success"
+    bash: "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\""
   -
     id: "freeze"
     depends_on:
@@ -53,46 +23,58 @@ nodes:
     bash: "node scripts/archon/rules-story.mjs freeze \"$INPUTS_PROJECT\""
     when: "$build.output.status == 'complete'"
   -
-    id: "visual-mechanism"
+    id: "visual-evidence"
     depends_on:
       - "freeze"
-    context: "fresh"
-    prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-      Independent visual-mechanism review. Read docs/review.md. Open the actual frozen evidence in review/final/pack.json and inspect the full interval. Read review history and respond to prior findings. Submit a valid report with lib/review.mjs submitReview; your independent execution identity is $WORKFLOW_ID:visual-mechanism. Never edit production. Producers are $WORKFLOW_ID:director and $WORKFLOW_ID:scene-author, distinct fresh sessions. No inspection capability means incomplete, not pass.
-    when: "$build.output.status == 'complete'"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs visual-evidence \"$INPUTS_PROJECT\""
   -
-    id: "continuity-legibility"
+    id: "visual-review"
     depends_on:
-      - "freeze"
+      - "visual-evidence"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-      Independent continuity-legibility review. Read docs/review.md. Open the actual frozen evidence in review/final/pack.json and inspect the full interval. Read review history and respond to prior findings. Submit a valid report with lib/review.mjs submitReview; your independent execution identity is $WORKFLOW_ID:continuity-legibility. Never edit production. Producers are $WORKFLOW_ID:director and $WORKFLOW_ID:scene-author, distinct fresh sessions. No inspection capability means incomplete, not pass.
-    when: "$build.output.status == 'complete'"
+      Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, the saved treatment profile and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
   -
     id: "review-join"
     depends_on:
-      - "build"
-      - "visual-mechanism"
-      - "continuity-legibility"
+      - "visual-review"
     always_run: true
     bash: "node scripts/archon/rules-story.mjs review-round \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-    when: "$build.output.status == 'complete'"
   -
-    id: "film-round-result"
+    id: "register-revision"
     depends_on:
-      - "build"
       - "review-join"
     always_run: true
-    bash: "node scripts/archon/rules-story.mjs film-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+      await emit("producer", {role:"scene-author",runId:process.env.INPUTS_RUN});
+    with:
+      run: "$WORKFLOW_ID"
+  -
+    id: "revision"
+    depends_on:
+      - "register-revision"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). Address all demonstrated findings in the project's scene files and visual settings. Preserve approved script, recording and measured timing. This invocation authorizes you to save changes. Create jobs/$INPUTS.project/review/revision-notes.md describing actual changes and any unresolved findings; if no change is warranted, explain that. Do not write reviewer reports or claim your revision was independently approved. The workflow proceeds after this revision and technical checks, without another creative review. Producer identity: $WORKFLOW_ID:scene-author.
+  -
+    id: "revision-build"
+    depends_on:
+      - "revision"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\""
+  -
+    id: "revision-complete"
+    depends_on:
+      - "revision-build"
+    always_run: true
+    bash: "node scripts/archon/rules-story.mjs revision-complete \"$INPUTS_PROJECT\""
   -
     id: "round-result"
     depends_on:
-      - "film-round-result"
+      - "revision-complete"
     always_run: true
-    bash: "node scripts/archon/rules-story.mjs film-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
+    bash: "node scripts/archon/rules-story.mjs film-loop-check \"$INPUTS_PROJECT\""
 returns: "round-result"

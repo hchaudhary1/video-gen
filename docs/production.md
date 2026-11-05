@@ -28,7 +28,7 @@ uncanny-fiction brief. `--detach` lets the command return while Archon keeps exe
 save the returned run ID. The server must remain running. No host agent or manual stage
 advancement is required.
 
-`review: "none"` disables optional human checkpoints, while independent script, film and
+`review: "none"` disables optional human checkpoints, while independent script, audio, film and
 thumbnail reviews still run. `optOut: true` produces local deliverables without publishing
 copy approval, channel credentials or an upload. Omitting these settings uses the project's
 normal approval/publication policy and may pause for a person. Existing projects keep
@@ -159,7 +159,8 @@ Use the Archon console/CLI attention queue. Each checkpoint displays the artifac
 and its binding hash. Select approve, revise, or stop, and provide your actual message
 as the answer text. Thumbnail attention offers the current passing variants plus revise
 and stop. Publishing offers approve, revise, keep local, or stop. A requested revision
-returns to the appropriate author and independent reviewer before another checkpoint.
+is retained as operator feedback. Script and thumbnail cycles can return to their authors;
+the film itself has one independent visual review and one revision per run.
 
 Publishing copy and channel verification follow [publishing](publishing.md).
 
@@ -187,18 +188,19 @@ without a recorded requested revision. Supplied recordings and approved narratio
 never silently replaced; a requested change after preparation needs an explicitly
 archived take/new project, not reuse of old timing.
 
-Build failures route to scene repair and cannot reach evidence freezing or reviewers.
-The two fresh film reviewers both finish before findings are joined. Current full-build,
-frozen-evidence and independent-review checks gate rendering. Depth policy controls
-qualified creative-review exhaustion; delivery keeps unresolved findings and never labels
-that disposition an independent pass. Missing inspection and non-waivable defects block.
-Encoded pixel defects route back through scene repair/review. Narration/audio integrity,
-missing infrastructure and invalid evidence fail the run for explicit recovery.
+Audio review follows narration generation and measured timing. Its hash-bound result is the
+single speech-acceptance decision before visual work. Individual unconfirmed ASR words above
+the 90% coverage threshold remain disclosed uncertainty, not a contradictory build rejection.
+See [review contracts](review.md) for the audio and visual receipt fields.
 
-Rounds are explicitly bounded in YAML (four script/film/thumbnail/user-revision
-opportunities). After exhaustion the run fails with retained evidence; a fresh run can continue from validated artifacts. Archon currently restricts attention
-waits and governed child runs inside `loop_group`, so these cycles use explicit conditional
-round nodes rather than invalid nested loops. This makes each attempt inspectable.
+Visual production runs once: build/draft → one independent visual review → one author
+revision → technical build → render and encoded verification. There is no second creative
+review or repeated film repair cycle. Delivery retains the original findings, revision notes
+and inspection limitations without claiming a review of the revised output. Build errors,
+missing inspection, changed narration and failed encoded verification stop explicitly.
+
+Script, thumbnail and optional operator cycles remain bounded separately in YAML. Review
+depth controls evidence sampling density, not the number of visual reviewers or revisions.
 
 `worktree.enabled: false` keeps ignored recordings, jobs, dependencies and models in the
 provisioned checkout. Do not run unrelated mutable productions concurrently in it. Archon
@@ -234,8 +236,8 @@ layout checks gate a cached review-draft render before evidence capture. The rea
 viewer plays that draft for the requested film checkpoint; it is never delivered or uploaded.
 The frozen pack binds the draft clip and includes actual scene-end stills,
 one-second temporal sheets, per-scene narration files and measured timeline hashes.
-Two independent fresh reviewers inspect visual mechanism and continuity/legibility;
-both reports must be valid before the deterministic join routes repairs or qualification.
+One independent reviewer inspects visual mechanism, continuity and legibility, followed by
+one author revision. The original evidence is archived before that revision.
 
 Rendering outputs `jobs/<slug>/renders/video.mp4`, with subtitles, chapters and cover
 sharing its basename. Encoded verification checks canvas/frame rate, duration, audio/video

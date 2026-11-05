@@ -107,6 +107,8 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   await op('narration');
   assert.equal(preparations, 1);
   assert.equal(await readFile(audio, 'utf8'), 'SYNTHETIC recording fixture, not audio');
+  const evidence = (await op('audio-evidence')).artifacts;
+  await op('audio-reviewed', {expected:evidence.binding, report:{pass:true,findings:'Synthetic audio review fixture, not listening.',limitations:['Synthetic fixture']}});
   await op('producer', { runId: 'synthetic-fixture', role: 'director' });
   assert.deepEqual((await op('production-loop-result')).artifacts, { done: false });
   const check = media.check;
@@ -121,6 +123,7 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   await op('preview');
   assert.equal(previews, 1);
   await op('freeze');
+  await op('visual-evidence');
   const { serveWatch } = await import('../lib/watch.mjs');
   const { server, url } = await serveWatch(root, slug);
   try {
@@ -132,7 +135,7 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
     await new Promise((resolve) => server.close(resolve));
   }
   const { pack, packSha256 } = await loadReviewPack(job, 'final');
-  for (const role of ['visual-mechanism', 'continuity-legibility'])
+  for (const role of ['visual-review'])
     await submitReview(job, {
       version: 1,
       stage: 'final',
@@ -152,6 +155,8 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
       verdict: 'pass',
       findings: [],
     });
+  await writeFile(path.join(job,'review/revision-notes.md'),'Synthetic fixture revision: no changes needed.');
+  await op('revision-complete');
   await op('render');
   await op('render');
   assert.equal(renders, 1);
@@ -162,6 +167,8 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   assert.equal((await qualifyKai(job)).engine, 'explainroo');
   assert.deepEqual((await op('publish')).artifacts, { optOut: true });
   await writeFile(path.join(job, 'out/frame.png'), 'Changed fixture evidence');
+  await assert.doesNotReject(op('render'), 'regenerating source preview files must preserve the archived review evidence');
+  await writeFile(path.join(job,pack.evidence.find(e=>e.kind==='frames').path),'Tampered frozen evidence');
   await assert.rejects(op('render'), /Review evidence changed/);
   const config = JSON.parse(await readFile(path.join(job, 'video.json')));
   config.transition = 'fade';

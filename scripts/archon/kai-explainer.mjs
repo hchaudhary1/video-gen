@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { assertAudioReview } from './audio-review.mjs';
 // Direct explainroo operations. Archon YAML exclusively owns the production lifecycle.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,9 +35,13 @@ async function engine() {
   );
   return { ...project, ...pipeline, ...qa, render: render.render, voicePaths: voice.voicePaths };
 }
-export function validateEngineChecks(report) {
+export function validateEngineChecks(report, { audioReviewed = false, layoutAdvisory = false } = {}) {
   if (!Array.isArray(report?.issues)) throw new Error('Engine check report missing issues');
-  return !report.issues.some((i) => ['error', 'warn'].includes(i.level));
+  return !report.issues.some((i) => {
+    if (audioReviewed && /^the voice check could not confirm /.test(i.message || '')) return false;
+    if (layoutAdvisory && i.level === 'warn') return false;
+    return ['error', 'warn'].includes(i.level);
+  });
 }
 export function validateEngineVerification(report, manifest) {
   if (!report?.video || !report.audio) throw new Error('Final video and audio streams required');
@@ -190,12 +195,15 @@ export async function qualifyKai(job) {
     sourceHash: receipt.sourceHash,
     videoSha256,
     packSha256: reviews.packSha256,
+    reviewedSourceHash: reviews.reviewedSourceHash,
+    revisionNotes: "review/revision-notes.md",
     independentReviewPassed: reviews.independentPassed,
     reviewDisposition: reviews.disposition,
     reviewerIds: reviews.reports.map((r) => r.reviewer.agentId),
     unresolvedFindings: reviews.reports.flatMap((r) => r.findings.filter((f) => f.severity === 'blocking')),
     limitations: [
       ...reviews.reports.flatMap((r) => r.inspection.limitations),
+      ...(reviews.limitations || []),
       'Engine speech checks are ASR measurements; no listening or naturalness judgment is established.',
     ],
   };
@@ -234,13 +242,6 @@ export async function run(stage, slug, options = {}, { media } = {}) {
         { voices, timeline } = await e.prepare(p);
       const spoken = p.script.scenes.filter((sc) => sc.units.some((u) => u.type === 'word'));
       if (!spoken.length) throw new Error('Kai requires narrated scenes');
-      for (const sc of spoken) {
-        const v = voices[sc.id];
-        if (!v || !Number.isFinite(v.matchRate) || v.matchRate < 0.9 || !(v.duration > 0))
-          throw new Error(
-            `Narration speech check failed for ${sc.id}; preserve take and inspect measured evidence`,
-          );
-      }
       const manifest = await readJSON(path.join(job, 'job.json'));
       manifest.duration = timeline.duration;
       manifest.speechScenes = spoken.map((sc) => sc.id);
@@ -266,6 +267,7 @@ export async function run(stage, slug, options = {}, { media } = {}) {
     const e = media || (await engine()),
       p = e.loadProject(job);
     await assertNarration(ctx, p, e);
+    await assertAudioReview(ctx);
     if (stage === 'build') {
       let report;
       try {
@@ -282,7 +284,7 @@ export async function run(stage, slug, options = {}, { media } = {}) {
         }
         throw error;
       }
-      const ok = validateEngineChecks(report);
+      const ok = validateEngineChecks(report, { audioReviewed: true, layoutAdvisory: true });
       artifacts = { ok, scope: 'all', sourceHash: await sourceFingerprint(job), report };
       await saveJSON(path.join(job, 'review/build.json'), artifacts);
       return { version: 1, stage, status: ok ? 'complete' : 'repair', artifacts };

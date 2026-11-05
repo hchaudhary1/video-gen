@@ -1,23 +1,44 @@
 # Evidence-bound independent review
 
-Archon schedules author and independent reviewer nodes. Register each producing execution
-identity before media edits. The `visual-mechanism` and `continuity-legibility` roles
-run in distinct fresh contexts and inspect the entire frozen interval, including
-intermediate states, handoffs and ending. Producers never edit reviewer verdicts.
+Archon runs an audio review after generation, then one independent visual review and one
+revision for each film. Register producing identities before media edits. Producers never
+write reviewer verdicts. Missing inspection is disclosed and cannot be labelled a pass.
 
-Rules-story freezes the built native composition. Kai freezes actual stills, temporal
-sheets, measured timeline, narration files and a playable review draft. Pack hashes bind
-sources and every evidence file. Changed evidence or source requires a new review.
-Missing inspection is an explicit blocker. Speech verification is measured separately
-by each media engine and cannot establish listening or naturalness.
+## Audio review
+
+The audio-evidence node records script/recording hashes, per-scene match rates and unconfirmed
+words. A fresh reviewer evaluates those measurements and any audio they can actually inspect.
+The audio-reviewed node accepts the result only for unchanged files and coverage of at least
+90% for every narrated scene. It writes `review/audio-review.json`. Unconfirmed individual
+words above that threshold remain disclosed ASR uncertainty; they do not become a new visual
+build failure. A failed measurement or rejected review stops before visual work. Repairing audio
+requires a new authorized take and dependent timing, rather than an edit by the visual author.
+
+The report records findings and inspection limitations. ASR is not listening, naturalness or
+proof of pronunciation; reviewers must say whether audio was actually heard. Encoded final-mix
+integrity and speech checks remain separate technical requirements.
+
+## One visual review, one revision
+
+The workflow builds a draft and freezes a copy of its evidence. One fresh `visual-review`
+agent inspects mechanism, continuity and legibility across the whole interval, then submits
+one report. An author gets one revision using that report and the build findings. It writes
+`review/revision-notes.md`, rebuilds, and records `review/visual-revision.json`. The workflow
+then proceeds to rendering and delivery without another creative review.
+
+The original evidence and verdict remain immutable. The revision receipt binds that report
+to the new source hash and revision notes. Delivery states `reviewed-and-revised`, preserves
+original findings and explicitly says the revised film was not reviewed again. Source edits
+after the recorded revision invalidate delivery. Technical build/render/media failures still
+stop the run; creative warnings are reported rather than opening another review cycle.
 
 ## Report contract
 
-Authors read findings from both roles together. Reviewers submit JSON directly with
+The author reads the single visual report. Reviewers submit JSON directly with
 `submitReview(job, report)` from `lib/review.mjs`; the library validates identity,
 source/pack/video hashes, coverage, evidence paths and prior-finding responses.
 
-A report includes `version: 1`, `stage: "final"`, the assigned `role`, `sourceHash`,
+A report includes `version: 1`, `stage: "final"`, `role: "visual-review"`, `sourceHash`,
 `videoSha256` (null for a built-timeline pack), `packSha256`, `reviewer: {agentId,
 independent: true}`, `inspection`, `coverage`, `initialObservation`, `verdict` and `findings`.
 Use actual declared execution identities and actual inspection; no placeholder identities
@@ -36,11 +57,9 @@ Read review history. Respond to prior blockers with `priorFindingResponses`: sou
 findingId, resolved/unresolved/disputed disposition and an evidence-based reason. Retain
 IDs for unresolved defects. Repair describes an outcome, not a forced implementation.
 
-Creative-review budget exhaustion can retain disclosed non-readability findings only
-after both complete independent inspections. Missing/invalid evidence, readability and
-mandatory technical checks cannot be bypassed by budget exhaustion or a waiver file.
-User decisions are separate artifact-bound Archon attention records. Rejection stops;
-revision returns through authorship and independent review before another checkpoint.
+Human checkpoints are optional and separate from independent review. They bind to the
+current revised source and retain the operator's actual response. A rejection stops the run.
+A new requested creative pass requires a new run; there is no automatic second review loop.
 
 ## Editorial judgment
 

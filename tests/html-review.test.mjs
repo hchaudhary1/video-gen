@@ -7,7 +7,7 @@ import {mkdtemp, mkdir, writeFile, readFile, rm} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {buildFilm} from '../lib/film.mjs';
-import {sourceFingerprint, fileHash, loadReviewPack, submitReview, qualifyDelivery, reviewStatus, REVIEW_ROLES} from '../lib/review.mjs';
+import {sourceFingerprint, fileHash, loadReviewPack, submitReview, qualifyDelivery, reviewStatus, REVIEW_ROLES, recordVisualRevision} from '../lib/review.mjs';
 import {recordHumanReview, humanDecision} from '../lib/review.mjs';
 import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 
@@ -33,7 +33,7 @@ async function fixture(t, {human} = {}) {
   return job;
 }
 
-// A synthetic html pack (what review-pack writes from the built film), then the two visual reviews.
+// A synthetic HTML pack, one review and a recorded revision; no actual visual judgment.
 async function htmlPack(job, {start = 0, end = 18, verdict = 'pass'} = {}) {
   const stage = 'final';
   await mkdir(path.join(job, `review/${stage}`), {recursive: true});
@@ -51,6 +51,9 @@ async function htmlPack(job, {start = 0, end = 18, verdict = 'pass'} = {}) {
     reviewer: {agentId: `/fixture/${stage}-${role}`, independent: true},
     inspection: {mode: 'frame-sequence', visual: 'viewed', evidence: [evidence[0].path], limitations: ['Synthetic test judgment.'], },
     initialObservation: 'Synthetic fixture', coverage: [{start, end}], verdict, findings: []});
+  await writeFile(path.join(job, "review/revision-notes.md"), "Synthetic fixture: revision completed.");
+  await put(job, "review/build.json", {ok:true,scope:"all",sourceHash:await sourceFingerprint(job)});
+  await recordVisualRevision(job);
   return context;
 }
 

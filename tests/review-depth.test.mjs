@@ -11,11 +11,11 @@ test('review depth defaults to standard and rejects unknown names', () => {
 });
 
 test('review depth changes the round budget and frame step, never reviewer independence', () => {
-  assert.deepEqual(reviewPolicy({reviewDepth: 'fast'}), {depth: 'fast', maxRounds: 2, frameStep: 2});
+  assert.deepEqual(reviewPolicy({reviewDepth: 'fast'}), {depth: 'fast', maxRounds: 1, frameStep: 2});
   assert.deepEqual(reviewPolicy({}), {depth: 'standard', maxRounds: MAX_REVIEW_ROUNDS, frameStep: 1});
-  assert.deepEqual(reviewPolicy({reviewDepth: 'deep'}), {depth: 'deep', maxRounds: 4, frameStep: 0.5});
-  assert.equal(maxReviewRounds({reviewDepth: 'fast'}), 2);
-  assert.equal(maxReviewRounds({reviewDepth: 'deep'}), 4);
+  assert.deepEqual(reviewPolicy({reviewDepth: 'deep'}), {depth: 'deep', maxRounds: 1, frameStep: 0.5});
+  assert.equal(maxReviewRounds({reviewDepth: 'fast'}), 1);
+  assert.equal(maxReviewRounds({reviewDepth: 'deep'}), 1);
 });
 
 test('jobs created before review depth existed resolve to standard', () => {

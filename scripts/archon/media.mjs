@@ -187,7 +187,7 @@ export async function prepare(opts) {
       ...(producerHistory.length
         ? {}
         : { producerIdentityIssue: 'No runner-provided producer identity has been recorded yet.' }),
-      requiredRoles: ['visual-mechanism', 'continuity-legibility'],
+      requiredRoles: ['visual-review'],
     },
     canvas: '#151915',
   };

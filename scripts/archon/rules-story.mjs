@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { assertAudioReview } from './audio-review.mjs';
 import path from 'node:path';
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -81,6 +82,7 @@ export async function run(stage, slug, options = {}) {
     throw new Error('This adapter only accepts saved rules-story projects');
   let value = {};
   const ctx = { root, dir, job, project };
+  if (['build','freeze','render','verify','deliver'].includes(stage)) await assertAudioReview(ctx);
   const routed = await stageOperation(stage, ctx, options);
   if (routed !== undefined) return { version: 1, status: 'complete', stage, artifacts: routed };
   const script = path.join(dir, 'SCRIPT.md'),

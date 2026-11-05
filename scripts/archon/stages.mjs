@@ -1,3 +1,5 @@
+import { archiveVisualEvidence, recordVisualRevision } from '../../lib/review.mjs';
+import { audioEvidence, saveAudioReview, assertAudioReview } from './audio-review.mjs';
 // Domain gates for Archon nodes. Scheduling and retries belong exclusively to YAML.
 import path from 'node:path';
 import { readFile, writeFile, mkdir, rename, stat, readdir } from 'node:fs/promises';
@@ -103,7 +105,8 @@ export async function gate(kind, { dir, job, project, engine }) {
     artifact = path.join(dir, 'SCRIPT.md');
   } else if (kind === 'film') {
     const p = await loadReviewPack(job, 'final');
-    binding = p.packSha256;
+    const previewHash = engine ? await fileHash(path.join(job, 'review/preview/video.mp4')) : null;
+    binding = digest([p.packSha256, await sourceFingerprint(job), previewHash]);
     artifact = path.join(job, 'review/final/pack.json');
     view = engine ? path.join(job, 'review/preview/video.mp4') : path.join(job, 'index.html');
   } else if (kind === 'thumbnail') {
@@ -190,6 +193,11 @@ export async function checkpoint(ctx, { kind, answer, expected }) {
 }
 export async function stageOperation(stage, ctx, opts) {
   const { dir, job, project, root } = ctx;
+  if (stage === 'visual-evidence') return archiveVisualEvidence(job);
+  if (stage === 'revision-complete') return recordVisualRevision(job);
+  if (stage === 'audio-evidence') return audioEvidence(ctx);
+  if (stage === 'audio-reviewed') return saveAudioReview(ctx, opts);
+  if (stage === 'audio-ready') return assertAudioReview(ctx);
   if (stage === 'gate') return gate(opts.kind, ctx);
   if (stage === 'script-loop-check' || stage === 'script-loop-result') {
     const review = await stageOperation('script-ready', ctx, {}),
@@ -347,9 +355,9 @@ export async function stageOperation(stage, ctx, opts) {
   }
   if (stage === 'review-round') {
     let review = await reviewStatus(job, 'final');
-    if (review.reports.length !== 2)
+    if (review.reports.length !== 1)
       throw new Error(
-        'Both valid independent role reports required; missing inspection is not a creative repair',
+        'One valid independent visual report required; missing inspection cannot count as a review',
       );
     const manifest = await readJSON(path.join(job, 'job.json'));
     if (manifest.reviewRoundPacks?.final !== review.packSha256) {

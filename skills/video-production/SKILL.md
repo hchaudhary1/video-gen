@@ -24,6 +24,8 @@ must inspect frozen evidence across the full interval. Technical measurements es
 technical facts, not listening, naturalness or audience engagement. Missing inspection
 capability is a specific blocker, not grounds to manufacture a pass.
 
-Keep demonstrated defects, review budgets, user decisions and limitations truthful.
+After audio generation, complete the audio-review nodes before visual work. Perform exactly
+one independent visual review and one author revision; do not commission another creative
+review. Keep demonstrated defects, user decisions and limitations truthful.
 Finish thumbnail and authorized publication nodes through Archon. Do not describe a
-waiver or exhausted creative-review budget as an independent pass.
+single revision as an independently reviewed pass.

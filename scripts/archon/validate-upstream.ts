@@ -48,6 +48,8 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
                   : route,
             text: 'Fixture operator text',
           }
+        : n.id === 'audio-review'
+          ? { pass: true, findings: 'Synthetic audio fixture', limitations: ['No listening in simulation'] }
         : n.id === 'script-review'
           ? { pass: true, findings: '' }
           : { version: 1, status: 'complete', stage: 'fixture', artifacts };
@@ -75,11 +77,17 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         `${file}: ${route} expected ${expected}, got ${result.outcome}; inspect .cache/archon-validation/failure.json`,
       );
     }
+    if (route === 'approve' && w.name.endsWith('-creative-review-round')) {
+      for (const id of ['visual-review', 'revision']) {
+        if (result.trace.filter((t: any) => t.nodeId === id && ['stubbed', 'executed'].includes(t.state)).length !== 1)
+          throw new Error(`Expected exactly one ${id}`);
+      }
+    }
     if (route === 'repair' && w.name.endsWith('-creative-review-round')) {
       for (const id of [
         'freeze',
-        'visual-mechanism',
-        'continuity-legibility',
+        'visual-review',
+        'revision',
         ...(w.name.startsWith('kai-') ? ['preview'] : []),
       ]) {
         if (result.trace.find((t: any) => t.nodeId === id)?.state !== 'skipped')

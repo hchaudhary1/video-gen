@@ -1,4 +1,3 @@
-# Explicit Archon nodes; bounded rounds retain durable human checkpoints.
 name: "kai-explainer"
 description: "Produce first-person Kai explainers through direct explainroo media functions, independent review and operator decisions."
 worktree:
@@ -112,9 +111,49 @@ nodes:
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs narration \"$INPUTS_PROJECT\""
   -
-    id: "register-director"
+    id: "audio-evidence"
     depends_on:
       - "narration"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs audio-evidence \"$INPUTS_PROJECT\""
+  -
+    id: "audio-review"
+    depends_on:
+      - "audio-evidence"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. You are the independent audio reviewer after narration generation. Read jobs/scripts/$INPUTS.project/SCRIPT.md and the audio evidence from the preceding node: $audio-evidence.output.artifacts. Inspect the listed recording and ASR measurements using actual available capabilities. Review coverage, missing or unexpected speech and any demonstrated pronunciation or intelligibility defects. A match rate of at least 0.9 with unconfirmed individual words is accepted measured coverage; don't equate ASR uncertainty with proven mispronunciation. Reject demonstrated defects or failed measurements. Disclose whether you actually heard audio; do not claim listening or naturalness from ASR. Do not edit script, narration or timing. Return pass, findings, limitations.
+    output_format:
+      type: "object"
+      properties:
+        pass:
+          type: "boolean"
+        findings:
+          type: "string"
+        limitations:
+          type: "array"
+          items:
+            type: "string"
+      required:
+        - "pass"
+        - "findings"
+        - "limitations"
+  -
+    id: "audio-reviewed"
+    depends_on:
+      - "audio-review"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("audio-reviewed", {expected:process.env.INPUTS_BINDING,report:JSON.parse(process.env.INPUTS_REPORT)});
+    with:
+      binding: "$audio-evidence.output.artifacts.binding"
+      report: "$audio-review.output"
+  -
+    id: "register-director"
+    depends_on:
+      - "audio-reviewed"
     always_run: true
     runtime: "bun"
     script: |-
@@ -130,84 +169,14 @@ nodes:
     prompt: |-
       Project: $INPUTS.project. Read jobs/scripts/$INPUTS.project/production-profile.json, engines/explainroo/AGENTS.md Scene API and engines/explainroo/templates/kai/TEMPLATE.md. Author jobs/$INPUTS.project/scenes.js using jobs/$INPUTS.project/build/timeline.json. Implement an exported scene function for every measured timeline scene ID. Create moving explanations, intermediate states and coherent handoffs; load actual heavy fonts. Use the full Scene API. Preserve script.md, voice configuration and approved recordings. This node owns only direction and scene authoring; Archon owns progression. Registered producer identity: $WORKFLOW_ID:director.
   -
-    id: "production-state-1"
-    depends_on:
-      - "direction"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "production-round-1"
-    depends_on:
-      - "production-state-1"
-    when: "$production-state-1.output.artifacts.done == false"
-    workflow: "kai-explainer-production-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
-    id: "production-state-2"
-    depends_on:
-      - "production-state-1"
-      - "production-round-1"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "production-round-2"
-    depends_on:
-      - "production-state-2"
-    when: "$production-state-2.output.artifacts.done == false"
-    workflow: "kai-explainer-production-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
-    id: "production-state-3"
-    depends_on:
-      - "production-state-2"
-      - "production-round-2"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "production-round-3"
-    depends_on:
-      - "production-state-3"
-    when: "$production-state-3.output.artifacts.done == false"
-    workflow: "kai-explainer-production-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
-    id: "production-state-4"
-    depends_on:
-      - "production-state-3"
-      - "production-round-3"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "production-round-4"
-    depends_on:
-      - "production-state-4"
-    when: "$production-state-4.output.artifacts.done == false"
-    workflow: "kai-explainer-production-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
     id: "production"
     depends_on:
-      - "production-state-4"
-      - "production-round-4"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs production-loop-check \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
+      - "direction"
+    workflow: "kai-explainer-production-round"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      options: "$INPUTS.options"
   -
     id: "delivery"
     depends_on:
