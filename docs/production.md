@@ -31,8 +31,8 @@ uncanny-fiction brief. `--detach` lets the command return while Archon keeps exe
 save the returned run ID. The server must remain running. No host agent or manual stage
 advancement is required.
 
-`review: "none"` disables optional human checkpoints, while independent script, audio, film and
-thumbnail reviews still run. `optOut: true` produces local deliverables without publishing
+`review: "none"` disables optional human checkpoints, while independent script, film and
+thumbnail reviews still run, along with measured audio review. `optOut: true` produces local deliverables without publishing
 copy approval, channel credentials or an upload. Omitting these settings uses the project's
 normal approval/publication policy and may pause for a person. Existing projects keep
 their saved settings; command options do not retroactively change them.
@@ -191,7 +191,8 @@ without a recorded requested revision. Supplied recordings and approved narratio
 never silently replaced; a requested change after preparation needs an explicitly
 archived take/new project, not reuse of old timing.
 
-Audio review follows narration generation and measured timing. Its hash-bound result is the
+Measured audio review follows narration generation and timing; it requires no listening
+capability. Its hash-bound result is the
 single speech-acceptance decision before visual work. Individual unconfirmed ASR words above
 the 90% coverage threshold remain disclosed uncertainty, not a contradictory build rejection.
 See [review contracts](review.md) for the audio and visual receipt fields.

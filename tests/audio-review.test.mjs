@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import {
+  reviewAudio,
   audioEvidence,
   saveAudioReview,
   assertAudioReview,
@@ -60,7 +61,9 @@ test("96.1% speech with two unconfirmed words is reviewable and cannot be reject
     evidence = await audioEvidence(ctx);
   assert.equal(evidence.ok, true);
   assert.deepEqual(evidence.measurements[0].unconfirmed, ["does", "cache"]);
-  await saveAudioReview(ctx, { expected: evidence.binding, report });
+  const measured = await reviewAudio(ctx);
+  assert.equal(measured.mode, "measured");
+  assert.match(measured.report.limitations.join(" "), /not listened/);
   assert.equal((await assertAudioReview(ctx)).report.pass, true);
   const warning = {
     level: "warn",

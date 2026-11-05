@@ -108,7 +108,8 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   assert.equal(preparations, 1);
   assert.equal(await readFile(audio, 'utf8'), 'SYNTHETIC recording fixture, not audio');
   const evidence = (await op('audio-evidence')).artifacts;
-  await op('audio-reviewed', {expected:evidence.binding, report:{pass:true,findings:'Synthetic audio review fixture, not listening.',limitations:['Synthetic fixture']}});
+  await op('audio-review');
+  await op('audio-reviewed');
   await op('producer', { runId: 'synthetic-fixture', role: 'director' });
   assert.deepEqual((await op('production-loop-result')).artifacts, { done: false });
   const check = media.check;

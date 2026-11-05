@@ -7,15 +7,15 @@ write reviewer verdicts. Missing inspection is disclosed and cannot be labelled 
 ## Audio review
 
 The audio-evidence node records script/recording hashes, per-scene match rates and unconfirmed
-words. A fresh reviewer evaluates those measurements and any audio they can actually inspect.
-The audio-reviewed node accepts the result only for unchanged files and coverage of at least
-90% for every narrated scene. It writes `review/audio-review.json`. Unconfirmed individual
+words. The audio-review node applies a deterministic measured check, requiring unchanged files
+and at least 90% speech coverage for every narrated scene. The audio-reviewed node validates
+that receipt before visual work. Listening capability is not required. It writes `review/audio-review.json`. Unconfirmed individual
 words above that threshold remain disclosed ASR uncertainty; they do not become a new visual
 build failure. A failed measurement or rejected review stops before visual work. Repairing audio
 requires a new authorized take and dependent timing, rather than an edit by the visual author.
 
-The report records findings and inspection limitations. ASR is not listening, naturalness or
-proof of pronunciation; reviewers must say whether audio was actually heard. Encoded final-mix
+The report records findings, `mode: "measured"`, and the explicit limitation that audio was
+not listened to. ASR is not listening, naturalness or proof of pronunciation. Encoded final-mix
 integrity and speech checks remain separate technical requirements.
 
 ## One visual review, one revision

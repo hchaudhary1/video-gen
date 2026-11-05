@@ -1,5 +1,5 @@
 import { archiveVisualEvidence, recordVisualRevision } from '../../lib/review.mjs';
-import { audioEvidence, saveAudioReview, assertAudioReview } from './audio-review.mjs';
+import { audioEvidence, reviewAudio, assertAudioReview } from './audio-review.mjs';
 // Domain gates for Archon nodes. Scheduling and retries belong exclusively to YAML.
 import path from 'node:path';
 import { readFile, writeFile, mkdir, rename, stat, readdir } from 'node:fs/promises';
@@ -196,8 +196,8 @@ export async function stageOperation(stage, ctx, opts) {
   if (stage === 'visual-evidence') return archiveVisualEvidence(job);
   if (stage === 'revision-complete') return recordVisualRevision(job);
   if (stage === 'audio-evidence') return audioEvidence(ctx);
-  if (stage === 'audio-reviewed') return saveAudioReview(ctx, opts);
-  if (stage === 'audio-ready') return assertAudioReview(ctx);
+  if (stage === 'audio-review') return reviewAudio(ctx);
+  if (stage === 'audio-reviewed') return assertAudioReview(ctx);
   if (stage === 'gate') return gate(opts.kind, ctx);
   if (stage === 'script-loop-check' || stage === 'script-loop-result') {
     const review = await stageOperation('script-ready', ctx, {}),
