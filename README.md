@@ -15,7 +15,8 @@ Archon configuration defines provider/model choices. Each author/reviewer is a f
 
 ## Production
 
-Use the [production runbook](docs/production.md) for local setup, workflow selection,
+Use the [unattended run command](docs/production.md#run-unattended) to start a local film
+and leave Archon to execute its stages. The [production runbook](docs/production.md) covers setup, workflow selection,
 launch commands, decisions, repair and recovery. Both treatments use that same Archon
 operating flow. [Publishing](docs/publishing.md) covers credentials and durable uploads.
 

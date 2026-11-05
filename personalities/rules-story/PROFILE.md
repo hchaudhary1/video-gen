@@ -35,7 +35,7 @@ These elements are fixed so the series is recognisable from any frame and any se
   behind several sentences. Grain, bloom and vignette throughout; chromatic glitch on the scary beats.
 
 `series-kit` installs `rules-series-kit@1.0.0`, which implements the HUD, captions, rule card, exhibit card,
-marks, glitch and finish for landscape and vertical canvases; `synth --identity` renders the identity's sound
+marks, glitch and finish for landscape and vertical canvases; the Archon sound node renders the identity's sound
 kit. Use them rather than redrawing the frame, so every film matches.
 
 ## Free (the agent decides)

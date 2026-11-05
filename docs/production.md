@@ -13,6 +13,44 @@ Choose editorial intent from [the profile index](../personalities/README.md). Fo
 [production skill](../skills/video-production/SKILL.md) for node responsibilities and load
 only the technical references needed for the assignment.
 
+## Run unattended
+
+After the one-time setup below, run from the repository root:
+
+```sh
+./bin/archon workflow run kai-explainer --detach \
+  --input project=cache-explained \
+  --input 'options={"brief":"Explain what a cache does using a clear visual analogy.","format":"landscape","duration":60,"review":"none","thumbnails":1,"optOut":true}'
+```
+
+Choose a fresh project slug for each new film. Use `rules-story` instead for an original
+uncanny-fiction brief. `--detach` lets the command return while Archon keeps executing;
+save the returned run ID. The server must remain running. No host agent or manual stage
+advancement is required.
+
+`review: "none"` disables optional human checkpoints, while independent script, film and
+thumbnail reviews still run. `optOut: true` produces local deliverables without publishing
+copy approval, channel credentials or an upload. Omitting these settings uses the project's
+normal approval/publication policy and may pause for a person. Existing projects keep
+their saved settings; command options do not retroactively change them.
+
+When you return, inspect the run:
+
+```sh
+./bin/archon workflow get <run-id>
+./bin/archon workflow logs <run-id> --format text
+```
+
+A completed local production leaves:
+
+- `jobs/<slug>/renders/video.mp4`: final video (Kai also writes subtitles, chapters and cover).
+- `jobs/<slug>/thumbnail/thumbnail.png`: selected reviewed thumbnail.
+- `jobs/<slug>/review/delivery.json`: qualified delivery record with artifact hashes.
+
+A running, paused or failed run is not a completed delivery. Automated repair rounds are
+bounded; missing tools, unavailable inspection or unresolved mandatory defects can fail
+the run. Inspect the failing node, fix the cause and use recovery below. Graph simulations alone do not establish full-video acceptance.
+
 ## Setup
 
 The video checkout owns its Archon source, runtime and state. The tracked launcher and
@@ -83,9 +121,10 @@ for host-only runs, producing a nonfatal cleanup warning. The diagnostics comple
 created no containers/images. These video workflows run in the host checkout; Docker is
 not a production prerequisite, and this setup does not change Docker access permissions.
 
-## Start a production
+## Request human checkpoints
 
-Run from a dedicated retained production checkout:
+For productions where you want script, film and thumbnail approval, request those
+checkpoints explicitly:
 
 ```sh
 archon workflow run rules-story \
@@ -156,8 +195,8 @@ that disposition an independent pass. Missing inspection and non-waivable defect
 Encoded pixel defects route back through scene repair/review. Narration/audio integrity,
 missing infrastructure and invalid evidence fail the run for explicit recovery.
 
-Rounds are explicitly bounded in YAML (four script/film/thumbnail/user-revision opportunities). After exhaustion the run fails with retained evidence; a
-fresh run can continue from validated artifacts. Archon currently restricts attention
+Rounds are explicitly bounded in YAML (four script/film/thumbnail/user-revision
+opportunities). After exhaustion the run fails with retained evidence; a fresh run can continue from validated artifacts. Archon currently restricts attention
 waits and governed child runs inside `loop_group`, so these cycles use explicit conditional
 round nodes rather than invalid nested loops. This makes each attempt inspectable.
 

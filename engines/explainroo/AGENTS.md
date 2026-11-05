@@ -387,7 +387,7 @@ font roles are `display`, `body`, `hand` and `mono`.
   line has to meet an outline exactly, like a radius that ends on the
   circle, draw both with `s.draw`.
 - A render that stops with a closed browser or `EPIPE` on a busy computer.
-  Run it again with fewer pages, for example `render --workers 2`.
+  Reduce the renderer's worker count in the assigned Archon media operation.
 
 `check` looks at text and math formulas. It finds text off the frame, too
 close to the edge (3.5%), too small, with low contrast (against the page, or

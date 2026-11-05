@@ -68,6 +68,25 @@ the hosts themselves. Use explicit initial/end states for seekable animation. Se
 wall clocks, network state and playback callbacks cannot determine a rendered frame. A timestamp must
 produce the same result in forward and backward seeking. Holds and cuts are valid creative choices.
 
+### Timing and scene ownership
+
+Generated hosts use `host-<scene-id>`; never rename them or add a scene timeline to the root
+timeline. The player drives each scene separately. Scope script variables to their scene.
+
+| Field | Meaning |
+| --- | --- |
+| `data-start`, `data-duration` | Seconds in the composition's time coordinate system |
+| `data-composition-id` | Scene identity, matching its registered timeline key |
+| `data-media-start` | Offset into a local source recording |
+| `data-track-index` | Editor lane; CSS `z-index` controls paint order |
+
+Visible intervals are `[start, start + duration)`. Land the end state before the last frame.
+Nested timing is not automatically relative to the nearest timed wrapper. Use `muted
+playsinline` for picture-only footage. Keep CSS transforms off elements whose transforms
+GSAP animates; preserve the series HUD and caption space. Use `assets/...` paths without a
+leading slash and actual local font weights. The example above is a technical skeleton,
+not finished artwork or a complete series frame.
+
 ## Media and audio
 
 Use local `src` media and the framework's `data-start`, `data-duration`, `data-media-start` and
@@ -89,13 +108,13 @@ Use the direct domain APIs from the corresponding Archon node; see `docs/product
 Build assembles the real HyperFrames composition, checks runtime/assets and sampled text bounds, and
 compares repeated timestamps after backward seeking. It also runs HyperFrames lint. Inspect actual
 frames and playback: sample checks do not establish contrast, occlusion, narrative clarity or smooth motion.
-Independent review precedes final render and delivery. The orchestrator runs those stages.
+Independent review precedes final render and delivery. Archon runs those stages.
 
 ## Diagnosing failures
 
 Use the corresponding Archon node with an explicit job. `build` validates the native manifest, assembles the real
-composition, inspects sampled frames/seeking and runs HyperFrames lint. `review-pack` requires a current
-successful full build. `render --reuse-build true` requires inspection for every scene and matching hashes.
+composition, inspects sampled frames/seeking and runs HyperFrames lint. Evidence freezing requires a current
+successful full build. Rendering with a reused build requires inspection for every scene and matching hashes.
 
 - Missing/invalid file, cue or asset: fix the named authoring input and rebuild.
 - Composition runtime or lint failure: inspect the authored HTML/JavaScript and diagnostic. The pipeline
@@ -110,7 +129,7 @@ successful full build. `render --reuse-build true` requires inspection for every
 
 ## Resource tuning
 
-The renderer supports `--workers <positive integer|auto>`. Too many workers can exhaust memory;
+The renderer accepts a positive worker count or automatic concurrency. Too many workers can exhaust memory;
 reduce concurrency and retain the failed command/log when diagnosing. Use the existing configured render
 path; do not upgrade or patch dependencies as a production workaround. Renderer output distinguishes
 capture methods and GPU modes. A successful process alone is not verified delivery.

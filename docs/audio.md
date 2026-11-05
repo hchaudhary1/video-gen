@@ -7,7 +7,7 @@ its adapter. Both keep source recordings and approved takes unchanged.
 
 ## Rules-story narration
 
-Provision Ming with `node scripts/setup-ming.mjs`. The pinned model, worker, Python
+The [production setup](production.md#setup) provisions Ming. The pinned model, worker, Python
 environment, acoustic reference and queue live in repository `.cache/`. The continuity
 adapter in `scripts/ming_continuity.py` uses a shared reference for a complete narration
 invocation. Generate the full script once with the requested target duration. The
