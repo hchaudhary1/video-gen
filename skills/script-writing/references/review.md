@@ -13,7 +13,9 @@ Give concrete findings: the affected passage, evidence, impact on the viewer, se
 An unconventional opening or visual approach is not itself a defect. Visual notes express intent; do not
 require a scene schema, fixed number of concepts or a design recipe. The director owns implementation.
 
-Write `review.md` in the assigned project. End with `Disposition: pass`, `Disposition: revise`, or
+Write `review.md` in the assigned project. Include a standalone `Binding: <exact hash>` line
+using the binding supplied by the workflow node; an old report cannot stand for changed text
+or evidence. End with `Disposition: pass`, `Disposition: revise`, or
 `Disposition: incomplete`. Incomplete means evidence needed to judge a material claim is unavailable;
 list it under `## Missing evidence`. On revision, resolve or retain previous findings against current text.
 Do not edit the script or claim independent review of your own work. Disclose whether you read text or

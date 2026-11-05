@@ -46,9 +46,10 @@ test('direct Archon preparation preserves recording, reuses timing, blocks chang
       ).stdout,
     );
   await operation('init', { script, audio, review: '', format: 'landscape' });
+  await writeFile(path.join(dir, 'VISUALS.md'), 'Synthetic visual intent fixture.');
   const state = await operation('script-status');
-  await writeFile(path.join(dir, 'review.md'), 'Disposition: pass\nSynthetic fixture review only.');
-  // Execute the same scalar/object environment binding convention as an Archon script node.
+  await writeFile(path.join(dir, 'review.md'), `Binding: ${state.artifacts.binding}\nDisposition: pass\nSynthetic fixture review only.`);
+  // Execute the same scalar environment binding convention as an Archon script node.
   await exec(
     process.execPath,
     [
@@ -56,7 +57,7 @@ test('direct Archon preparation preserves recording, reuses timing, blocks chang
       '-e',
       `
     const {emit}=await import('./scripts/archon/rules-story.mjs');
-    await emit('script-reviewed',{expected:process.env.INPUTS_BINDING,report:JSON.parse(process.env.INPUTS_REPORT)});
+    await emit('script-reviewed',{expected:process.env.INPUTS_BINDING});
   `,
     ],
     {
@@ -65,10 +66,6 @@ test('direct Archon preparation preserves recording, reuses timing, blocks chang
         ...env,
         INPUTS_PROJECT: slug,
         INPUTS_BINDING: state.artifacts.binding,
-        INPUTS_REPORT: JSON.stringify({
-          pass: true,
-          findings: 'Synthetic fixture, not independent creative evidence',
-        }),
       },
     },
   );

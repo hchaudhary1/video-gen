@@ -75,10 +75,10 @@ test('script review and approval invalidate on edits; revision is a real incompl
   assert.equal((await stageOperation('script-loop-result', ctx, {})).done, false);
   await writeFile(
     path.join(ctx.dir, 'review.md'),
-    'Disposition: pass\nClaims checked against retained sources.',
+    `Binding: ${await scriptBinding(ctx.dir)}\nDisposition: pass\nClaims checked against retained sources.`,
   );
   const expected = await scriptBinding(ctx.dir);
-  await stageOperation('script-reviewed', ctx, { expected, report: { pass: true, findings: '' } });
+  await stageOperation('script-reviewed', ctx, { expected });
   assert.equal(
     (await stageOperation('script-loop-result', ctx, {})).done,
     false,
@@ -110,11 +110,10 @@ test('supplied script cannot be changed by writer without user revision', async 
   ctx.project.inputScript = 'supplied.md';
   ctx.project.suppliedScriptSha256 = hash('Supplied words.');
   await writeFile(path.join(ctx.root, 'supplied.md'), 'Supplied words.');
-  await writeFile(path.join(ctx.dir, 'review.md'), 'Disposition: pass');
+  await writeFile(path.join(ctx.dir, 'review.md'), `Binding: ${await scriptBinding(ctx.dir)}\nDisposition: pass`);
   await assert.rejects(
     stageOperation('script-reviewed', ctx, {
       expected: await scriptBinding(ctx.dir),
-      report: { pass: true, findings: '' },
     }),
     /Supplied script changed/,
   );
@@ -122,10 +121,9 @@ test('supplied script cannot be changed by writer without user revision', async 
 test('optional checkpoints do not manufacture approvals; review report edits invalidate cache', async (t) => {
   const ctx = await fixture(t);
   ctx.project.review = [];
-  await writeFile(path.join(ctx.dir, 'review.md'), 'Disposition: pass');
+  await writeFile(path.join(ctx.dir, 'review.md'), `Binding: ${await scriptBinding(ctx.dir)}\nDisposition: pass`);
   await stageOperation('script-reviewed', ctx, {
     expected: await scriptBinding(ctx.dir),
-    report: { pass: true, findings: '' },
   });
   assert.equal((await stageOperation('script-loop-result', ctx, {})).done, true);
   assert.equal((await gate('script', ctx)).approved, false);
@@ -165,4 +163,40 @@ test('delivery pixels bind both current sources and encoded video', () => {
   assert.throws(() => assertFreshPixels(pixels, 'changed', 'video'), /pixel evidence/);
   assert.throws(() => assertFreshPixels(pixels, 'sources', 'changed'), /pixel evidence/);
   assert.throws(() => assertFreshPixels({ ...pixels, ok: false }, 'sources', 'video'), /pixel evidence/);
+});
+
+
+test('missing or stale script review is incomplete without rewriting existing author outputs', async t => {
+  const ctx=await fixture(t), expected=await scriptBinding(ctx.dir);
+  assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,false);
+  const missing=await stageOperation('script-reviewed',ctx,{expected});
+  assert.equal(missing.done,false);
+  assert.equal(missing.disposition,'incomplete');
+  assert.match(missing.findings,/did not create review.md/);
+  assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,false);
+  await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${'0'.repeat(64)}\nDisposition: pass`);
+  assert.equal((await stageOperation('script-reviewed',ctx,{expected})).done,false);
+  await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${expected}\nConcrete requested edit.\nDisposition: revise`);
+  assert.equal((await stageOperation('script-reviewed',ctx,{expected})).disposition,'revise');
+  assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,true);
+});
+
+test('script review cannot claim a pass after the script changed during inspection', async t => {
+  const ctx=await fixture(t), expected=await scriptBinding(ctx.dir);
+  await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${expected}\nDisposition: pass`);
+  await writeFile(path.join(ctx.dir,'SCRIPT.md'),'Changed after reviewer read it.');
+  await assert.rejects(stageOperation('script-reviewed',ctx,{expected}),/changed during independent review/);
+  assert.equal((await stageOperation('script-reviewed',ctx,{expected:await scriptBinding(ctx.dir)})).done,false);
+});
+
+
+test('a review cannot qualify missing author outputs', async t => {
+  const ctx=await fixture(t);
+  await writeFile(path.join(ctx.dir,'VISUALS.md'),'');
+  const expected=await scriptBinding(ctx.dir);
+  await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${expected}\nDisposition: pass`);
+  const result=await stageOperation('script-reviewed',ctx,{expected});
+  assert.equal(result.done,false);
+  assert.match(result.findings,/VISUALS.md is missing or empty/);
+  assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,true);
 });

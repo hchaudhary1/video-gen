@@ -36,6 +36,14 @@ const optional = async (f) => {
     throw e;
   }
 };
+const optionalText = async (file) => readFile(file, 'utf8').catch(error => {
+  if (error.code === 'ENOENT') return '';
+  throw error;
+});
+const hasAuthorOutputs = async (dir) =>
+  (await Promise.all(['SCRIPT.md', 'VISUALS.md'].map(f => optionalText(path.join(dir, f)))))
+    .every(text => text.trim().length > 0);
+
 export async function scriptBinding(dir) {
   const entries = await Promise.all(
     ['SCRIPT.md', 'VISUALS.md', 'production-profile.json', 'SOURCES.md', 'research.md'].map(async (f) => [
@@ -237,20 +245,23 @@ export async function stageOperation(stage, ctx, opts) {
   if (stage === 'script-status') {
     const binding = await scriptBinding(dir),
       review = await optional(path.join(dir, 'archon/script-review.json'));
-    const ready =
-      review?.binding === binding &&
-      review.pass === true &&
-      review.reportHash === (await fileHash(path.join(dir, 'review.md')).catch(() => null));
+    const reportHash = await fileHash(path.join(dir, 'review.md')).catch(error => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    const current = review?.binding === binding && review?.reportHash === reportHash;
+    const ready = current && review.pass === true && review.disposition === 'pass';
     const feedback = await optional(path.join(dir, 'archon/script-decision.json'));
+    const inputsExist = await hasAuthorOutputs(dir);
     return {
       ready: Boolean(ready),
-      needsWrite: !ready || (feedback?.binding === binding && feedback.decision === 'revise'),
+      needsWrite: !inputsExist ||
+        Boolean(current && review.disposition === 'revise') ||
+        Boolean(feedback?.binding === binding && feedback.decision === 'revise'),
       binding,
       supplied: !!project.inputScript,
-      canRevise:
-        !project.inputScript ||
-        (await optional(path.join(dir, 'archon/script-decision.json')))?.decision === 'revise',
-      feedback: await optional(path.join(dir, 'archon/script-decision.json')),
+      canRevise: !project.inputScript || feedback?.decision === 'revise',
+      feedback,
     };
   }
   if (stage === 'script-reviewed') {
@@ -270,24 +281,32 @@ export async function stageOperation(stage, ctx, opts) {
     }
     const binding = await scriptBinding(dir);
     if (opts.expected !== binding) throw new Error('Script changed during independent review');
-    if (typeof opts.report?.pass !== 'boolean' || typeof opts.report.findings !== 'string')
-      throw new Error('Invalid script review output');
-    const report = await readFile(path.join(dir, 'review.md'), 'utf8');
-    if (opts.report.pass && scriptDisposition(report) !== 'pass')
-      throw new Error('Passing review.md disposition required');
+    const report = await optionalText(path.join(dir, 'review.md'));
+    const taggedBinding = report?.match(/^[ \t]*Binding:[ \t]*([a-f0-9]{64})[ \t]*$/im)?.[1];
+    let disposition = report ? scriptDisposition(report) : 'incomplete';
+    let findings = report || 'Reviewer did not create review.md; no inspection is claimed.';
+    if (!disposition || taggedBinding !== binding) {
+      disposition = 'incomplete';
+      findings = 'Review report is missing a current Binding line or valid disposition. ' + findings;
+    }
+    if (!(await hasAuthorOutputs(dir))) {
+      disposition = 'incomplete';
+      findings = 'Required SCRIPT.md or VISUALS.md is missing or empty. ' + findings;
+    }
+    const pass = disposition === 'pass';
     await saveJSON(path.join(dir, 'archon/script-review.json'), {
-      ...opts.report,
-      binding,
+      pass, disposition, findings, binding,
       reviewer: `${process.env.WORKFLOW_ID || 'archon'}:script-review`,
-      reportHash: await fileHash(path.join(dir, 'review.md')),
+      reportHash: !report ? null : await fileHash(path.join(dir, 'review.md')),
     });
-    return { done: opts.report.pass };
+    return { done: pass, disposition, findings };
   }
   if (stage === 'script-ready') {
     const review = await optional(path.join(dir, 'archon/script-review.json'));
     return {
       done: Boolean(
         review?.pass === true &&
+          review.disposition === 'pass' &&
           review.binding === (await scriptBinding(dir)) &&
           review.reportHash === (await fileHash(path.join(dir, 'review.md')).catch(() => null)),
       ),

@@ -156,6 +156,24 @@ stages and bounded rounds as governed child runs. Model/provider settings belong
 `.archon/config.yaml` or explicit Archon run bindings; confirm the model in real node
 execution when a particular model is required.
 
+### Script review and resume
+
+The script reviewer is a tool-using agent without a structured-output constraint. It writes
+`jobs/scripts/<slug>/review.md` with `Binding: <current hash>`, concrete findings and a
+`Disposition: pass`, `revise` or `incomplete`. The following script node reads that file;
+it derives machine output from the report instead of trusting an agent's completion reply.
+A missing or mismatched report is an incomplete attempt and can reach the next bounded
+review attempt. It is never a passing review or an automatic rewrite request.
+
+On resume the reviewer runs again against the current binding. Existing substantive script
+and visual intent are preserved unless a current review or operator decision requests a
+revision. New research evidence may require a new review without rewriting the narration.
+
+Archon captures workflow source for each run. After updating a workflow definition, start
+a fresh run of the same workflow/project to use the new graph; resuming a run captured
+before the change can retain its old node configuration. The saved project files remain
+available to the fresh run.
+
 ## Decisions and revisions
 
 Use the Archon console/CLI attention queue. Each checkpoint displays the artifact path

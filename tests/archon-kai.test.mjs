@@ -49,14 +49,14 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   await writeFile(audio, 'SYNTHETIC recording fixture, not audio');
   const options = { script, audio, review: 'none', optOut: true };
   await run('init', slug, options);
+  await writeFile(path.join(dir, 'VISUALS.md'), 'Synthetic visual intent fixture.');
   await writeFile(
     path.join(dir, 'review.md'),
-    'Disposition: pass\nSynthetic fixture judgment, not an actual creative review.',
+    `Binding: ${await scriptBinding(dir)}\nDisposition: pass\nSynthetic fixture judgment, not an actual creative review.`,
   );
   const ctx = { root, dir, job, project: JSON.parse(await readFile(path.join(dir, 'project.json'))) };
   await stageOperation('script-reviewed', ctx, {
     expected: await scriptBinding(dir),
-    report: { pass: true, findings: 'Synthetic fixture' },
   });
   let preparations = 0,
     renders = 0,

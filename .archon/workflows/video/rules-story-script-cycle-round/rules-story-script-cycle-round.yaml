@@ -22,7 +22,7 @@ nodes:
       - "script-state"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/script-writing/SKILL.md. Write or revise SCRIPT.md, research.md and VISUALS.md; read review.md and archon/script-decision.json for feedback. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work.
     when: "$script-state.output.artifacts.needsWrite == true"
   -
@@ -35,22 +35,15 @@ nodes:
     trigger_rule: "none_failed_min_one_success"
   -
     id: "script-review"
+    always_run: true
     depends_on:
       - "script-binding"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-      Independently review SCRIPT.md, VISUALS.md and sources with skills/script-writing/SKILL.md. Write review.md with explicit Disposition: pass / revise / incomplete and demonstrated findings. Return pass and findings; unavailable evidence is not a pass.
-    output_format:
-      type: "object"
-      properties:
-        findings:
-          type: "string"
-        pass:
-          type: "boolean"
-      required:
-        - "pass"
-        - "findings"
+      You are the independent script reviewer for project $INPUTS.project. This Archon node explicitly commissions file inspection and writing the review. Work from the repository root; tools are available for reading files and writing your report.
+      Read jobs/scripts/$INPUTS.project/production-profile.json, BRIEF.md, SCRIPT.md, VISUALS.md, SOURCES.md and retained source evidence in that project. Follow skills/script-writing/references/review.md. Do not change author files, sources, script or visual intent.
+      The exact review binding is $script-binding.output.artifacts.binding. Create or replace jobs/scripts/$INPUTS.project/review.md using file tools. Include a standalone line "Binding: $script-binding.output.artifacts.binding", concrete findings supported by the files you actually inspected, and a final line "Disposition: pass", "Disposition: revise" or "Disposition: incomplete". A missing previous report is expected; you are responsible for creating it. If evidence is genuinely missing, still write a binding-tagged incomplete report naming what is missing. Do not claim inspection you did not perform.
+      Finish with a short plain-language confirmation of the report path. Do not return JSON; the next deterministic node reads your report and produces the machine result.
   -
     id: "script-report"
     depends_on:
@@ -59,10 +52,9 @@ nodes:
     runtime: "bun"
     script: |-
       const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("script-reviewed", {expected: process.env.INPUTS_BINDING, report: JSON.parse(process.env.INPUTS_REPORT)});
+      await emit("script-reviewed", {expected: process.env.INPUTS_BINDING});
     with:
       binding: "$script-binding.output.artifacts.binding"
-      report: "$script-review.output"
   -
     id: "script-gate"
     depends_on:
