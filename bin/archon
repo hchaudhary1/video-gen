@@ -1,0 +1,4 @@
+#!/bin/sh
+# Use this checkout's pinned runtime, source and state.
+archon_repo=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec node "$archon_repo/scripts/archon-cli.mjs" "$@"

@@ -39,20 +39,30 @@ runs. Models and tools stay under repository `.cache/`. Never put credentials in
 
 ## Setup and validation
 
-Use Node.js 22+, npm, FFmpeg/FFprobe, Python 3.12, uv, git and Chrome. Install/configure
-Archon and authenticate the chosen agent provider separately.
+Use Node.js 22+, npm, git, tar, FFmpeg/FFprobe, Python 3.12, uv and Chrome.
+Bootstrap the pinned local Archon runtime and media environments:
 
 ```sh
-npm ci
-(cd engines/explainroo && npm ci)
-npx --no-install hyperframes browser ensure
-node scripts/setup-ming.mjs
+node scripts/setup-archon.mjs --media
+source scripts/activate-archon.sh
+archon doctor
+archon validate workflows rules-story
+archon validate workflows kai-explainer
 npm test
 (cd engines/explainroo && npm test)
 ```
 
-Kai loads its speech models when narration first needs them. The workflow validator uses
-the actual pinned upstream Archon loader/planner and stub simulations; see the runbooks.
+The bootstrap installs Archon source at the pinned revision and Bun 1.4.2 under
+`.cache/archon/`; no global Archon/Bun installation is required. `./bin/archon` works
+without activation. Its SQLite state, logs and run artifacts stay in this worktree.
+The project config selects Codex and reuses its existing login (`codex login status`).
+Authenticate Codex first on a new machine; no account tokens are committed or copied by
+the bootstrap. `--media` provisions application dependencies, the installed Chrome browser,
+Ming when absent, and loads all four speech models. Models remain under repository cache.
+See [local setup](docs/archon-setup.md) for diagnostics and YouTube authentication.
+
+The workflow validator uses the actual pinned upstream Archon loader/planner and stub
+simulations; see the runbooks.
 Tests exercise media integrity, actual browser rendering, source/evidence bindings,
 operator revision routing, cached output reuse and mocked upload recovery. They do not
 establish creative quality, actual listening or successful publication.

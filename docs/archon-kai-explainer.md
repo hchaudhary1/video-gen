@@ -8,9 +8,10 @@ brief, frozen profile, sources and approved script; `jobs/<slug>/` for media and
 
 ## Run
 
-Provision the repository with `npm ci`, then `(cd engines/explainroo && npm ci)`.
-FFmpeg and Chrome must be installed. Kokoro/Whisper models are loaded on demand into
-repository `.cache/explainroo`. Configure your provider and model in Archon.
+Run `node scripts/setup-archon.mjs --media`, then `source scripts/activate-archon.sh`.
+`./bin/archon` works without activation. The bootstrap provisions application and media
+dependencies, pins Archon/Bun, and loads the speech models into this checkout's cache.
+Configure or reuse the existing Codex CLI login; see [local setup](archon-setup.md).
 
 ```sh
 archon validate workflows kai-explainer

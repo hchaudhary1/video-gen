@@ -7,11 +7,11 @@ Kai uses its own Archon workflow; see `docs/archon-kai-explainer.md`.
 
 ## Run
 
-Install/configure Archon with your chosen agent provider and provision this checkout
-with the repository's existing setup requirements (`npm ci`, FFmpeg, HyperFrames browser,
-Ming and Parakeet). Archon is external tooling; it is not a production npm dependency.
-This pack targets the workflow language at upstream revision
-`0d8de493fb016ca7a63529f3abc1ab08ac3e7a16` (0.13.2).
+Run `node scripts/setup-archon.mjs --media`, then `source scripts/activate-archon.sh`.
+`./bin/archon` also works without shell activation. The checkout uses Archon source
+revision `0d8de493fb016ca7a63529f3abc1ab08ac3e7a16` (0.13.2) with Bun 1.4.2,
+repository-local SQLite state and the existing Codex CLI login. No global Archon install
+is needed. See [local setup](archon-setup.md).
 
 From a **dedicated retained production checkout**:
 
