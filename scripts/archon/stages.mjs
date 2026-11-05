@@ -14,12 +14,14 @@ import {
   recordHumanReview,
   parseNote,
   qualifyDelivery,
+  covers,
 } from '../../lib/review.mjs';
 import { thumbnailStatus, chooseThumbnail, addThumbnailFeedback } from '../../lib/thumbnails.mjs';
 import { scriptDisposition, saveProject } from '../../lib/project.mjs';
 import { continueIdentity, identityForProject } from '../../lib/identities.mjs';
 import { renderSoundKit } from '../../lib/series.mjs';
 import { youtubeUpload } from '../../lib/youtube-upload.mjs';
+import { validateScript, validateResearch } from './contracts.mjs';
 export const readJSON = async (f) => JSON.parse(await readFile(f, 'utf8'));
 export async function saveJSON(f, v) {
   await mkdir(path.dirname(f), { recursive: true });
@@ -203,6 +205,31 @@ export async function checkpoint(ctx, { kind, answer, expected }) {
 }
 export async function stageOperation(stage, ctx, opts) {
   const { dir, job, project, root } = ctx;
+  if (stage === 'script-review-request') {
+    const state = await stageOperation('script-status', ctx, opts);
+    await saveJSON(path.join(dir, 'archon/script-review-request.json'), {
+      binding: state.binding, runId: process.env.WORKFLOW_ID || null,
+    });
+    return state;
+  }
+  if (stage === 'research-status' || stage === 'research-check')
+    return validateResearch(dir, project);
+  if (stage === 'build-check') {
+    const build = await optional(path.join(job, 'review/build.json'));
+    if (!build?.ok || build.scope !== 'all' || build.sourceHash !== await sourceFingerprint(job))
+      throw new Error('Technical build repair budget exhausted; inspect review/build.json.');
+    return { done: true };
+  }
+  if (stage === 'visual-review-status') {
+    const review = await reviewStatus(job, 'final');
+    const { pack } = await loadReviewPack(job, 'final');
+    return {
+      done: review.reports.length === 1 && review.reports.every(report =>
+        report.verdict !== 'incomplete' && report.inspection.visual === 'viewed' &&
+        report.inspection.evidence?.length && covers(report.coverage, pack.interval)),
+      errors: review.errors,
+    };
+  }
   if (stage === 'visual-evidence') return archiveVisualEvidence(job);
   if (stage === 'revision-complete') return recordVisualRevision(job);
   if (stage === 'audio-evidence') return audioEvidence(ctx);
@@ -245,6 +272,7 @@ export async function stageOperation(stage, ctx, opts) {
     return checkpoint(ctx, opts);
   }
   if (stage === 'script-status') {
+    const validation = await validateScript(dir, project);
     const binding = await scriptBinding(dir),
       review = await optional(path.join(dir, 'archon/script-review.json'));
     const reportHash = await fileHash(path.join(dir, 'review.md')).catch(error => {
@@ -252,12 +280,13 @@ export async function stageOperation(stage, ctx, opts) {
       throw error;
     });
     const current = review?.binding === binding && review?.reportHash === reportHash;
-    const ready = current && review.pass === true && review.disposition === 'pass';
+    const ready = validation.valid && current && review.pass === true && review.disposition === 'pass';
     const feedback = await optional(path.join(dir, 'archon/script-decision.json'));
     const inputsExist = await hasAuthorOutputs(dir);
     return {
       ready: Boolean(ready),
-      needsWrite: !inputsExist ||
+      ...validation,
+      needsWrite: !inputsExist || (!validation.valid && !project.inputScript) ||
         Boolean(current && review.disposition === 'revise') ||
         Boolean(feedback?.binding === binding && feedback.decision === 'revise'),
       binding,
@@ -295,6 +324,11 @@ export async function stageOperation(stage, ctx, opts) {
       disposition = 'incomplete';
       findings = 'Required SCRIPT.md or VISUALS.md is missing or empty. ' + findings;
     }
+    const validation = await validateScript(dir, project);
+    if (!validation.valid) {
+      disposition = 'incomplete';
+      findings = validation.errors.join('\n') + '\n' + findings;
+    }
     const pass = disposition === 'pass';
     await saveJSON(path.join(dir, 'archon/script-review.json'), {
       pass, disposition, findings, binding,
@@ -305,9 +339,10 @@ export async function stageOperation(stage, ctx, opts) {
   }
   if (stage === 'script-ready') {
     const review = await optional(path.join(dir, 'archon/script-review.json'));
+    const validation = await validateScript(dir, project);
     return {
       done: Boolean(
-        review?.pass === true &&
+        validation.valid && review?.pass === true &&
           review.disposition === 'pass' &&
           review.binding === (await scriptBinding(dir)) &&
           review.reportHash === (await fileHash(path.join(dir, 'review.md')).catch(() => null)),

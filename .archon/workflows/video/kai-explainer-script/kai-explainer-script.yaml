@@ -19,16 +19,76 @@ nodes:
       const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
       await emit("init", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
   -
-    id: "research"
+    id: "research-state"
     depends_on:
       - "recover"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research"
+    depends_on:
+      - "research-state"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep sources/SOURCES.md and local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
+    when: "$research-state.output.artifacts.done == false"
+    retry:
+      max_attempts: 2
+      on_error: "transient"
+  -
+    id: "research-state-1"
+    depends_on:
+      - "research-state"
+      - "research"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research-completion-1"
+    depends_on:
+      - "research-state-1"
+    when: "$research-state-1.output.artifacts.done == false"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
+      Read the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.
+  -
+    id: "research-state-2"
+    depends_on:
+      - "research-state-1"
+      - "research-completion-1"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research-completion-2"
+    depends_on:
+      - "research-state-2"
+    when: "$research-state-2.output.artifacts.done == false"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
+      Read the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.
+  -
+    id: "research-state-3"
+    depends_on:
+      - "research-state-2"
+      - "research-completion-2"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research-ready"
+    depends_on:
+      - "research-state-3"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs research-check "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
   -
     id: "script-cycle-state-1"
     depends_on:
-      - "research"
+      - "research-ready"
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
     trigger_rule: "none_failed_min_one_success"

@@ -158,6 +158,12 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
     });
   await writeFile(path.join(job,'review/revision-notes.md'),'Synthetic fixture revision: no changes needed.');
   await op('revision-complete');
+  const frozenHash = await fileHash(path.join(job, 'review/final/pack.json'));
+  await op('visual-evidence');
+  await op('visual-evidence');
+  assert.equal(await fileHash(path.join(job, 'review/final/pack.json')), frozenHash,
+    'resume must not replace a reviewed pack with a nested evidence archive');
+  assert.equal((await op('visual-review-status')).artifacts.done, true);
   await op('render');
   await op('render');
   assert.equal(renders, 1);

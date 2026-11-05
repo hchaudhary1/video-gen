@@ -19,17 +19,79 @@ nodes:
       const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
       await emit("init", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
   -
-    id: "research"
+    id: "research-state"
     depends_on:
       - "recover"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research"
+    depends_on:
+      - "research-state"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.
+    when: "$research-state.output.artifacts.done == false"
+    retry:
+      max_attempts: 2
+      on_error: "transient"
+  -
+    id: "research-state-1"
+    depends_on:
+      - "research-state"
+      - "research"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research-completion-1"
+    depends_on:
+      - "research-state-1"
+    when: "$research-state-1.output.artifacts.done == false"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.
+      Read the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.
+  -
+    id: "research-state-2"
+    depends_on:
+      - "research-state-1"
+      - "research-completion-1"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research-completion-2"
+    depends_on:
+      - "research-state-2"
+    when: "$research-state-2.output.artifacts.done == false"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.
+      Read the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.
+  -
+    id: "research-state-3"
+    depends_on:
+      - "research-state-2"
+      - "research-completion-2"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs research-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "research-ready"
+    depends_on:
+      - "research-state-3"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs research-check "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
   -
     id: "identity"
     depends_on:
-      - "research"
+      - "research-ready"
     always_run: true
     bash: "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\""
   -
@@ -117,6 +179,9 @@ nodes:
       - "script-cycle"
     always_run: true
     bash: "node scripts/archon/rules-story.mjs narration \"$INPUTS_PROJECT\""
+    retry:
+      max_attempts: 2
+      on_error: "transient"
   -
     id: "prepare"
     depends_on:
@@ -154,9 +219,15 @@ nodes:
     always_run: true
     bash: "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\""
   -
-    id: "register-director"
+    id: "production-state"
     depends_on:
       - "sound"
+    always_run: true
+    bash: 'node scripts/archon/rules-story.mjs production-result "$INPUTS_PROJECT"'
+  -
+    id: "register-director"
+    depends_on:
+      - "production-state"
     always_run: true
     runtime: "bun"
     script: |-
@@ -164,23 +235,34 @@ nodes:
       await emit("producer", {role:"director",runId:process.env.INPUTS_RUN});
     with:
       run: "$WORKFLOW_ID"
+    when: "$production-state.output.artifacts.done == false"
   -
     id: "direction"
     depends_on:
+      - "production-state"
       - "register-director"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/hyperframes/SKILL.md, docs/motion-explainer.md and docs/composition.md. Author film.json and series.json: series identity, rules and measured cue phrases. Use saved canvas and measured narration. Incorporate generated sound kit from review/archon-sound.json, series overlay, captions and -15 LUFS target. Your registered production identity is $WORKFLOW_ID:director. Recover existing valid direction; do not overwrite a completed film without findings.
+    trigger_rule: "none_failed_min_one_success"
+    when: "$production-state.output.artifacts.done == false"
+    retry:
+      max_attempts: 2
+      on_error: "transient"
   -
     id: "series"
     depends_on:
+      - "production-state"
       - "direction"
     always_run: true
     bash: "node scripts/archon/rules-story.mjs series \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+    when: "$production-state.output.artifacts.done == false"
   -
     id: "register-scenes"
     depends_on:
+      - "production-state"
       - "series"
     always_run: true
     runtime: "bun"
@@ -189,19 +271,26 @@ nodes:
       await emit("producer", {role:"scene-author",runId:process.env.INPUTS_RUN});
     with:
       run: "$WORKFLOW_ID"
+    trigger_rule: "none_failed_min_one_success"
+    when: "$production-state.output.artifacts.done == false"
   -
     id: "production"
     depends_on:
+      - "production-state"
       - "register-scenes"
     workflow: "rules-story-production-round"
     isolation: "inherit"
     with:
       project: "$INPUTS.project"
       options: "$INPUTS.options"
+    trigger_rule: "none_failed_min_one_success"
+    when: "$production-state.output.artifacts.done == false"
   -
     id: "delivery"
     depends_on:
+      - "production-state"
       - "production"
+    trigger_rule: "none_failed_min_one_success"
     always_run: true
     bash: "node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\""
   -

@@ -13,8 +13,11 @@ nodes:
   -
     id: "build"
     depends_on: []
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\""
+    workflow: "kai-explainer-build-cycle"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      phase: "pre-review"
   -
     id: "preview"
     depends_on:
@@ -22,6 +25,9 @@ nodes:
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs preview \"$INPUTS_PROJECT\""
     when: "$build.output.status == 'complete'"
+    retry:
+      max_attempts: 2
+      on_error: "transient"
   -
     id: "freeze"
     depends_on:
@@ -35,16 +41,66 @@ nodes:
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs visual-evidence \"$INPUTS_PROJECT\""
   -
-    id: "visual-review"
+    id: "visual-review-state"
     depends_on:
       - "visual-evidence"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs visual-review-status "$INPUTS_PROJECT"'
+  -
+    id: "visual-review"
+    depends_on:
+      - "visual-review-state"
+    when: "$visual-review-state.output.artifacts.done == false"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, the saved treatment profile and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
+      Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
+      Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
+  -
+    id: "visual-review-state-1"
+    depends_on:
+      - "visual-review-state"
+      - "visual-review"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs visual-review-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "visual-review-completion-2"
+    depends_on:
+      - "visual-review-state-1"
+    when: "$visual-review-state-1.output.artifacts.done == false"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
+      Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
+  -
+    id: "visual-review-state-2"
+    depends_on:
+      - "visual-review-state-1"
+      - "visual-review-completion-2"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs visual-review-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "visual-review-completion-3"
+    depends_on:
+      - "visual-review-state-2"
+    when: "$visual-review-state-2.output.artifacts.done == false"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
+      Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
+  -
+    id: "visual-review-state-3"
+    depends_on:
+      - "visual-review-state-2"
+      - "visual-review-completion-3"
+    always_run: true
+    bash: 'node scripts/archon/kai-explainer.mjs visual-review-status "$INPUTS_PROJECT"'
+    trigger_rule: "none_failed_min_one_success"
   -
     id: "review-join"
     depends_on:
-      - "visual-review"
+      - "visual-review-state-3"
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs review-round \"$INPUTS_PROJECT\""
   -
@@ -69,8 +125,11 @@ nodes:
     id: "revision-build"
     depends_on:
       - "revision"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\""
+    workflow: "kai-explainer-build-cycle"
+    isolation: "inherit"
+    with:
+      project: "$INPUTS.project"
+      phase: "post-revision"
   -
     id: "revision-complete"
     depends_on:
@@ -83,6 +142,9 @@ nodes:
       - "revision-complete"
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs preview \"$INPUTS_PROJECT\""
+    retry:
+      max_attempts: 2
+      on_error: "transient"
   -
     id: "round-result"
     depends_on:

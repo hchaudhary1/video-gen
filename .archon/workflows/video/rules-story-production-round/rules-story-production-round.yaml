@@ -84,12 +84,18 @@ nodes:
     always_run: true
     bash: "node scripts/archon/rules-story.mjs render \"$INPUTS_PROJECT\""
     when: "$film-accepted.output.artifacts.approved == true || $film-accepted.output.artifacts.required == false"
+    retry:
+      max_attempts: 2
+      on_error: "transient"
   -
     id: "verify"
     depends_on:
       - "render"
     always_run: true
     bash: "node scripts/archon/rules-story.mjs verify \"$INPUTS_PROJECT\" --route"
+    retry:
+      max_attempts: 2
+      on_error: "transient"
   -
     id: "production-result"
     depends_on:

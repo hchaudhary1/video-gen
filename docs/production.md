@@ -54,6 +54,47 @@ A running, paused or failed run is not a completed delivery. Automated repair ro
 bounded; missing tools, unavailable inspection or unresolved mandatory defects can fail
 the run. Inspect the failing node, fix the cause and use recovery below. Graph simulations alone do not establish full-video acceptance.
 
+### Unattended recovery contracts
+
+`review: "none"` with `optOut: true` requires no operator approval. It does not disable
+independent inspection or turn a failed check into a passing delivery. Infrastructure,
+provider access and actual image-viewing capability remain prerequisites; no workflow can
+guarantee success when they are unavailable.
+
+The workflow checks research files before writing and makes up to two scheduled completion
+attempts for missing research. Script syntax and required author outputs are checked before
+independent script review or an approval wait. Kai uses the actual narration parser, including
+the first scene heading. Syntax defects return to the script writer while supplied scripts
+remain protected. Script reviewers write `review-draft.md` and run
+`node scripts/archon/script-review-report.mjs <slug>`; the helper uses the deterministic
+`archon/script-review-request.json` assignment to bind their report without copying a hash.
+
+Kai initialization commits `job.json` last. Interrupted initialization without narration can
+finish missing files and refresh the approved script copy without replacing authored scenes.
+An incomplete initialization containing takes stops rather than overwriting them. A pending
+narration-input receipt also prevents changed voice/script settings from replacing a take
+after an interrupted generation. New jobs receive actual local Inter 700/800 fonts from the
+pinned dependency; theme weights and face availability are checked by the build.
+
+Both treatments schedule a `*-build-cycle` before visual inspection and after the single
+creative revision. It routes repairable build results to up to three registered technical
+repair assignments, validates each result, and stops explicitly if the budget is exhausted.
+These nodes repair reported syntax, missing exports, fonts and layout defects while preserving
+narration, timing and review evidence. They do not commission more creative reviews. Current
+successful builds are reused. Transient retries on idempotent media and agent nodes remain
+bounded separately.
+
+The independent visual-review assignment has at most three completion attempts, stopping as
+soon as one complete, valid inspection report exists, including a `revise` report. Missing or
+incomplete inspection is never approval. One author revision follows that report. A fresh root
+run reuses an already verified current production rather than reauthoring it; changed source
+hashes invalidate that reuse. Thumbnail cycles likewise require actual exported files, viewed
+PNGs, current verdicts and rankings before selecting an image.
+
+New workflow definitions apply to fresh runs. Resume retains its captured graph. Tests and
+graph simulations verify routing and artifact contracts, not guaranteed model judgment,
+external service availability or real production acceptance.
+
 ## Setup
 
 The video checkout owns its Archon source, runtime and state. The tracked launcher and
@@ -217,11 +258,11 @@ single speech-acceptance decision before visual work. Individual unconfirmed ASR
 the 90% coverage threshold remain disclosed uncertainty, not a contradictory build rejection.
 See [review contracts](review.md) for the audio and visual receipt fields.
 
-Visual production runs once: build/draft → one independent visual review → one author
-revision → technical build → render and encoded verification. There is no second creative
+Visual production runs once: technical build/repair → draft → one independent visual review
+→ one author revision → technical build/repair → render and encoded verification. There is no second creative
 review or repeated film repair cycle. Delivery retains the original findings, revision notes
-and inspection limitations without claiming a review of the revised output. Build errors,
-missing inspection, changed narration and failed encoded verification stop explicitly.
+and inspection limitations without claiming a review of the revised output. Exhausted technical
+repairs, missing inspection, changed narration and failed encoded verification stop explicitly.
 
 Script, thumbnail and optional operator cycles remain bounded separately in YAML. Review
 depth controls evidence sampling density, not the number of visual reviewers or revisions.

@@ -8,6 +8,7 @@ import { createProject, loadProject } from '../../lib/project.mjs';
 import { freezePersonality, readPersonality } from '../../lib/personalities.mjs';
 import { fileHash, sourceFingerprint, loadReviewPack, reviewStatus } from '../../lib/review.mjs';
 import { stageOperation, saveJSON, readJSON, digest, gate } from './stages.mjs';
+import { getTheme } from '../../engines/explainroo/engine/themes.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ENGINE = path.join(ROOT, 'engines/explainroo');
 // Force all model/tool caches into this repository before importing engine modules.
@@ -42,6 +43,27 @@ export function validateEngineChecks(report, { audioReviewed = false, layoutAdvi
     if (layoutAdvisory && i.level === 'warn') return false;
     return ['error', 'warn'].includes(i.level);
   });
+}
+export async function kaiFontIssues(p) {
+  const builtin = await readJSON(path.join(ENGINE, 'fonts/fonts.json'));
+  const faces = [...builtin, ...(p.config.fonts || [])];
+  const theme = getTheme(p.config.theme, p.config.look);
+  const supports = (face, weight) => {
+    const range = String(face.weight ?? 400).split(/\s+/).map(Number);
+    return range.length === 1 ? range[0] === weight : weight >= range[0] && weight <= range[1];
+  };
+  const issues = [];
+  for (const face of p.config.fonts || []) {
+    if (!await exists(path.join(p.dir, face.src)))
+      issues.push({ level: 'error', message: `Missing local font ${face.src}; restore the actual font asset.` });
+  }
+  for (const [role, font] of Object.entries(theme.fonts)) {
+    if (font.weight < 700 || ![700, font.weight].every(weight =>
+      faces.some(face => face.family === font.family && supports(face, weight))))
+      issues.push({ level: 'error', message:
+        `Font ${role}: ${font.family} ${font.weight} needs actual loaded heavy faces (700 and the selected weight); use the provisioned Production Inter 700/800.` });
+  }
+  return issues;
 }
 export function validateEngineVerification(report, manifest) {
   if (!report?.video || !report.audio) throw new Error('Final video and audio streams required');
@@ -126,14 +148,27 @@ async function assertNarration(ctx, p, e) {
     throw new Error('Engine script differs from approved script');
   return receipt;
 }
-async function initializeEngine(ctx, e) {
+export async function initializeEngine(ctx, e) {
   const { job, dir, project } = ctx;
-  if (await exists(path.join(job, 'video.json'))) return e.loadProject(job);
+  // job.json is committed last. A video.json alone is a partial initialization,
+  // not a usable project. Never repair it by replacing an existing take.
+  if (await exists(path.join(job, 'job.json'))) return e.loadProject(job);
+  if (await exists(path.join(job, 'build/timeline.json')) ||
+      await exists(path.join(job, 'review/kai-narration.json')) ||
+      (await readdir(path.join(job, 'build/voice')).catch(error => {
+        if (error.code === 'ENOENT') return [];
+        throw error;
+      })).length)
+    throw new Error('Incomplete Kai initialization contains narration; preserve takes before recovery.');
+  // Parse before writing any engine files, including on crash recovery.
+  const { parseScript } = await import(`${ENGINE}/src/script.js`);
+  parseScript(await readFile(path.join(dir, 'SCRIPT.md'), 'utf8'));
   await mkdir(path.join(job, 'assets'), { recursive: true });
   await mkdir(path.join(job, 'review'), { recursive: true });
   const tpl = path.join(ENGINE, 'templates/kai');
   for (const f of await readdir(tpl))
-    if (f.endsWith('.json') || f === 'scenes.js') await copyFile(path.join(tpl, f), path.join(job, f));
+    if ((f.endsWith('.json') || f === 'scenes.js') && !await exists(path.join(job, f)))
+      await copyFile(path.join(tpl, f), path.join(job, f));
   const defaults = await readJSON(path.join(job, 'video.json'));
   const config = {
     ...defaults,
@@ -141,6 +176,23 @@ async function initializeEngine(ctx, e) {
     size: { landscape: '16:9', vertical: '9:16', square: '1:1' }[project.format || 'landscape'],
     captions: true,
   };
+  // Pinned local dependency, no runtime font search/download or synthetic bold.
+  const fontDir = path.join(job, 'assets/fonts');
+  await mkdir(fontDir, { recursive: true });
+  const fonts = [];
+  for (const weight of [700, 800]) {
+    const name = `inter-latin-${weight}-normal.woff2`;
+    await copyFile(path.join(ROOT, 'node_modules/@fontsource/inter/files', name), path.join(fontDir, name));
+    fonts.push({ family: 'Production Inter', src: `assets/fonts/${name}`, weight });
+  }
+  await copyFile(path.join(ROOT, 'node_modules/@fontsource/inter/LICENSE'), path.join(fontDir, 'Inter-LICENSE.txt'));
+  await writeFile(path.join(fontDir, 'PROVENANCE.md'),
+    'Inter 700/800 from pinned @fontsource/inter 5.3.0, SIL OFL. Loaded locally at natural proportions.\n');
+  config.fonts = [...(config.fonts || []).filter(f => f.family !== 'Production Inter'), ...fonts];
+  const look = await readJSON(path.join(job, 'kai.json'));
+  look.fonts = Object.fromEntries(['display', 'body', 'hand', 'mono'].map(role =>
+    [role, { family: 'Production Inter', weight: 800 }]));
+  await saveJSON(path.join(job, 'kai.json'), look);
   if (project.audio) {
     const source = path.resolve(ROOT, project.audio),
       dest = 'assets/recording' + path.extname(source).toLowerCase();
@@ -238,8 +290,13 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       throw new Error('Engine script differs from approved script');
     if (prior) await assertNarration(ctx, p, e);
     else {
-      const inputs = await narrationKey(ctx, p),
-        { voices, timeline } = await e.prepare(p);
+      const inputs = await narrationKey(ctx, p);
+      const pendingFile = path.join(job, 'review/kai-narration-inputs.json');
+      const pending = await optional(pendingFile);
+      if (pending && pending.inputs !== inputs)
+        throw new Error('Narration inputs changed after generation started; preserve existing takes.');
+      await saveJSON(pendingFile, { version: 1, inputs });
+      const { voices, timeline } = await e.prepare(p);
       const spoken = p.script.scenes.filter((sc) => sc.units.some((u) => u.type === 'word'));
       if (!spoken.length) throw new Error('Kai requires narrated scenes');
       const manifest = await readJSON(path.join(job, 'job.json'));
@@ -269,14 +326,21 @@ export async function run(stage, slug, options = {}, { media } = {}) {
     await assertNarration(ctx, p, e);
     await assertAudioReview(ctx);
     if (stage === 'build') {
+      const sourceHash = await sourceFingerprint(job);
+      const cached = await optional(path.join(job, 'review/build.json'));
+      const fontIssues = await kaiFontIssues(p);
+      if (!fontIssues.length && cached?.ok && cached.scope === 'all' && cached.sourceHash === sourceHash)
+        return { version: 1, stage, status: 'complete', artifacts: cached };
       let report;
       try {
-        report = await e.check(p, { viewWidth: 854 });
+        report = fontIssues.length ? { issues: fontIssues } : await e.check(p, { viewWidth: 854 });
       } catch (error) {
         // A missing scene export is a repairable production-authorship defect.
         // Return it through the build adapter so the Archon scene-author node
         // can repair the module instead of failing the enclosing workflow.
-        if (/scenes\.js has no function for scene/.test(String(error?.message || error))) {
+        if (/scenes\.js has no function for scene/.test(String(error?.message || error)) ||
+            /^engine (failed to start|page error):/.test(String(error?.message || error)) ||
+            ['SyntaxError', 'ReferenceError', 'TypeError'].includes(error.name)) {
           const sourceHash = await sourceFingerprint(job);
           artifacts = { ok: false, scope: 'all', sourceHash, report: null, error: String(error.message || error) };
           await saveJSON(path.join(job, 'review/build.json'), artifacts);

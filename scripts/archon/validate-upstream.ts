@@ -18,12 +18,13 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
   if (parsed.error || parsed.warnings?.length)
     throw new Error(JSON.stringify({ file, error: parsed.error, warnings: parsed.warnings }));
   const w = { ...parsed.workflow, plan: planGraph(parsed.workflow!.nodes) } as any;
-  for (const route of ['approve', 'revise', 'reject', 'cached', 'repair']) {
+  for (const route of ['approve', 'revise', 'reject', 'cached', 'repair', 'missing-review', 'bad-script', 'exhausted-build', 'missing-research']) {
     const stubs: any = {};
     for (const n of w.nodes) {
       const artifacts = {
         done: true,
         ready: false,
+        valid: true,
         needsWrite: true,
         binding: 'fixture-hash',
         needsAnswer: !['cached', 'repair'].includes(route),
@@ -41,11 +42,9 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
       stubs[n.id] = n.id.endsWith('-attention')
         ? {
             decision:
-              n.id === 'thumbnail-attention' && ['approve', 'cached'].includes(route)
+              n.id === 'thumbnail-attention' && !['revise', 'reject'].includes(route)
                 ? 'v1'
-                : route === 'cached'
-                  ? 'approve'
-                  : route,
+                : ['revise', 'reject'].includes(route) ? route : 'approve',
             text: 'Fixture operator text',
           }
         : n.id === 'audio-review'
@@ -66,6 +65,28 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         stubs.build = { version: 1, status: 'repair', artifacts: { errors: ['Fixture scene defect'] } };
       if (stubs['script-report']) stubs['script-report'].artifacts.done = false;
       if (stubs['thumbnail-join']) stubs['thumbnail-join'].artifacts.done = false;
+    }
+    if (w.name.endsWith('-creative-review-round')) {
+      stubs['visual-review-state'].artifacts.done = route === 'cached';
+      if (route === 'missing-review') {
+        stubs['visual-review-state-1'].artifacts.done = false;
+        stubs['visual-review-state-2'].artifacts.done = false;
+      }
+    }
+    if (w.name.endsWith('-build-cycle') && route === 'repair') {
+      stubs['build-1'].status = 'repair';
+    }
+    if (w.name.endsWith('-build-cycle') && route === 'exhausted-build') {
+      for (const id of ['build-1', 'build-2', 'build-3', 'build-4']) stubs[id].status = 'repair';
+    }
+    if (w.name.endsWith('-script-cycle-round') && route === 'bad-script') {
+      stubs['script-binding'].artifacts.valid = false;
+      stubs['script-reviewed-state'].artifacts.ready = false;
+    }
+    if (stubs['production-state']) stubs['production-state'].artifacts.done = route === 'cached';
+    if (stubs['research-state'] && route === 'missing-research') {
+      stubs['research-state'].artifacts.done = false;
+      stubs['research-state-1'].artifacts.done = false;
     }
     const result = await dryRunWorkflow({
       workflow: w,
@@ -96,6 +117,39 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
           throw new Error(`Expected exactly one ${id}`);
       }
     }
+    if (w.name.endsWith('-build-cycle')) {
+      const repaired = result.trace.filter((t: any) => t.nodeId.startsWith('repair-') &&
+        ['stubbed', 'executed'].includes(t.state)).map((t: any) => t.nodeId);
+      const expected = route === 'repair' ? ['repair-1'] : route === 'exhausted-build'
+        ? ['repair-1', 'repair-2', 'repair-3'] : [];
+      if (JSON.stringify(repaired) !== JSON.stringify(expected))
+        throw new Error(`Unexpected technical repairs: ${repaired}`);
+    }
+    if (w.name.endsWith('-creative-review-round') && ['cached', 'missing-review'].includes(route)) {
+      const reviewers = result.trace.filter((t: any) =>
+        ['visual-review', 'visual-review-completion-2', 'visual-review-completion-3'].includes(t.nodeId) &&
+        ['stubbed', 'executed'].includes(t.state));
+      if (reviewers.length !== (route === 'cached' ? 0 : 3))
+        throw new Error('A complete inspection must be reused; only incomplete attempts may retry.');
+    }
+    if (w.name.endsWith('-script-cycle-round') && route === 'bad-script') {
+      for (const id of ['script-review', 'script-report', 'script-attention'])
+        if (result.trace.find((t: any) => t.nodeId === id)?.state !== 'skipped')
+          throw new Error(`Invalid script unexpectedly reached ${id}`);
+    }
+    if (stubs['production-state'] && route === 'cached') {
+      for (const id of ['register-director', 'direction', 'production', 'series', 'register-scenes']) {
+        const entry = result.trace.find((t: any) => t.nodeId === id);
+        if (entry && entry.state !== 'skipped') throw new Error(`Verified film unexpectedly reran ${id}`);
+      }
+      if (result.trace.find((t: any) => t.nodeId === 'delivery')?.state !== 'stubbed')
+        throw new Error('Cached production must still revalidate delivery.');
+    }
+    if (stubs['research-state'] && route === 'missing-research') {
+      const executed = result.trace.filter((t: any) =>
+        ['research', 'research-completion-1', 'research-completion-2'].includes(t.nodeId) && t.state === 'stubbed');
+      if (executed.length !== 2) throw new Error('Missing research must reach scheduled completion and then stop retrying.');
+    }
     if (route === 'repair' && w.name.endsWith('-creative-review-round')) {
       for (const id of [
         'freeze',
@@ -116,7 +170,7 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
     await Bun.write(`.cache/archon-validation/${w.name}-${route}.json`, JSON.stringify(result, null, 2));
     count++;
   }
-  console.log(`${w.name}: schema/planner valid without warnings; 5 stub routes passed`);
+  console.log(`${w.name}: schema/planner valid without warnings; 9 stub routes passed`);
 }
 console.log(
   `${count} graph simulations passed. Stub simulations do not execute adapters, media, provider sessions or uploads.`,
