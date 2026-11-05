@@ -8,6 +8,9 @@ call media libraries directly. Each agent completes only its assigned node.
 
 - `rules-story`: original uncanny fiction using HyperFrames, Ming and a saved series identity.
 - `kai-explainer`: technical explanations using explainroo scenes, Kokoro or supplied recordings.
+- `kai-explainer-script`: only the researched, independently reviewed explainer script. It runs
+  the same `init`, research and script-cycle rounds as `kai-explainer` and stops before
+  narration, scenes, production, thumbnails or publishing.
 
 Choose editorial intent from [the profile index](../personalities/README.md). Follow the
 [production skill](../skills/video-production/SKILL.md) for node responsibilities and load
