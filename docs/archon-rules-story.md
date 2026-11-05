@@ -2,8 +2,8 @@
 
 Archon owns rules-story production: stage dependencies, independent agent sessions,
 bounded repair rounds, human attention, and recovery. Media nodes import the existing
-libraries directly. They do not run `npm run video`, `next`, or T3 delegation commands.
-Kai/explainroo keeps its existing entrypoint and production checklist.
+libraries directly; Archon is the only stage controller.
+Kai uses its own Archon workflow; see `docs/archon-kai-explainer.md`.
 
 ## Run
 
@@ -27,7 +27,7 @@ archon workflow run rules-story \
 A supplied recording requires its corresponding script. Do not place credentials in
 these inputs. The project slug is required; there is no implicit latest project.
 Existing projects recover their saved treatment, inputs, canvas and decisions; creation
-options do not silently overwrite them. Existing delegated work must be completed first.
+options do not silently overwrite them.
 
 The actual YAML pack is under `.archon/workflows/video/`. `rules-story.yaml` owns
 initialization, identity, script rounds, narration, preparation, timing, sound, direction,
@@ -132,8 +132,3 @@ they do not prove provider execution, visual inspection, human identity, real TT
 or YouTube delivery. Adapter tests separately exercise actual file/hash gates and mocked
 upload recovery. A real end-to-end film and authenticated upload remain operational
 acceptance checks, not claims established by these fixtures.
-
-Legacy `npm run video` remains for Kai, setup/shared utilities and historical-job
-compatibility. New rules-story creation and mutation of Archon-managed projects/jobs
-are rejected there. The old lifecycle helpers remain compatibility code; this pack does
-not call them or maintain a second scheduler.

@@ -1,4 +1,4 @@
-// Invoked through npm run video -- tts --setup-ming. All downloads stay in this checkout.
+// Provision the Ming media library. All downloads stay in this checkout.
 import { spawn } from 'node:child_process';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -27,3 +27,5 @@ export async function setupMing() {
   await run(python, ['-c', 'from huggingface_hub import snapshot_download; import sys; snapshot_download(repo_id="inclusionAI/Ming-3.0-tts-0.5B", revision="8d66b70a00f05ad183fa8a863b4ce609fc83cbc0", local_dir=sys.argv[1])', path.join(home, 'model')]);
   console.log('Ming CPU narration is installed. Use --provider ming --narration with ming-performance.json.');
 }
+
+if(process.argv[1] && (await import('node:url')).fileURLToPath(import.meta.url)===path.resolve(process.argv[1])) await setupMing();

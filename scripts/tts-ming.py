@@ -1,4 +1,4 @@
-"""Ming narration worker, invoked only by npm run video -- tts."""
+"""Ming narration worker, invoked by the narration library."""
 import argparse
 import json
 import sys

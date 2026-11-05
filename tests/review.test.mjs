@@ -259,13 +259,13 @@ test('later review must resolve or dispute prior blockers explicitly', async t =
 
 
 test('readability blockers cannot be waived after three or more review rounds',async t=>{
-  for(const legacy of [false,true]) {
+  for(const inferCategory of [false,true]) {
     const job=await fixture(t), manifest=JSON.parse(await readFile(path.join(job,'job.json')));
     manifest.reviewRounds={final:9};await put(job,'job.json',manifest);
     const context=await freeze(job,'final');
     for(const role of REVIEW_ROLES) {
       const report=blockedReview(context,role);
-      if(legacy) {report.findings[0].subject='Overlapping measurements';report.findings[0].observed='The figures obscure the exact values.';}
+      if(inferCategory) {report.findings[0].subject='Overlapping measurements';report.findings[0].observed='The figures obscure the exact values.';}
       else report.findings[0].category='readability';
       await submitReview(job,report);
     }
@@ -275,29 +275,10 @@ test('readability blockers cannot be waived after three or more review rounds',a
   }
 });
 
-test('only a waiver of the current film lets endless readability findings continue, disclosed and never as a pass',async t=>{
-  const {waiveReview}=await import('../lib/review.mjs');
-  const job=await fixture(t);
-  const final=await freeze(job,'final');
-  const m=JSON.parse(await readFile(path.join(job,'job.json')));m.reviewRounds={final:25};await put(job,'job.json',m);
-  for (const role of REVIEW_ROLES.slice(1)) await submitReview(job,review(final,role));
-  const blocked={...review(final,REVIEW_ROLES[0]),verdict:'revise',findings:[{id:'F1',severity:'blocking',start:1,end:2,subject:'Caption',
-    requirement:'Readable at phone size',observed:'The caption is illegible at 480 px',repair:'Make it larger',evidence:[final.pack.evidence[0].path]}]};
-  await submitReview(job,blocked);
-  const before=await reviewStatus(job,'final');
-  assert.equal(before.ok,false,'readability blocks even after the round budget');
-  assert.equal(before.nonWaivableFindings.length,1);
-  await assert.rejects(waiveReview(job,'final',''),/reason/);
-  const waiver=await waiveReview(job,'final','The person stopped review after 25 rounds');
-  assert.equal(waiver.unresolvedFindings.length,1);
-  const after=await reviewStatus(job,'final');
-  assert.equal(after.ok,true);assert.equal(after.disposition,'waived-by-user');assert.equal(after.independentPassed,false);
-  const qualification=await qualifyDelivery(job);
-  assert.equal(qualification.reviewDisposition,'waived-by-user');
-  assert.equal(qualification.independentReviewPassed,false);
-  assert.equal(qualification.reviewWaiver.rounds,25);
-  assert(qualification.unresolvedFindings.some(f=>f.id==='F1'));
-  // Any change to the film needs review again.
-  await writeFile(path.join(job,'compositions/scene.html'),'edited after the waiver');
-  assert.equal((await reviewStatus(job,'final')).ok,false);
+test('an unsupported waiver file cannot bypass mandatory readability checks',async t=>{
+ const job=await fixture(t),context=await freeze(job,'final');
+ const manifest=JSON.parse(await readFile(path.join(job,'job.json')));manifest.reviewRounds={final:25};await put(job,'job.json',manifest);
+ for(const role of REVIEW_ROLES){const report=blockedReview(context,role);report.findings[0].category='readability';await submitReview(job,report);}
+ await put(job,'review/final/waiver.json',{version:1,by:'user',sourceHash:context.pack.sourceHash,packSha256:context.packSha256,reason:'Unsupported file must not authorize production'});
+ assert.equal((await reviewStatus(job,'final')).ok,false);
 });

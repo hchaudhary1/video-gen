@@ -21,11 +21,7 @@
     "url": "https://github.com/vincentsch/explainroo/issues"
   },
   "type": "module",
-  "bin": {
-    "explainroo": "bin/explainroo.js"
-  },
   "files": [
-    "bin/",
     "src/",
     "engine/",
     "fonts/",

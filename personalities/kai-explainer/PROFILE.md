@@ -13,39 +13,29 @@ layouts, component choices and pacing to the subject while keeping the palette
 and typography consistent. Write an original, human hook without a fixed opening
 phrase. Retain the sourcing and honesty requirements.
 
-This profile is produced with the vendored explainroo engine in `engines/explainroo`, not with `project-new`
-and HyperFrames. Read `engines/explainroo/AGENTS.md` (steps, checks, Scene API) and
-`engines/explainroo/templates/kai/TEMPLATE.md`, whose narration rules replace explainroo's default ones.
-`engines/explainroo/VENDORED.md` records the upstream revision and local changes.
+This profile is scheduled exclusively by `archon workflow run kai-explainer`.
+Read `docs/archon-kai-explainer.md`. Archon nodes directly import the vendored explainroo
+media library; `engines/explainroo/VENDORED.md` records its provenance and local changes.
 
-## Production
+## Production contract
 
-Run every engine command through `npm run video -- explainroo <command> ...`; it keeps caches in `.cache/explainroo`.
-Paths are relative to `engines/explainroo`. First use: `(cd engines/explainroo && npm ci)` then
-`npm run video -- explainroo doctor --fetch`.
+Research retains sources and evidence. The script node authors `jobs/scripts/<slug>/SCRIPT.md`
+in explainroo scene syntax and `VISUALS.md` with concise visual intent. An independent
+script reviewer checks sources and first-person honesty before requested script approval.
+Narration uses Kokoro or the supplied recording, verifies scene speech and saves measured
+timing. Preserve approved takes and supplied source bytes.
 
-1. Research and keep evidence in the project: `sources/` with local copies and `sources/SOURCES.md` (URLs, quotes used).
-2. `explainroo init videos/<slug> --template kai --title "..."` (defaults: camera still, cut transitions, Kokoro
-   `am_michael`, quiet `calm` music, no watermark, 1920×1080). These initializer settings are not camera
-   or transition restrictions; choose project settings and authored moves for the film.
-3. Write `script.md` using the template's guidance: first person for the true research journey only, never invented
-   personal experience; hypotheticals clearly marked; every number and on-screen quote from a retained source.
-4. `explainroo voice`, then plan the actions, visual development, final outcome and handoff of each scene.
-   Author `scenes.js` with the full Scene API, including custom drawings, transformations and camera moves
-   where they serve the script. `s.kai` supplies optional parts, not a repeated layout recipe.
-5. `explainroo check` (fix all errors and warnings), `still`/`sheet` and inspect the images, `render --draft`,
-   `render`, `verify`.
-6. Independent review: the host commissions a script reviewer (claims against sources, first-person honesty) and a
-   film reviewer who inspects actual scene development, moving actions, intermediate states and handoffs,
-   as well as readable final images. Producers do not review their work.
-7. Thumbnail at 1920×1080 (PNG/JPEG under 2 MB) and publishing copy (title, description with sources and chapters
-   from `out/video.chapters.txt`, tags).
-8. Deliver with `npm run video -- youtube-upload --file engines/explainroo/videos/<slug>/out/video.mp4 --title ...
-   --description ... --thumbnail <file> --privacy unlisted`, following `docs/publishing.md`.
+The director and scene author write `jobs/<slug>/scenes.js` against `build/timeline.json`.
+Use the full Scene API in `engines/explainroo/AGENTS.md` and `templates/kai/TEMPLATE.md`.
+Build checks, temporal sheets and actual stills feed independent full-film reviewers.
+Demonstrated defects return through bounded repair rounds; requested user decisions are
+artifact-bound Archon attention waits. Producers do not approve their own work.
 
-`--profile kai-explainer` on `project-new` stops with a pointer to this file. The output is
-`engines/explainroo/videos/<slug>/out/video.mp4` with `.srt`, `.vtt`, `.chapters.txt` and a cover image.
-Disclose what was not checked, for example that the narration was not listened to.
+Rendering produces the final MP4, subtitles, chapters and cover under `renders/`.
+Final verification checks encoded dimensions, duration, speech, loudness and black frames.
+Delivery preserves unresolved findings and inspection limitations. Create video-sized
+thumbnails, independently review them, record selection when requested and obtain approved
+publishing copy before unlisted upload to abdupdates unless opted out.
 
 ## Visual direction
 

@@ -117,7 +117,7 @@ export async function prepare(opts) {
     : path.join(path.dirname(script), 'BRIEF.md');
   const hasBrief = await exists(sourceBrief);
   if (hasBrief) await copyFile(sourceBrief, path.join(job, 'inputs/brief.md'));
-  // The writer's visual plan travels with the script; without one, `next` asks a writer for it before planning.
+  // The writer's visual intent travels with the approved script.
   const visuals = opts.visuals ? path.resolve(ROOT, opts.visuals) : await findVisualPlan(script);
   if (visuals) await copyFile(visuals, path.join(job, VISUALS_FILE));
   const narration = extractNarration(sourceScript);
@@ -195,18 +195,7 @@ export async function prepare(opts) {
   if (opts.words)
     await copyFile(path.resolve(ROOT, opts.words), path.join(job, 'inputs/supplied-words.json'));
 }
-async function transcribe(job, manifest) {
-  if (manifest.transcription?.language && manifest.transcription.language !== 'en')
-    throw new Error('Parakeet v2 is English only; no language fallback.');
-  manifest.transcription = {
-    ...manifest.transcription,
-    language: 'en',
-    model: ASR_MODEL,
-    engine: 'parakeet-v2',
-  };
-  // finishPreparation recognizes once, writes the receipt, and uses those measured words for alignment.
-}
-export async function finishPreparation(job, manifest, narration, { updateLatest = true } = {}) {
+export async function finishPreparation(job, manifest, narration, {} = {}) {
   const actualDuration = manifest.duration;
   const speech = await verifySpeech({
     audio: path.join(job, 'assets/narration.wav'),
@@ -232,10 +221,7 @@ export async function finishPreparation(job, manifest, narration, { updateLatest
   );
   manifest.status = 'prepared';
   await save(path.join(job, 'job.json'), manifest);
-  if (updateLatest) {
-    await mkdir(path.join(ROOT, '.video'), { recursive: true });
-    await save(path.join(ROOT, '.video/latest.json'), { job: path.relative(ROOT, job) });
-  }
+
   console.log(
     `Prepared ${path.relative(ROOT, job)}: ${words.length} words, ${(alignment.matchRatio * 100).toFixed(1)}% exact ${alignment.fullScript ? 'full-script' : 'excerpt'} matches; ${(alignment.scriptCoverage * 100).toFixed(1)}% script coverage.`,
   );

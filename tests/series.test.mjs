@@ -73,7 +73,7 @@ test('series-kit writes identity, rules and captions and installs the kit; synth
   await writeFile(path.join(job, 'alignment.json'), JSON.stringify({matchRatio: 1, words: toks.map((text, i) => ({id: `w${i}`, text, start: 0.5 + i * 0.5, end: 0.9 + i * 0.5, scriptIndex: i, scriptText: text}))}));
   await writeFile(path.join(job, 'series.json'), JSON.stringify({identity: 'night-office', rules: [{n: 1, title: 'Count the knocks', at: {phrase: 'Rule one'}}, {n: 2, title: 'Not reached', at: null}]}));
   const slug = path.basename(job);
-  await assert.rejects(prepareSeries(job, {env}), /identity-continue/);
+  await assert.rejects(prepareSeries(job, {env}), /Archon identity node/);
   await continueIdentity('night-office', {project: slug}, env);
   const r = await prepareSeries(job, {env});
   assert.equal(r.kitInstalled, true);

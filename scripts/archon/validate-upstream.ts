@@ -36,6 +36,7 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
           { id: 'reject', label: 'Stop' },
         ],
         artifact: 'fixture-only',
+        view: 'fixture-preview.mp4',
       };
       stubs[n.id] = n.id.endsWith('-attention')
         ? {
@@ -74,8 +75,13 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         `${file}: ${route} expected ${expected}, got ${result.outcome}; inspect .cache/archon-validation/failure.json`,
       );
     }
-    if (route === 'repair' && w.name === 'rules-story-creative-review-round') {
-      for (const id of ['freeze', 'visual-mechanism', 'continuity-legibility']) {
+    if (route === 'repair' && w.name.endsWith('-creative-review-round')) {
+      for (const id of [
+        'freeze',
+        'visual-mechanism',
+        'continuity-legibility',
+        ...(w.name.startsWith('kai-') ? ['preview'] : []),
+      ]) {
         if (result.trace.find((t: any) => t.nodeId === id)?.state !== 'skipped')
           throw new Error(`Failed build reached ${id}`);
       }

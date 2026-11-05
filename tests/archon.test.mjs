@@ -108,6 +108,7 @@ test('script review and approval invalidate on edits; revision is a real incompl
 test('supplied script cannot be changed by writer without user revision', async (t) => {
   const ctx = await fixture(t);
   ctx.project.inputScript = 'supplied.md';
+  ctx.project.suppliedScriptSha256 = hash('Supplied words.');
   await writeFile(path.join(ctx.root, 'supplied.md'), 'Supplied words.');
   await writeFile(path.join(ctx.dir, 'review.md'), 'Disposition: pass');
   await assert.rejects(

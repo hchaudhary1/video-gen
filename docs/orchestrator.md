@@ -1,129 +1,31 @@
-# Historical production transport
+# Archon production
 
-**Rules-story now uses [Archon](archon-rules-story.md).** Do not follow the `next` or
-T3 handoff instructions below for a new or Archon-managed production. This document
-retains historical-job compatibility details; Kai follows its saved profile.
+Archon exclusively schedules both production treatments. Agents complete individual
+nodes; YAML dependencies, conditional rounds and attention waits control progression.
 
+- [Rules-story](archon-rules-story.md): HyperFrames scenes, Ming narration, series identity and sound.
+- [Kai explainer](archon-kai-explainer.md): explainroo scenes, Kokoro or supplied recordings, measured timing.
 
-Agents make editorial and implementation decisions. The CLI tracks artifacts, evidence, requested
-checkpoints and delivery. Use `npm run video -- help` for commands, loading specialised docs as needed.
-Only start production when requested; brainstorming does not start a job.
+Use explicit project slugs and the corresponding workflow. Production metadata and
+frozen profiles live in `jobs/scripts/<slug>/`; media and evidence live in `jobs/<slug>/`.
+Provider/model settings belong in Archon configuration or individual YAML nodes.
+Use `archon workflow get`, `logs` and `resume` with the saved run ID for recovery.
 
-## Project and handoffs
+Every author and reviewer runs in a distinct fresh context. Reviewers inspect actual
+frozen evidence, cite the pack hash and respond to prior demonstrated findings.
+Incomplete inspection never counts as a creative pass. Requested human decisions use
+Archon's attention queue and retain the person's verbatim answer plus artifact binding.
+Only the operator answers human checkpoints. A notification is not approval.
 
-Save the agreed brief in `jobs/scripts/<slug>/BRIEF.md`, then create the project:
+Current narration, timing, review, render and publishing receipts are validated on disk
+before expensive work is reused. Changed source or evidence invalidates dependent
+approval. A qualified delivery names unresolved findings and inspection limitations.
 
-```bash
-npm run video -- project-new --name <slug> --profile <id> --format landscape --tts ming
-npm run video -- next --project <slug>
-```
+Both workflows produce video-sized, independently reviewed thumbnails, record selection
+when requested, obtain approved publishing copy and upload unlisted to abdupdates unless
+opted out. Publication verifies the authenticated channel and uses a durable session
+journal to reconcile interrupted uploads. Never discard a journal to retry an uncertain
+remote operation. See [publishing](publishing.md).
 
-Optional flags include duration, supplied script/audio, review checkpoints and thumbnail count.
-Use the selected profile from `personalities/README.md`. A resume uses the saved profile and artifacts.
-Script outputs and evidence live in `jobs/scripts/<slug>/`; prepared video files live in `jobs/<slug>/`.
-`next --project` covers preparation and then the film. `next --job` is for an already prepared job.
-Use explicit names; do not restart an existing job or truncate a recording without a requested excerpt.
-
-`next` derives the next task from files. Run command steps. For task data, write a focused assignment using the supplied artifact paths, scope and findings; independent review uses agents that did not produce the work. The host can reason about
-failures and inspect artifacts; it is not forbidden from reading the work. The host may perform production work itself where appropriate; commission independent reviewers for review. Close tracked chat delegations
-with `delegated --project <slug>` after they finish. Agents assigned tasks do not advance the host loop.
-
-Research retains evidence; the writer produces narration and concise visual intent. The director chooses
-and authors the actual picture. `VISUALS.md` is free-form intent, not a scene schema or binding design recipe.
-A supplied script can go directly to direction. `docs/composition.md` defines the native HTML interface.
-Use `docs/audio.md` only when narration is needed. Generate one complete narration invocation, keeping Ming's
-shared reference through the continuity adapter. Supplied recordings remain unchanged.
-For generated narration, pass the requested `--target-seconds` to TTS and `--full-script true` to start;
-duration and full-script coverage are separate checks. A take within ±20% of the requested duration (or 2
-seconds, whichever is larger) satisfies the duration check; automatic speech verification still decides whether the entire script was
-spoken. A matching excerpt is not a complete take.
-
-## Review and completion
-
-Build and inspect the real composition. `review-pack` freezes evidence of the full film before final render.
-Commission only `visual-mechanism` and `continuity-legibility` independent reviewers.
-Parakeet v2 automatically checks generated/prepared narration and the encoded final mix; missing,
-failed or stale speech receipts block delivery even after a visual waiver. ASR never establishes
-listening or naturalness. Use `docs/review.md` for report schemas. Review findings describe demonstrated defects and viewer
-impact; aesthetic preferences are advisory. Missing evidence or failed technical checks is not a creative pass.
-The configured review budget may end with disclosed findings; never call that an independently passed film.
-
-At requested human checkpoints, show the actual artifact and record the person's decision faithfully.
-Use the printed review/selection command with the user's verbatim quote. Requested Discord notifications use `scripts/discord-notify.mjs` and a stable request ID.
-Do not turn a notification or elapsed time into approval.
-
-After review and requested film approval, follow `next` through render and delivery. Report the qualified
-MP4 and limitations from `review/delivery.json`. Describe audio measurements as measurements; claim listening
-only when performed. A successful agent reply or draft render alone is not delivery.
-
-Run `thumbnails --job <job>` through generation, independent review and selection. Dimensions match the
-video. `docs/publishing.md` covers packaging and the format contract. If the person requested
-selection, show variants and preserve their choice. Obtain approved title/description for publishing.
-After selection, upload the qualified MP4 to abdupdates as unlisted unless the user opted out;
-`docs/publishing.md` owns authentication and upload commands. Report the actual link or precise failure.
-
-## Useful references
-
-- Script outputs: `skills/script-writing/SKILL.md`.
-- Native authoring: `docs/composition.md`.
-- Ming narration and soundtrack: `docs/audio.md`.
-
-
-There is one canonical `skills/` folder. Configure harness skill discovery to use it; no per-harness
-skill copies or catalogs are required. Harness role files are transport/model adapters, not another
-source of creative instructions.
-
-## Assignment data
-
-The CLI returns inline assignment data: role, project/job, input paths, expected outputs, relevant technical
-reference and findings. The host writes the assignment itself. Include the saved profile, canvas and measured timing, expected outputs, relevant findings, and the role boundary from AGENTS.md. Give independent reviewers their review role, frozen pack path and hash, and prior-decision history. The assigned agent reads the artifacts it needs and chooses its approach. There is no
-separate prompt-file catalog or embedded creative instruction package.
-
-| Assignment | Output / reference |
-|---|---|
-| Research | sources/ and SOURCES.md; script-writing sourcing reference |
-| Script writing/revision | SCRIPT.md, research.md and concise VISUALS.md; script-writing skill |
-| Script review | review.md with disposition; script-writing review reference |
-| Direction | film.json and native scene files; composition.md |
-| Scene build/repair | assigned native HTML and assets; composition.md |
-| Film review | actual evidence inspection and submitted report; review.md |
-| Thumbnail maker/reviewer | images, packaging copy, verdict/ranking; publishing.md |
-
-Assignments with ownsPlan can revise film.json; scene authors coordinate shared changes. Role agents do
-not advance host-only lifecycle commands. Use the harness's available delegation tool and live capability
-catalog for tracked tasks. After a tracked batch finishes, run `delegated --project <slug>`.
-
-`watch --project <slug>` serves read-only review artifacts and prints the actual URL. Share that address
-(or its configured remote route) in the harness chat and record the person's reply faithfully.
-`stage-bar --project <slug>` is an optional progress view. There is no application UI or separate runner.
-
-## Pipeline
-
-```mermaid
-flowchart TD
-    A[Brief or supplied material] --> B[Project and editorial intent]
-    B --> C{Script needed?}
-    C -->|Yes| D[Research, write and independently review]
-    D --> E[Requested script checkpoint]
-    C -->|No| E
-    E --> F[Use recording or generate Ming narration]
-    F --> G[Measure word timing and prepare job]
-    G --> H[Author native scenes]
-    H --> I[Build, lint and inspect]
-    I -->|Repair| H
-    I --> L[Freeze full-film evidence]
-    L --> M[Independent film review]
-    M -->|Concrete repairs| H
-    M --> N[Requested film checkpoint]
-    N --> O{Current verified render?}
-    O -->|No| P[Render and verify soundtrack and pixels]
-    P -->|Repair| H
-    P --> Q[Qualify local delivery]
-    O -->|Yes| Q
-    Q --> R[Thumbnail creation and independent review]
-    R --> S[Selection if requested and archive]
-    S --> T[Approved publishing copy]
-    T --> U[Unlisted upload unless opted out]
-```
-
-Idea discovery belongs to the host agent: research current sources, retain links and evidence, and record selected or rejected ideas in a project-local ledger when needed. There is no built-in feed collector or ranking command. Existing `.video/ideas/` records remain historical data.
+Node adapters expose individual domain operations through direct library calls. They
+neither choose the next stage nor start agent tasks. There is no second stage controller.

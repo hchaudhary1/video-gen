@@ -22,7 +22,7 @@ nodes:
       - "script-state"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/script-writing/SKILL.md. Write or revise SCRIPT.md, research.md and VISUALS.md; read review.md and archon/script-decision.json for feedback. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work.
     when: "$script-state.output.artifacts.needsWrite == true"
   -
@@ -39,7 +39,7 @@ nodes:
       - "script-binding"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Independently review SCRIPT.md, VISUALS.md and sources with skills/script-writing/SKILL.md. Write review.md with explicit Disposition: pass / revise / incomplete and demonstrated findings. Return pass and findings; unavailable evidence is not a pass.
     output_format:
       type: "object"

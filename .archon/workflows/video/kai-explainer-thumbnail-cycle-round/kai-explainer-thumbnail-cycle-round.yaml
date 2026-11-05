@@ -1,0 +1,98 @@
+# Explicit Archon nodes; bounded rounds retain durable human checkpoints.
+name: "kai-explainer-thumbnail-cycle-round"
+description: "One explicit thumbnail-cycle pass; called by kai-explainer."
+worktree:
+  enabled: false
+inputs:
+  project:
+    description: "Explicit lowercase project slug"
+    required: true
+  options:
+    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut"
+    default: "{}"
+nodes:
+  -
+    id: "thumbnail-generate"
+    depends_on: []
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read docs/publishing.md. Make or repair variants at the saved canvas dimensions. Use lib/thumbnails.mjs exportThumbnail for full PNG and feed preview. Read thumbnailStatus for requested count and per-variant feedback; preserve unchanged passing variants. Write BRIEF.md with Title, Headline, Description and original editable SVG with actual heavy fonts. Do not review your own variants.
+  -
+    id: "thumbnail-review"
+    depends_on:
+      - "thumbnail-generate"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Independently view every made thumbnail PNG and feed preview. Use recordVerdict and recordRanking from lib/thumbnails.mjs with reviewer $WORKFLOW_ID:thumbnail-reviewer. Add actionable blocked findings as reviewer feedback with addThumbnailFeedback. Preserve all findings and rank only current passing variants. No claimed CTR measurements.
+  -
+    id: "thumbnail-join"
+    depends_on:
+      - "thumbnail-review"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs thumbnail-status \"$INPUTS_PROJECT\""
+  -
+    id: "thumbnail-gate"
+    depends_on:
+      - "thumbnail-join"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("gate", {kind:"thumbnail"});
+  -
+    id: "thumbnail-attention"
+    depends_on:
+      - "thumbnail-gate"
+    when: "$thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true"
+    wait:
+      form: "select"
+      attention: "Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbnail-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. An approval should include a short confirmation."
+      options: "$thumbnail-gate.output.artifacts.options"
+  -
+    id: "thumbnail-answer"
+    depends_on:
+      - "thumbnail-gate"
+      - "thumbnail-attention"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("checkpoint", {kind:"thumbnail", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});
+    when: "$thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true"
+    trigger_rule: "none_failed_min_one_success"
+    with:
+      binding: "$thumbnail-gate.output.artifacts.binding"
+      answer: "$thumbnail-attention.output"
+  -
+    id: "thumbnail-stop"
+    depends_on:
+      - "thumbnail-answer"
+    when: "$thumbnail-answer.output.artifacts.rejected == true"
+    cancel: "Operator stopped this production; retained artifacts remain available."
+  -
+    id: "thumbnail-accepted"
+    depends_on:
+      - "thumbnail-gate"
+      - "thumbnail-answer"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("gate", {kind:"thumbnail"});
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "selection"
+    depends_on:
+      - "thumbnail-accepted"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs thumbnail-select \"$INPUTS_PROJECT\""
+  -
+    id: "round-result"
+    depends_on:
+      - "selection"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+returns: "round-result"

@@ -34,7 +34,7 @@ nodes:
       - "register-author"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/hyperframes/SKILL.md and docs/composition.md. Author or repair film.json and native scenes using measured alignment and actual heavy fonts. Read review/archon-findings.json, review/human/final.json and review/archon-technical.json; address all findings together. First pass authors the actual film. Preserve timing and recording. Your registered production identity is $WORKFLOW_ID:scene-author.
     when: "$film-state.output.artifacts.ready == false"
   -
@@ -58,7 +58,7 @@ nodes:
       - "freeze"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Independent visual-mechanism review. Read docs/review.md. Open the actual frozen evidence in review/final/pack.json and inspect the full interval. Read review history and respond to prior findings. Submit a valid report with lib/review.mjs submitReview; your independent execution identity is $WORKFLOW_ID:visual-mechanism. Never edit production. Producers are $WORKFLOW_ID:director and $WORKFLOW_ID:scene-author, distinct fresh sessions. No inspection capability means incomplete, not pass.
     when: "$build.output.status == 'complete'"
   -
@@ -67,7 +67,7 @@ nodes:
       - "freeze"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not advance workflow stages or invoke npm run video / next. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Independent continuity-legibility review. Read docs/review.md. Open the actual frozen evidence in review/final/pack.json and inspect the full interval. Read review history and respond to prior findings. Submit a valid report with lib/review.mjs submitReview; your independent execution identity is $WORKFLOW_ID:continuity-legibility. Never edit production. Producers are $WORKFLOW_ID:director and $WORKFLOW_ID:scene-author, distinct fresh sessions. No inspection capability means incomplete, not pass.
     when: "$build.output.status == 'complete'"
   -

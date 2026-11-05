@@ -1,6 +1,6 @@
 // Domain gates for Archon nodes. Scheduling and retries belong exclusively to YAML.
 import path from 'node:path';
-import { readFile, writeFile, mkdir, rename, stat } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rename, stat, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import {
   fileHash,
@@ -35,17 +35,30 @@ const optional = async (f) => {
   }
 };
 export async function scriptBinding(dir) {
-  return digest(
-    await Promise.all(
-      ['SCRIPT.md', 'VISUALS.md', 'production-profile.json'].map(async (f) => [
-        f,
-        await fileHash(path.join(dir, f)).catch((e) => {
-          if (e.code === 'ENOENT') return null;
-          throw e;
-        }),
-      ]),
-    ),
+  const entries = await Promise.all(
+    ['SCRIPT.md', 'VISUALS.md', 'production-profile.json', 'SOURCES.md', 'research.md'].map(async (f) => [
+      f,
+      await fileHash(path.join(dir, f)).catch((e) => {
+        if (e.code === 'ENOENT') return null;
+        throw e;
+      }),
+    ]),
   );
+  async function sources(folder, prefix) {
+    const list = await readdir(folder, { withFileTypes: true }).catch((e) => {
+      if (e.code === 'ENOENT') return [];
+      throw e;
+    });
+    for (const entry of list.sort((a, b) => a.name.localeCompare(b.name))) {
+      const rel = prefix + '/' + entry.name,
+        file = path.join(folder, entry.name);
+      if (entry.isSymbolicLink()) throw new Error('Script evidence must be frozen local files');
+      if (entry.isDirectory()) await sources(file, rel);
+      else if (entry.isFile()) entries.push([rel, await fileHash(file)]);
+    }
+  }
+  await sources(path.join(dir, 'sources'), 'sources');
+  return digest(entries);
 }
 export function passingThumbnails(status) {
   return status.ranking.filter((id) =>
@@ -70,7 +83,8 @@ export function publicationCopy(copy) {
     throw new Error('Approved publishing copy requires the exact abdupdates channelId');
   return copy;
 }
-export async function gate(kind, { dir, job, project }) {
+export async function gate(kind, { dir, job, project, engine }) {
+  let view = '';
   let binding,
     artifact,
     options = [];
@@ -91,6 +105,7 @@ export async function gate(kind, { dir, job, project }) {
     const p = await loadReviewPack(job, 'final');
     binding = p.packSha256;
     artifact = path.join(job, 'review/final/pack.json');
+    view = engine ? path.join(job, 'review/preview/video.mp4') : path.join(job, 'index.html');
   } else if (kind === 'thumbnail') {
     const s = await thumbnailStatus(job);
     options = [
@@ -119,6 +134,7 @@ export async function gate(kind, { dir, job, project }) {
     kind,
     binding,
     artifact,
+    view,
     options,
     required,
     approved: Boolean(approved),
@@ -158,7 +174,7 @@ export async function checkpoint(ctx, { kind, answer, expected }) {
     return { ...current, done: true, optOut: true };
   }
   if (decision === 'reject') return { ...current, done: false, rejected: true };
-  if (kind === 'film')
+  if (kind === 'film' && !ctx.engine)
     await recordHumanReview(ctx.job, {
       stage: 'final',
       decision: decision === 'approve' ? 'approve' : 'revise',
@@ -230,12 +246,19 @@ export async function stageOperation(stage, ctx, opts) {
     };
   }
   if (stage === 'script-reviewed') {
-    if (project.inputScript && !(await optional(path.join(dir, 'archon/script-decision.json')))?.quote) {
-      if (
-        (await fileHash(path.join(root, project.inputScript))) !==
-        (await fileHash(path.join(dir, 'SCRIPT.md')))
-      )
-        throw new Error('Supplied script changed without operator revision');
+    if (project.inputScript) {
+      const actual = await fileHash(path.join(dir, 'SCRIPT.md'));
+      if (!project.suppliedScriptSha256) throw new Error('Supplied script initial fingerprint required');
+      const accepted = await optional(path.join(dir, 'archon/supplied-script.json'));
+      if (actual !== project.suppliedScriptSha256 && actual !== accepted?.sha256) {
+        const decision = await optional(path.join(dir, 'archon/script-decision.json'));
+        if (decision?.decision !== 'revise' || !decision.quote?.trim())
+          throw new Error('Supplied script changed without operator revision');
+        await saveJSON(path.join(dir, 'archon/supplied-script.json'), {
+          sha256: actual,
+          authorization: decision,
+        });
+      }
     }
     const binding = await scriptBinding(dir);
     if (opts.expected !== binding) throw new Error('Script changed during independent review');
@@ -276,7 +299,8 @@ export async function stageOperation(stage, ctx, opts) {
   }
   if (stage === 'producer') {
     if (!opts.role || !opts.runId) throw new Error('Archon run and producing role required');
-    return registerProducer(job, { agentId: `${opts.runId}:${opts.role}`, role: opts.role });
+    await registerProducer(job, { agentId: `${opts.runId}:${opts.role}`, role: opts.role });
+    return { registered: true, agentId: `${opts.runId}:${opts.role}`, role: opts.role };
   }
   if (stage === 'sound') {
     const found = await identityForProject(project.slug);
@@ -385,9 +409,16 @@ export async function stageOperation(stage, ctx, opts) {
   }
   if (stage === 'publish') {
     if (project.archon?.optOut) return { optOut: true };
+    if (!(await stageOperation('script-ready', ctx, {})).done)
+      throw new Error('Current independently reviewed script required for publication');
+    for (const kind of ['script', 'film', 'thumbnail']) {
+      const approval = await gate(kind, ctx);
+      if (approval.required && !approval.approved)
+        throw new Error(`Current ${kind} approval required for publication`);
+    }
     const g = await gate('publishing', ctx);
     if (!g.approved) throw new Error('Current publishing approval required');
-    await qualifyDelivery(job);
+    await (ctx.qualify ? ctx.qualify() : qualifyDelivery(job));
     const selection = (await thumbnailStatus(job)).chosen;
     if (!selection || selection.pngSha256 !== (await fileHash(path.join(job, 'thumbnail/thumbnail.png'))))
       throw new Error('Current reviewed thumbnail selection required');

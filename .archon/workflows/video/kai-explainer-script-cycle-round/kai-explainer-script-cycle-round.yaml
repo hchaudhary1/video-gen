@@ -1,0 +1,132 @@
+# Explicit Archon nodes; bounded rounds retain durable human checkpoints.
+name: "kai-explainer-script-cycle-round"
+description: "One explicit script-cycle pass; called by kai-explainer."
+worktree:
+  enabled: false
+inputs:
+  project:
+    description: "Explicit lowercase project slug"
+    required: true
+  options:
+    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut"
+    default: "{}"
+nodes:
+  -
+    id: "script-state"
+    depends_on: []
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-status \"$INPUTS_PROJECT\""
+  -
+    id: "write"
+    depends_on:
+      - "script-state"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Read skills/script-writing/SKILL.md. Write or revise SCRIPT.md, research.md and VISUALS.md; read review.md and archon/script-decision.json for feedback. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work.
+    when: "$script-state.output.artifacts.needsWrite == true"
+  -
+    id: "script-binding"
+    depends_on:
+      - "script-state"
+      - "write"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-status \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "script-review"
+    depends_on:
+      - "script-binding"
+    context: "fresh"
+    prompt: |-
+      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Independently review SCRIPT.md, VISUALS.md and sources with skills/script-writing/SKILL.md. Write review.md with explicit Disposition: pass / revise / incomplete and demonstrated findings. Return pass and findings; unavailable evidence is not a pass.
+    output_format:
+      type: "object"
+      properties:
+        findings:
+          type: "string"
+        pass:
+          type: "boolean"
+      required:
+        - "pass"
+        - "findings"
+  -
+    id: "script-report"
+    depends_on:
+      - "script-review"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("script-reviewed", {expected: process.env.INPUTS_BINDING, report: JSON.parse(process.env.INPUTS_REPORT)});
+    with:
+      binding: "$script-binding.output.artifacts.binding"
+      report: "$script-review.output"
+  -
+    id: "script-gate"
+    depends_on:
+      - "script-report"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("gate", {kind:"script"});
+  -
+    id: "script-attention"
+    depends_on:
+      - "script-gate"
+    when: "$script-report.output.artifacts.done == true && $script-gate.output.artifacts.needsAnswer == true"
+    wait:
+      form: "select"
+      attention: "Review $script-gate.output.artifacts.artifact for $INPUTS.project. Binding: $script-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. An approval should include a short confirmation."
+      options:
+        -
+          id: "approve"
+          label: "Approve"
+        -
+          id: "revise"
+          label: "Request changes"
+        -
+          id: "reject"
+          label: "Stop"
+  -
+    id: "script-answer"
+    depends_on:
+      - "script-gate"
+      - "script-attention"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("checkpoint", {kind:"script", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});
+    when: "$script-report.output.artifacts.done == true && $script-gate.output.artifacts.needsAnswer == true"
+    trigger_rule: "none_failed_min_one_success"
+    with:
+      binding: "$script-gate.output.artifacts.binding"
+      answer: "$script-attention.output"
+  -
+    id: "script-stop"
+    depends_on:
+      - "script-answer"
+    when: "$script-answer.output.artifacts.rejected == true"
+    cancel: "Operator stopped this production; retained artifacts remain available."
+  -
+    id: "script-accepted"
+    depends_on:
+      - "script-gate"
+      - "script-answer"
+    always_run: true
+    runtime: "bun"
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
+      await emit("gate", {kind:"script"});
+    trigger_rule: "none_failed_min_one_success"
+  -
+    id: "round-result"
+    depends_on:
+      - "script-accepted"
+    always_run: true
+    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+    trigger_rule: "none_failed_min_one_success"
+returns: "round-result"

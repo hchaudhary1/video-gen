@@ -9,7 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { syntheticAsrEnv } from './speech-fixture.mjs';
 const exec = promisify(execFile),
   root = path.resolve(import.meta.dirname, '..');
-test('direct Archon preparation preserves recording, reuses timing, blocks changed source and legacy advancement', async (t) => {
+test('direct Archon preparation preserves recording, reuses timing, blocks changed source and rejects the removed stage entrypoint', async (t) => {
   const base = await mkdtemp(path.join(root, '.cache/archon-prepare-'));
   const slug = 'archon-test-' + randomUUID().slice(0, 8),
     dir = path.join(root, 'jobs/scripts', slug),
@@ -87,9 +87,8 @@ test('direct Archon preparation preserves recording, reuses timing, blocks chang
   assert.equal(manifest.orchestrator, 'archon');
   assert.equal(manifest.width, 1920);
   assert.equal(manifest.height, 1080);
-  await assert.rejects(
-    exec(process.execPath, ['scripts/video.mjs', 'next', '--project', slug], { cwd: root }),
-    (e) => /owned by Archon/.test(e.stderr),
+  await assert.rejects(exec(process.execPath, ['scripts/video.mjs', 'next'], { cwd: root }), (e) =>
+    /MODULE_NOT_FOUND/.test(e.stderr),
   );
   await writeFile(audio, Buffer.concat([original, Buffer.from('changed fixture')]));
   await assert.rejects(operation('prepare'), (e) => /Source audio changed/.test(e.stdout));

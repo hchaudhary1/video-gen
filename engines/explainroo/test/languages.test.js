@@ -13,7 +13,6 @@ import { sceneHash } from '../src/voice.js';
 import { recordingCuts } from '../src/recordings.js';
 import { subtitleCues, toSrt, toVtt } from '../src/subtitles.js';
 import { buildPhrases } from '../engine/captions.js';
-import { main } from '../src/cli.js';
 
 test('word normalization keeps letters, marks and numbers across scripts, with the existing accent rules', () => {
   for (const [word, expected] of [
@@ -101,40 +100,4 @@ test('captions and subtitle files keep native text and split at danda', () => {
       assert.equal(buildPhrases(timeline, 80).length, 2);
     }
   }
-});
-
-test('init stores the language and default voice; voices filters and doctor allows missing espeak-ng and misaki', async t => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'explainroo-language-cli-'));
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  let output = '';
-  let errors = '';
-  t.mock.method(process.stdout, 'write', s => { output += s; return true; });
-  t.mock.method(process.stderr, 'write', s => { errors += s; return true; });
-  assert.equal(await main(['init', path.join(dir, 'video'), '--language', 'es', '--json']), 0);
-  const config = JSON.parse(fs.readFileSync(path.join(dir, 'video/video.json')));
-  assert.equal(config.language, 'es');
-  assert.equal(config.voice, 'ef_dora');
-  for (const flags of [['--language', 'ko'], ['--language'], ['--language', 'es', '--voice', 'af_heart']]) {
-    assert.equal(await main(['init', path.join(dir, 'bad'), ...flags]), 1);
-    assert.equal(fs.existsSync(path.join(dir, 'bad')), false);
-  }
-  assert.match(errors, /--language needs a value/);
-  output = '';
-  assert.equal(await main(['voices', '--language', 'es', '--json']), 0);
-  const list = JSON.parse(output);
-  assert.deepEqual(Object.keys(list.voices), ['ef_dora', 'em_alex', 'em_santa']);
-  assert.equal(list.languages.ef_dora, 'es');
-  const saved = process.env.EXPLAINROO_ESPEAK;
-  process.env.EXPLAINROO_ESPEAK = path.join(dir, 'missing');
-  t.after(() => { if (saved === undefined) delete process.env.EXPLAINROO_ESPEAK; else process.env.EXPLAINROO_ESPEAK = saved; });
-  output = '';
-  assert.equal(await main(['doctor', '--json']), 0);
-  assert.match(JSON.parse(output).checks.find(c => c.name === 'espeak-ng').detail, /only needed for Spanish, French, Italian, Portuguese and Hindi/);
-  const python = process.env.EXPLAINROO_PYTHON;
-  process.env.EXPLAINROO_PYTHON = path.join(dir, 'missing');
-  t.after(() => { if (python === undefined) delete process.env.EXPLAINROO_PYTHON; else process.env.EXPLAINROO_PYTHON = python; });
-  output = '';
-  assert.equal(await main(['doctor', '--json']), 0);
-  const misaki = JSON.parse(output).checks.filter(c => c.name.startsWith('misaki'));
-  assert.deepEqual(misaki.map(c => [c.name, c.ok, c.detail]), [['misaki ja', true, 'not found; only needed for Japanese'], ['misaki zh', true, 'not found; only needed for Chinese']]);
 });

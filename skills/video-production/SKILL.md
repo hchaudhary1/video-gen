@@ -1,52 +1,29 @@
 ---
 name: video-production
-description: Produce or continue a video in this repository, including its review, thumbnail and delivery.
+description: Produce or continue a video through its Archon workflow, including review, thumbnails and delivery.
 ---
 
-For rules-story, read `docs/archon-rules-story.md`. Archon YAML owns all stages, review
-rounds, human checkpoints and publishing. Complete only your assigned node; do not run
-`npm run video`, `next`, `delegated` or launch your own agents. Use the direct library
-functions and internal adapters described by the runbook. The legacy CLI transport
-instructions below apply only to historical jobs; Kai keeps its own profile checklist.
+Use the user's brief as creative authority. Choose the treatment from `personalities/README.md`.
+Start `archon workflow run rules-story` or `archon workflow run kai-explainer` with an explicit
+project input and options JSON. Read the corresponding `docs/archon-*.md` runbook. Resume
+by saved Archon run ID and retain the frozen profile, canvas, recording and decisions.
 
-Use the user's brief as the creative authority. Choose an approach that serves the audience and material;
-there is no required visual metaphor, scene count, cut rate, motion vocabulary or sound-effect quota.
+Archon owns every stage and checkpoint. Complete only your assigned node; do not start
+other agents, choose subsequent stages or answer a human attention wait. Use the direct
+adapters and libraries named by the workflow. Read only the technical references needed
+for your assignment. Keep sources, media and caches in the repository.
 
-For technical/AI explainers, read `docs/kai-hooks-and-thumbnails.md` when choosing the title,
-thumbnail wording, hook and narration. This writing brief does not change the profile's visual style.
+For rules-story, author native scenes using `skills/hyperframes/SKILL.md` and the saved
+profile's series frame. For Kai, use the explainroo Scene API in `engines/explainroo/AGENTS.md`
+and its Kai template; read `docs/kai-hooks-and-thumbnails.md` for the hook and packaging.
 
-The CLI tracks production state: `npm run video -- help`, `status`, and `next --project <slug>`
-(or `next --job jobs/<slug>` after preparation). Use explicit project/job names. Completed artifacts
-and user decisions determine what remains; avoid regenerating completed work without a reason.
-`docs/orchestrator.md` describes the command and handoff contract.
+Research retains evidence; narration preserves supplied recordings and approved takes.
+Measured timing drives the picture. Use actual loaded heavy fonts at natural proportions.
+Build and inspect the actual film. Reviewers must be independent from all producers and
+must inspect frozen evidence across the full interval. Technical measurements establish
+technical facts, not listening, naturalness or audience engagement. Missing inspection
+capability is a specific blocker, not grounds to manufacture a pass.
 
-Choose an explicit project slug and pass `--name <slug>`. Select the treatment yourself and pass
-`--profile <id>` for new productions; the CLI does not infer treatment or rename collisions.
-Choose the appropriate profile from `personalities/README.md`; load only that profile.
-A profile describes editorial intent, not an implementation recipe. Agents may improve the visual approach
-as they build. Preserve the requested treatment, factual meaning, recording and measured timing.
-
-Keep research, narration and production in the project folders. `skills/script-writing/SKILL.md` covers
-script outputs. Use `docs/audio.md` only when generating narration; supplied recordings remain intact.
-Ming narration uses one invocation and a shared acoustic reference through `scripts/ming_continuity.py`.
-
-The rules-story personality uses the full Motion Explainer reference during visual planning, following
-`docs/motion-explainer.md`; apply its camera, editing and motion graphics vocabulary across the film
-while preserving the profile's purpose. kai-explainer is produced by the vendored engine instead
-(`npm run video -- explainroo ...`); follow its PROFILE.md.
-
-Author the picture directly in HyperFrames using `skills/hyperframes/SKILL.md`. Bring in local assets
-with recorded sources. Reuse library assets when they fit; creating a better asset is equally valid.
-Music and effects are optional. `docs/audio.md` covers the pipeline mix when needed.
-
-Use build and image/playback inspection to improve the actual film. Automated checks establish technical
-facts, not audience engagement. Review should identify concrete problems and their effects on the viewer;
-it should not reward compliance with a design template. Keep independent reviews and requested human
-checkpoints truthful. Report unresolved findings and unavailable inspection capabilities at delivery.
-
-Missing media or rights require a specific blocker rather than invented footage. Finish the thumbnail and publishing steps in the runbook.
-
-The CLI returns assignment facts inline; the host writes any delegation prompt itself. Include the
-job/project folder, saved profile, relevant contract, scope, inputs, expected outputs and findings.
-For review, include the role, frozen pack path and hash, prior decisions, and independence requirement.
-Research video ideas directly with evidence; retain any idea ledger in the project folder.
+Keep demonstrated defects, review budgets, user decisions and limitations truthful.
+Finish thumbnail and authorized publication nodes through Archon. Do not describe a
+waiver or exhausted creative-review budget as an independent pass.

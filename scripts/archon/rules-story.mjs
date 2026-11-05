@@ -86,8 +86,6 @@ export async function run(stage, slug, options = {}) {
   const script = path.join(dir, 'SCRIPT.md'),
     audio = project.audio ? path.resolve(root, project.audio) : path.join(dir, 'narration.wav');
   if (stage === 'init') {
-    if (project.delegation?.open)
-      throw new Error('Complete existing delegated work before adopting this project into Archon');
     if (!project.archon) {
       project.archon = { version: 1, optOut: options.optOut === true };
       await saveJSON(path.join(dir, 'project.json'), project);
@@ -163,9 +161,7 @@ export async function run(stage, slug, options = {}) {
       prior.inputs !== inputs ||
       JSON.stringify(prior.outputs) !== JSON.stringify(await fingerprints())
     ) {
-      await finishPreparation(job, manifest, extractNarration(await readFile(script, 'utf8')), {
-        updateLatest: false,
-      });
+      await finishPreparation(job, manifest, extractNarration(await readFile(script, 'utf8')));
       await save(receipt, { version: 1, inputs, outputs: await fingerprints() });
     }
     value = { job };

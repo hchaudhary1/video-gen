@@ -6,9 +6,9 @@ import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import {nextStep, buildFilm, jobProgress, reviewAssignments} from '../lib/film.mjs';
-import {sourceFingerprint, fileHash, loadReviewPack, submitReview, qualifyDelivery, REVIEW_ROLES} from '../lib/review.mjs';
-import {recordHumanReview, humanDecision, humanFindings, parseNote, parseStages} from '../lib/review.mjs';
+import {buildFilm} from '../lib/film.mjs';
+import {sourceFingerprint, fileHash, loadReviewPack, submitReview, qualifyDelivery, reviewStatus, REVIEW_ROLES} from '../lib/review.mjs';
+import {recordHumanReview, humanDecision} from '../lib/review.mjs';
 import {loadPersonality, freezePersonality} from '../lib/personalities.mjs';
 
 const put = (job, file, value) => writeFile(path.join(job, file), JSON.stringify(value));
@@ -65,100 +65,13 @@ async function render(job, {integrity = true} = {}) {
   await writeFile(path.join(job, 'review/REPORT.md'), 'Production report fixture.');
 }
 
-test('the whole film is reviewed from the built HTML: next never asks for a render before the final review', async t => {
-  const job = await fixture(t);
-  await buildFilm(job, {inspect: false, print: false});
-  const first = await nextStep(job);
-  assert.equal(first.state, 'review-pack final');
-  assert.match(first.text, /no render/); assert.doesNotMatch(first.text, /video -- render/);
-  await htmlPack(job);
-  const step = await nextStep(job);
-  assert.equal(step.state, 'render'); assert.match(step.text, /--reuse-build true/);
-  assert.equal((await jobProgress(job)).current, 'final-render');
-  await assert.rejects(qualifyDelivery(job), /final render is missing/);
-  await render(job);
-  assert.equal((await nextStep(job)).state, 'deliver');
-  const qualification = await qualifyDelivery(job);
-  assert.equal(qualification.videoSha256, await fileHash(path.join(job, 'renders/video.mp4')));
-});
-
-test('delivery needs the render of exactly the reviewed sources, with narration that matches', async t => {
-  const job = await fixture(t);
-  await buildFilm(job, {inspect: false, print: false});
-  await htmlPack(job);
-  await render(job, {integrity: false});
-  await assert.rejects(qualifyDelivery(job), /narration does not match/);
-  await render(job);
-  await writeFile(path.join(job, 'renders/video.mp4'), 'Edited after rendering');
-  await assert.rejects(qualifyDelivery(job), /changed after it was made/);
-  await render(job);
-  await writeFile(path.join(job, 'shots/ending.json'), JSON.stringify({scene: 'ending', objects: [], actions: [], notes: 'changed'}));
-  await assert.rejects(qualifyDelivery(job), /stale/);
-});
-
-test('the person reviews after the reviewers pass; their notes become repairs word for word', async t => {
-  const job = await fixture(t, {human: ['final']});
-  await buildFilm(job, {inspect: false, print: false});
-  const pack = await htmlPack(job);
-  const waiting = await nextStep(job);
-  assert.equal(waiting.state, 'human review final');
-  assert.match(waiting.text, /play --job/); assert.match(waiting.text, /Never decide for them/);
-  assert.equal((await jobProgress(job)).current, 'final-human');
-  // Not accepted until the person decides.
-  assert.equal((await nextStep(job)).state, 'human review final');
-  await assert.rejects(recordHumanReview(job, {stage: 'final', decision: 'revise'}), /at least one note/);
-  const record = await recordHumanReview(job, {stage: 'final', decision: 'revise', notes: [parseNote('3: The bar should be red, not blue'), parseNote('Slower overall')]});
-  assert.equal(record.notes[0].start, 3, 'a note on the introduction keeps its moment');
-  assert.equal(record.packSha256, pack.packSha256);
-  const repair = await nextStep(job);
-  assert.equal(repair.state, 'repair'); assert.match(repair.text, /your review/);
-  const brief = repair.text;
-  assert.match(brief, /The bar should be red, not blue/); assert.match(brief, /Slower overall/);
-  // The repaired film is a new pack: the old decision no longer counts.
-  await writeFile(path.join(job, 'shots/comparison.json'), JSON.stringify({scene: 'comparison', objects: [], actions: [], notes: 'repaired'}));
-  await buildFilm(job, {inspect: false, print: false});
-  const second = await htmlPack(job);
-  assert.equal(await humanDecision(job, 'final', second.packSha256), null);
-  assert.equal((await nextStep(job)).state, 'human review final');
-  await recordHumanReview(job, {stage: 'final', decision: 'approve'});
-  assert.equal((await nextStep(job)).state, 'render');
-});
-
-test('human review settings and notes parse strictly, and the setting is not a production source', async t => {
-  assert.deepEqual(parseStages('prototype,final'), ['final'], 'legacy prototype waits for the one final review');
-  assert.deepEqual(parseStages('none'), []);
-  assert.throws(() => parseStages('script'), /final/);
-  assert.deepEqual(parseNote('12.5-14: make it red'), {start: 12.5, end: 14, text: 'make it red'});
-  assert.deepEqual(parseNote('just slower'), {text: 'just slower'});
-  const job = await fixture(t), before = await sourceFingerprint(job);
-  const manifest = await read(job, 'job.json'); await put(job, 'job.json', {...manifest, humanReview: ['final']});
-  assert.equal(await sourceFingerprint(job), before);
-  const findings = humanFindings({notes: [{start: null, end: null, sceneIds: [], text: 'Whole thing'}]}, {interval: {start: 0, end: 18}, scenes: [{id: 'opening'}, {id: 'ending'}]});
-  assert.deepEqual(findings[0].sceneIds, ['opening', 'ending']);
-});
-
-test('a complete third failed round advances to render; partial rounds never trigger repairs', async t => {
-  const job = await fixture(t);
-  await buildFilm(job, {inspect:false, print:false});
-  await htmlPack(job);
-  await nextStep(job);
-  await buildFilm(job, {inspect:false, print:false});
-  const context = await htmlPack(job);
-  const report = await read(job,'review/final/reviews/visual-mechanism.json');
-  report.verdict = 'revise';
-  report.findings = [{id:'F1',severity:'blocking',start:6,end:7,scope:'scene',sceneIds:['comparison'],
-    subject:'Motion personality',requirement:'Expressive motion',observed:'Movement feels flat.',repair:'Add character.',evidence:[context.pack.evidence[0].path]}];
-  await submitReview(job,report);
-  await reviewAssignments(job,context.pack,path.join(job,'review/final/pack.json'),context.packSha256);
-  await rm(path.join(job,'review/final/reviews/continuity-legibility.json'));
-  assert.equal((await nextStep(job)).state,'review final');
-  assert.equal((await read(job,'job.json')).reviewRounds,undefined);
-  const manifest = await read(job,'job.json');manifest.reviewRounds={final:2};await put(job,'job.json',manifest);
-  const missing = {...report,role:'continuity-legibility',reviewer:{agentId:'/fixture/continuity',independent:true}};
-  await submitReview(job,missing);
-  assert.equal((await nextStep(job)).state,'render');
-  assert.equal((await read(job,'job.json')).reviewRounds.final,3);
-  assert.equal((await nextStep(job)).state,'render');
-  assert.equal((await read(job,'job.json')).reviewRounds.final,3,'repeated next does not spend another round');
-  assert.match((await jobProgress(job)).steps.find(s => s.id === 'final-review').detail,/Review limit reached/);
+test('built timeline reviews bind sources and human decisions to the full current evidence pack',async t=>{
+ const job=await fixture(t,{human:['final']});await buildFilm(job,{inspect:false,print:false});
+ const context=await htmlPack(job);
+ assert.equal((await reviewStatus(job,'final')).ok,true);
+ await recordHumanReview(job,{stage:'final',decision:'approve'});
+ assert.equal((await humanDecision(job,'final',context.packSha256)).decision,'approve');
+ await writeFile(path.join(job,'compositions/opening.html'),'Changed scene');
+ await assert.rejects(loadReviewPack(job,'final'),/stale/);
+ assert.equal((await reviewStatus(job,'final')).ok,false);
 });

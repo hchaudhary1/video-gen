@@ -26,7 +26,7 @@ The first scene starts at zero. Later starts resolve against the recording; use 
 phrases or `wordId` for an exact aligned word. A scene ends at the next start or the recording end.
 `theme`, `subjects`, alternatives and detailed visual planning fields are unnecessary for native scenes.
 An optional `theme.bg` controls the root background. Each scene can supply its own background and style.
-Assign `owner: "builder"` only when delegating that scene; the director otherwise owns it.
+Assign `owner: "builder"` for a separate Archon scene-author node; the director otherwise owns it.
 
 Scene IDs and file basenames use lowercase letters/digits/hyphens. The pipeline generates `index.html`,
 `timing.json` and `assets/cues.js`; author scene files and their assets rather than editing generated files.
@@ -84,11 +84,7 @@ The kit drives its HUD, captions and finish from the scene timeline, so seeking 
 
 ## Build and inspect
 
-```bash
-npm run video -- plan-check --job jobs/<slug>
-npm run video -- build --job jobs/<slug>
-npm run video -- snapshot --job jobs/<slug> --at 0.5,3,5.9
-```
+Use the direct domain APIs from the corresponding Archon node; see `docs/orchestrator.md`.
 
 Build assembles the real HyperFrames composition, checks runtime/assets and sampled text bounds, and
 compares repeated timestamps after backward seeking. It also runs HyperFrames lint. Inspect actual
@@ -97,7 +93,7 @@ Independent review precedes final render and delivery. The orchestrator runs tho
 
 ## Diagnosing failures
 
-Use `npm run video -- ...` with an explicit job. `build` validates the native manifest, assembles the real
+Use the corresponding Archon node with an explicit job. `build` validates the native manifest, assembles the real
 composition, inspects sampled frames/seeking and runs HyperFrames lint. `review-pack` requires a current
 successful full build. `render --reuse-build true` requires inspection for every scene and matching hashes.
 

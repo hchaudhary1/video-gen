@@ -15,7 +15,7 @@ import sharp from 'sharp';
 const library = await mkdtemp(path.join(cache, 'thumb-library-'));
 process.env.VG_LIBRARY = library;
 after(() => rm(library, {recursive: true, force: true}));
-const {thumbnailDimensions, thumbnailStep, thumbnailStatus, recordVerdict, recordRanking, addThumbnailFeedback, chooseThumbnail, exportThumbnail} = await import('../lib/thumbnails.mjs');
+const {thumbnailDimensions, thumbnailStatus, recordVerdict, recordRanking, addThumbnailFeedback, chooseThumbnail, exportThumbnail} = await import('../lib/thumbnails.mjs');
 const {chromePath} = await import('../lib/native.mjs');
 
 async function fixture(t, manifest = {}) {
@@ -37,76 +37,18 @@ async function make(job, id, {headline = `HEADLINE ${id}`, colour = '#112233'} =
 const verdict = (job, variant, status, findings = []) => recordVerdict(job, {variant, status, findings, reviewer: 'reviewer-1',
   inspected: [`thumbnail/variants/${variant}/thumbnail.png`]});
 
-test('variants are made from different angles, reviewed, and a blocked one goes back alone with the findings', async t => {
-  const job = await fixture(t);
-  const first = await thumbnailStep(job);
-  assert.equal(first.state, 'thumbnail variants');
-  assert.deepEqual(assignments(first.text).map(task => task.variant), ['v1', 'v2']);
-  const brief1 = 'ASSIGNMENTS: ' + JSON.stringify([assignments(first.text)[0]]), brief2 = 'ASSIGNMENTS: ' + JSON.stringify([assignments(first.text)[1]]);
-  assert.match(brief1, /IT'S NOT THE CHIP/); assert.equal(assignment(brief1).variant,'v1'); assert.equal(assignment(brief2).variant,'v2');
-  assert.equal(assignment(brief1).contract,'docs/publishing.md');
-  await make(job, 'v1'); await make(job, 'v2');
-  const review = await thumbnailStep(job);
-  assert.equal(review.state, 'thumbnail review'); assert.match(review.text, /thumbnail-reviewer/);
-  await assert.rejects(verdict(job, 'v2', 'blocked'), /at least one --finding/);
-  await verdict(job, 'v1', 'pass'); await verdict(job, 'v2', 'blocked', ['The number on it is not in the research.']);
-  const again = await thumbnailStep(job);
-  assert.equal(again.state, 'thumbnail variants'); assert.match(again.text, /thumbnail v2 again/); assert.doesNotMatch(again.text, /thumbnail-v1\.md/);
-  assert.match(again.text, /not in the research/);
-  await make(job, 'v2', {colour: '#445566'});
-  const second = await thumbnailStep(job);
-  assert.equal(second.state, 'thumbnail review'); assert.deepEqual(assignment(second.text).variants.map(v=>v.id),['v2']);
-  assert.doesNotMatch((await thumbnailStep(job)).text, /- v1:/);
-  await verdict(job, 'v2', 'pass'); await recordRanking(job, ['v2', 'v1']);
-  const pick = await thumbnailStep(job);
-  assert.equal(pick.state, 'pick thumbnail'); assert.match(pick.text, /--variant v2/);
-  await chooseThumbnail(job, {variant: 'v2'});
-  assert.equal((await thumbnailStep(job)).state, 'done');
-  // The chosen copy, its review and the archive.
-  const review2 = JSON.parse(await readFile(path.join(job, 'thumbnail/REVIEW.json'), 'utf8'));
-  assert.equal(review2.status, 'pass'); assert.equal(review2.reviewerAgentId, 'reviewer-1');
-  const archived = await readdir(path.join(library, 'thumbnails', path.basename(job)));
-  assert.ok(archived.includes('thumbnail.png') && archived.includes('variants') && archived.includes('CHOSEN.json'));
+test('independent verdicts and actual feedback govern selection and archive',async t=>{
+ const job=await fixture(t);await make(job,'v1');await make(job,'v2');
+ await verdict(job,'v1','pass');await verdict(job,'v2','blocked',['Unsupported number']);
+ await assert.rejects(chooseThumbnail(job,{variant:'v2'}),/not passed/);
+ await recordRanking(job,['v1']);await chooseThumbnail(job,{variant:'v1',by:'you'});
+ assert.equal((await thumbnailStatus(job)).chosen.variant,'v1');
+ await addThumbnailFeedback(job,{variant:'v1',text:'Larger headline'});
+ assert.equal((await thumbnailStatus(job)).chosen,null);
+ await assert.rejects(chooseThumbnail(job,{variant:'v1'}),/feedback/);
+ await make(job,'v1',{colour:'#990000'});await verdict(job,'v1','pass');await chooseThumbnail(job,{variant:'v1',by:'you'});
+ assert.ok((await readdir(path.join(library,'thumbnails',path.basename(job)))).includes('history'));
 });
-
-test('when the person picks, the reviewer ranking is not enough; their feedback regenerates only that variant', async t => {
-  const job = await fixture(t, {pickThumbnail: true});
-  await make(job, 'v1'); await make(job, 'v2');
-  await verdict(job, 'v1', 'pass'); await verdict(job, 'v2', 'pass'); await recordRanking(job, ['v1', 'v2']);
-  const ask = await thumbnailStep(job);
-  assert.equal(ask.state, 'choose thumbnail'); assert.match(ask.text, /checkpoint \{kind: "thumbnail"/); assert.match(ask.text, /never reword/i);
-  await chooseThumbnail(job, {variant: 'v1', by: 'you'});
-  assert.equal((await thumbnailStep(job)).state, 'done');
-  // Feedback on the picked one undoes the pick until it is remade and passes again.
-  await addThumbnailFeedback(job, {variant: 'v1', text: 'Make the headline red and bigger'});
-  const status = await thumbnailStatus(job);
-  assert.equal(status.chosen, null);
-  const redo = await thumbnailStep(job);
-  assert.match(redo.text, /thumbnail v1 again/);
-  const brief = (await thumbnailStep(job)).text;
-  assert.match(brief, /Make the headline red and bigger/);
-  await assert.rejects(chooseThumbnail(job, {variant: 'v1', by: 'you'}), /not passed|feedback/);
-  await make(job, 'v1', {colour: '#990000'});
-  assert.equal((await thumbnailStep(job)).state, 'thumbnail review');
-  await verdict(job, 'v1', 'pass');
-  assert.equal((await thumbnailStep(job)).state, 'choose thumbnail');
-  await chooseThumbnail(job, {variant: 'v1', by: 'you'});
-  assert.equal((await thumbnailStep(job)).state, 'done');
-  // The first archive is kept as history.
-  assert.ok((await readdir(path.join(library, 'thumbnails', path.basename(job)))).includes('history'));
-});
-
-test('a variant blocked three times is dropped; with none left the step is blocked', async t => {
-  const job = await fixture(t, {thumbnails: 1});
-  for (let round = 0; round < 3; round++) {
-    await make(job, 'v1', {colour: `#00000${round}`});
-    await verdict(job, 'v1', 'blocked', [`Round ${round}: unreadable at feed size.`]);
-    await thumbnailStep(job);
-  }
-  await make(job, 'v1', {colour: '#000009'}); await verdict(job, 'v1', 'blocked', ['Still unreadable.']);
-  assert.equal((await thumbnailStep(job)).state, 'blocked');
-});
-
 test('thumbnail-export renders the SVG to a 1280×720 PNG and a feed preview', async t => {
   const chrome = await chromePath().catch(() => null);
   if (!chrome) return t.skip('no Chrome');
@@ -126,10 +68,6 @@ for (const profile of PERSONALITIES) for (const [format, [width, height]] of Obj
     const job = await fixture(t, {width, height, format, thumbnails: 1});
     await freezePersonality(job, loadPersonality(profile));
     const dims = await thumbnailDimensions(job);
-    await thumbnailStep(job);
-    const maker = (await thumbnailStep(job)).text;
-    assert.equal(assignment(maker).dimensions.width,width);assert.equal(assignment(maker).dimensions.height,height);
-    assert.ok(maker.includes(dims.previewFile));
     // A landscape image on a differently sized video cannot be reviewed or chosen.
     await make(job, 'v1');
     const dir = path.join(job, 'thumbnail/variants/v1');
@@ -137,10 +75,6 @@ for (const profile of PERSONALITIES) for (const [format, [width, height]] of Obj
     assert.equal((await thumbnailStatus(job)).variants[0].made, false);
     await assert.rejects(verdict(job, 'v1', 'pass'), /expected/);
     await make(job, 'v1');
-    assert.equal((await thumbnailStep(job)).state, 'thumbnail review');
-    const review = (await thumbnailStep(job)).text;
-    assert.equal(assignment(review).dimensions.width,width);assert.equal(assignment(review).dimensions.height,height);
-    assert.ok(review.includes(dims.previewFile));
     await verdict(job, 'v1', 'pass');
     await chooseThumbnail(job, {variant: 'v1'});
     for (const file of [path.join(job, 'thumbnail/thumbnail.png'), path.join(library, 'thumbnails', path.basename(job), 'thumbnail.png')]) {
@@ -170,12 +104,4 @@ for (const format of ['vertical', 'square', 'landscape']) test(`browser export m
   assert.equal(preview.width, dims.previewWidth); assert.equal(preview.height, dims.previewHeight);
   await writeFile(path.join(dir, 'thumbnail.svg'), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 300"/>');
   await assert.rejects(exportThumbnail(job, 'v1'), /aspect ratio must match/);
-});
-
-test('legacy jobs resolve their saved format and custom dimensions stay authoritative', async t => {
-  const job = await fixture(t, {width: undefined, height: undefined, format: 'vertical'});
-  assert.equal((await thumbnailDimensions(job)).height, 1920);
-  await writeFile(path.join(job, 'job.json'), JSON.stringify({width: 800, height: 1000, format: 'landscape'}));
-  const dims = await thumbnailDimensions(job);
-  assert.equal(dims.width, 800); assert.equal(dims.previewFile, 'preview-256x320.png');
 });
