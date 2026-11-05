@@ -25,7 +25,7 @@ nodes:
       - "recover"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.
   -
     id: "identity"
@@ -153,7 +153,7 @@ nodes:
       - "register-director"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-rules-story.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/hyperframes/SKILL.md, docs/motion-explainer.md and docs/composition.md. Author film.json and series.json: series identity, rules and measured cue phrases. Use saved canvas and measured narration. Incorporate generated sound kit from review/archon-sound.json, series overlay, captions and -15 LUFS target. Your registered production identity is $WORKFLOW_ID:director. Recover existing valid direction; do not overwrite a completed film without findings.
   -
     id: "series"

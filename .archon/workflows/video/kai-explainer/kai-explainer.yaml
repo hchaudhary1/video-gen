@@ -25,7 +25,7 @@ nodes:
       - "recover"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved Kai profile. Research the brief and keep sources/SOURCES.md and local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep sources/SOURCES.md and local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
   -
     id: "script-cycle-state-1"
     depends_on:

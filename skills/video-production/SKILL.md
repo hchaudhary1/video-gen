@@ -5,7 +5,7 @@ description: Produce or continue a video through its Archon workflow, including 
 
 Use the user's brief as creative authority. Choose the treatment from `personalities/README.md`.
 Start `archon workflow run rules-story` or `archon workflow run kai-explainer` with an explicit
-project input and options JSON. Read the corresponding `docs/archon-*.md` runbook. Resume
+project input and options JSON. Read the corresponding `docs/production.md` runbook. Resume
 by saved Archon run ID and retain the frozen profile, canvas, recording and decisions.
 
 Archon owns every stage and checkpoint. Complete only your assigned node; do not start

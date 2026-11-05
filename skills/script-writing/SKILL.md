@@ -3,7 +3,7 @@ name: script-writing
 description: Research, write or review narration scripts and concise visual intent for this video pipeline.
 ---
 
-For both Archon treatments, follow `docs/orchestrator.md` and the saved editorial profile.
+For both Archon treatments, follow `docs/production.md` and the saved editorial profile.
 Complete only your assigned author or independent reviewer node. Archon owns production
 progression and human attention checkpoints. Use direct domain adapters and libraries.
 

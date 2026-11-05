@@ -8,10 +8,9 @@ Project-owned code (`kit.js`). Fonts: Inter 600/800 latin subsets from `@fontsou
 
 ## Install
 
-```bash
-npm run video -- identity-continue --id <identity> --project <slug>     # file number (once per project)
-npm run video -- series-kit --job jobs/<slug>                            # needs series.json, see below
-```
+Archon's rules-story identity node uses `continueIdentity` from `lib/identities.mjs`
+to reserve the file number. Its series node calls `prepareSeries(job)` from `lib/series.mjs`
+after timing is available. See [production](../../../docs/production.md).
 
 `series.json` in the job folder:
 
@@ -19,7 +18,7 @@ npm run video -- series-kit --job jobs/<slug>                            # needs
 {"identity": "night-office", "rules": [{"n": 1, "title": "Count the knocks", "at": {"phrase": "Rule one"}}]}
 ```
 
-`series-kit` copies this bundle to `assets/library/rules-series-kit/1.0.0/` and writes
+`prepareSeries(job)` copies this bundle to `assets/library/rules-series-kit/1.0.0/` and writes
 `assets/series/series-data.js` (identity overlay, rule starts, sentence captions from `alignment.json`) plus
 `review/series-captions.md`, the caption index table. Re-run it whenever alignment or series.json change.
 

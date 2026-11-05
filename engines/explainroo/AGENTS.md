@@ -1,7 +1,7 @@
 # Explainroo media authoring in Archon
 
 Archon's `kai-explainer` workflow exclusively schedules production. Read
-`docs/archon-kai-explainer.md` and the saved Kai profile. Complete only your assigned
+`docs/production.md` and the saved Kai profile. Complete only your assigned
 node. Do not launch a separate workflow or alter approved narration.
 
 The direct adapter imports `src/project.js`, `pipeline.js`, `qa.js` and `render.js`.

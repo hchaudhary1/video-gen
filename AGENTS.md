@@ -6,7 +6,7 @@ handle measured timing, rendering, evidence and delivery. For software work, ins
 change the code normally.
 
 Archon exclusively schedules both `rules-story` and `kai-explainer`. Read the corresponding
-`docs/archon-*.md` runbook and saved production profile. YAML lives under
+`docs/production.md` runbook and saved production profile. YAML lives under
 `.archon/workflows/video/`; each agent completes only its assigned node. Archon advances
 dependencies, starts independent reviewers and pauses for actual operator decisions.
 No other production controller or per-harness role transport is supported.

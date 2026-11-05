@@ -14,7 +14,7 @@ and typography consistent. Write an original, human hook without a fixed opening
 phrase. Retain the sourcing and honesty requirements.
 
 This profile is scheduled exclusively by `archon workflow run kai-explainer`.
-Read `docs/archon-kai-explainer.md`. Archon nodes directly import the vendored explainroo
+Read `docs/production.md`. Archon nodes directly import the vendored explainroo
 media library; `engines/explainroo/VENDORED.md` records its provenance and local changes.
 
 ## Production contract

@@ -16,7 +16,7 @@ nodes:
     depends_on: []
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read docs/publishing.md. Make or repair variants at the saved canvas dimensions. Use lib/thumbnails.mjs exportThumbnail for full PNG and feed preview. Read thumbnailStatus for requested count and per-variant feedback; preserve unchanged passing variants. Write BRIEF.md with Title, Headline, Description and original editable SVG with actual heavy fonts. Do not review your own variants.
   -
     id: "thumbnail-review"
@@ -24,7 +24,7 @@ nodes:
       - "thumbnail-generate"
     context: "fresh"
     prompt: |-
-      Project: $INPUTS.project. Read AGENTS.md, docs/archon-kai-explainer.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
+      Project: $INPUTS.project. Read AGENTS.md, docs/production.md and the saved production-profile.json / PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Independently view every made thumbnail PNG and feed preview. Use recordVerdict and recordRanking from lib/thumbnails.mjs with reviewer $WORKFLOW_ID:thumbnail-reviewer. Add actionable blocked findings as reviewer feedback with addThumbnailFeedback. Preserve all findings and rank only current passing variants. No claimed CTR measurements.
   -
     id: "thumbnail-join"

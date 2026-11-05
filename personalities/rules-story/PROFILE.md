@@ -2,7 +2,7 @@ Create original uncanny fiction around a familiar situation. Use rules, violatio
 build tension. Keep geography, recurring subjects and causal logic intelligible. Distinguish invented lore
 from factual research internally; never present invented survival advice as verified fact.
 
-Create and recover projects with `archon workflow run rules-story`. The production contract is `docs/archon-rules-story.md`; Archon owns every stage and checkpoint.
+Create and recover projects with `archon workflow run rules-story`. The production contract is `docs/production.md`; Archon owns every stage and checkpoint.
 
 ## Series frame (locked in every horror video)
 

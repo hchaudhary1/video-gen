@@ -32,7 +32,7 @@ upstream changes here while keeping the local changes listed. Then run `npm test
 revision in this file, and render a short Kai test project before relying on it.
 
 `npm install` here installs explainroo's own dependencies. Generated files stay ignored: `node_modules/`, `videos/`,
-`build/`, `out/`. Run commands through `npm run video -- explainroo ...` so caches stay under the repository `.cache/`.
+`build/`, `out/`. Archon nodes call the media APIs directly and keep caches under the repository `.cache/`.
 
 ## Archon integration
 

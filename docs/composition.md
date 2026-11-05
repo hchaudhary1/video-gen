@@ -84,7 +84,7 @@ The kit drives its HUD, captions and finish from the scene timeline, so seeking 
 
 ## Build and inspect
 
-Use the direct domain APIs from the corresponding Archon node; see `docs/orchestrator.md`.
+Use the direct domain APIs from the corresponding Archon node; see `docs/production.md`.
 
 Build assembles the real HyperFrames composition, checks runtime/assets and sampled text bounds, and
 compares repeated timestamps after backward seeking. It also runs HyperFrames lint. Inspect actual
