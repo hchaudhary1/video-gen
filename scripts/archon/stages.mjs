@@ -220,7 +220,7 @@ export async function stageOperation(stage, ctx, opts) {
       throw new Error('Technical build repair budget exhausted; inspect review/build.json.');
     return { done: true };
   }
-  if (stage === 'visual-review-status') {
+  if (stage === 'visual-review-status' || stage === 'visual-review-check') {
     const review = await reviewStatus(job, 'final');
     const { pack } = await loadReviewPack(job, 'final');
     return {
@@ -270,6 +270,14 @@ export async function stageOperation(stage, ctx, opts) {
     if (opts.kind === 'script' && !(await stageOperation('script-ready', ctx, {})).done)
       return { done: false };
     return checkpoint(ctx, opts);
+  }
+  // A loop_group pass opens by recording the answer its previous pass paused for.
+  // Archon resolves the previous pass's attention output to '' on the first pass
+  // and whenever that pass did not need to ask, so there is nothing to record.
+  if (stage === 'answer') {
+    if (opts.answer == null) return { recorded: false, rejected: false };
+    const result = await stageOperation('checkpoint', ctx, opts);
+    return { ...result, recorded: true, rejected: Boolean(result.rejected) };
   }
   if (stage === 'script-status') {
     const validation = await validateScript(dir, project);
