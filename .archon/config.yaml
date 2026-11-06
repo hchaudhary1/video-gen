@@ -1,6 +1,8 @@
-# Both video workflows use the existing authenticated Codex CLI.
-assistant: codex
+# Both video workflows use Claude Code with Haiku 5.5.
+assistant: claude
 assistants:
+  claude:
+    model: claude-haiku-5-5
   codex:
     model: gpt-6-luna
     modelReasoningEffort: low
