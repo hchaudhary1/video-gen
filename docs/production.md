@@ -61,8 +61,8 @@ independent inspection or turn a failed check into a passing delivery. Infrastru
 provider access and actual image-viewing capability remain prerequisites; no workflow can
 guarantee success when they are unavailable.
 
-The workflow checks research files before writing and makes up to two scheduled completion
-attempts for missing research. Script syntax and required author outputs are checked before
+The workflow checks research files before writing. Missing research runs as one Archon `loop`
+of at most three fresh-context passes that ends as soon as `research-check` passes. Script syntax and required author outputs are checked before
 independent script review or an approval wait. Kai uses the actual narration parser, including
 the first scene heading. Syntax defects return to the script writer while supplied scripts
 remain protected. Script reviewers write `review-draft.md` and run
@@ -77,8 +77,8 @@ after an interrupted generation. New jobs receive actual local Inter 700/800 fon
 pinned dependency; theme weights and face availability are checked by the build.
 
 Both treatments schedule a `*-build-cycle` before visual inspection and after the single
-creative revision. It routes repairable build results to up to three registered technical
-repair assignments, validates each result, and stops explicitly if the budget is exhausted.
+creative revision. Its `build-loop` repairs only after a build reports `repair`, so at most four
+builds and three registered technical repair assignments run; an exhausted budget fails the loop.
 These nodes repair reported syntax, missing exports, fonts and layout defects while preserving
 narration, timing and review evidence. They do not commission more creative reviews. Current
 successful builds are reused. Transient retries on idempotent media and agent nodes remain
@@ -193,7 +193,7 @@ checkpoints. `optOut: true` keeps the entire production local.
 
 Frozen editorial intent and script files live in `jobs/scripts/<slug>/`; media and evidence
 live in `jobs/<slug>/`. The YAML packs under `.archon/workflows/video/` expose individual
-stages and bounded rounds as governed child runs. Model/provider settings belong in
+stages; bounded rounds are Archon loops (see [Cycles as loops](#cycles-as-loops)). Model/provider settings belong in
 `.archon/config.yaml` or explicit Archon run bindings; confirm the model in real node
 execution when a particular model is required.
 
@@ -227,6 +227,22 @@ is retained as operator feedback. Script and thumbnail cycles can return to thei
 the film itself has one independent visual review and one revision per run.
 
 Publishing copy and channel verification follow [publishing](publishing.md).
+
+### Cycles as loops
+
+The script, thumbnail and publishing cycles are each one `loop_group` node (`script-cycle`,
+`thumbnail-cycle`, `publishing-cycle`) in the main workflow. A pass ends at the cycle's
+attention wait, the only place a loop body may pause. The next pass opens with
+`<kind>-answer`, which records the answer the previous pass received (via
+`$LOOP_PREV.<kind>-attention.output` and the previous gate's binding) and cancels on stop.
+Its state node then skips work that is already current, so an approval is recorded by a pass
+that only re-checks the gate. `<kind>-loop-check` is the loop's `until_bash`.
+
+`max_iterations` carries over the earlier round budgets: Kai script 2, rules-story and
+`kai-explainer-script` script 4, thumbnails 4, publishing 4. Exceeding it without passing the
+check fails the cycle. Each accepted operator answer permits one more pass, so requested
+revisions are never cut off by the budget. Visual review is a three-pass loop inside the
+creative-review round, and research is a three-pass `loop`.
 
 Attention is the operator boundary under the repository's existing trust model. Archon
 also exposes an agent-accessible answer API: agents must never answer for a person.
@@ -315,7 +331,7 @@ or naturalness. Delivery requires current technical evidence and independent/use
 bridge, not another scheduler. It returns one JSON document on stdout; diagnostics use
 stderr. Technical errors exit 1. Repair results exit 2 unless the YAML node explicitly
 uses `--route`. Loop-check operations exit 2 when their deterministic completion gate is
-false. Each script/agent node performs only its declared assignment.
+false; they serve as the `until_bash` of each cycle. Each script/agent node performs only its declared assignment.
 
 For development validation (Bun and an upstream checkout with its own dependencies):
 
@@ -326,7 +342,9 @@ ARCHON_SOURCE="$PWD/.cache/archon/source" bun scripts/archon/validate-upstream.t
 ```
 
 The validator uses the actual upstream loader, graph planner and side-effect-free dry-run
-engine for every YAML file. Stubs exercise approval/revision/rejection/cache branching;
+engine for every YAML file. The dry run assumes an `until_bash` loop completes after its first
+pass, so these routes check one pass of each loop; a stubbed recorded rejection stands in for the
+next pass's stop. Stubs exercise approval/revision/rejection/cache branching;
 they do not prove provider execution, visual inspection, human identity, real TTS/rendering,
 or YouTube delivery. Adapter tests separately exercise actual file/hash gates and mocked
 upload recovery. A real end-to-end film and authenticated upload remain operational

@@ -19,33 +19,17 @@
     {
       "id": "group-1",
       "type": "group",
-      "name": "1 \u00b7 Research",
+      "name": "1 · Research",
       "position": {
         "x": 190,
         "y": 0
       },
       "style": {
-        "width": 2048,
-        "height": 376
+        "width": 1368,
+        "height": 240
       },
       "data": {
-        "label": "1 \u00b7 Research"
-      }
-    },
-    {
-      "id": "group-2",
-      "type": "group",
-      "name": "2 \u00b7 Script",
-      "position": {
-        "x": 190,
-        "y": 446
-      },
-      "style": {
-        "width": 1708,
-        "height": 376
-      },
-      "data": {
-        "label": "2 \u00b7 Script"
+        "label": "1 · Research"
       }
     },
     {
@@ -81,91 +65,15 @@
       "name": "research",
       "type": "subAgent",
       "data": {
-        "description": "research \u00b7 if not done",
+        "description": "research · loop ≤3 passes until research-check · if research-state.done == false",
         "agentDefinition": "Archon node `research` in kai-explainer-script. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
         "agentType": "other",
         "outputPorts": 1
-      },
-      "parentId": "group-1",
-      "position": {
-        "x": 534,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-research-state-1",
-      "name": "research-state-1",
-      "type": "prompt",
-      "data": {
-        "label": "research-state-1",
-        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
       },
       "parentId": "group-1",
       "position": {
         "x": 704,
-        "y": 52
-      }
-    },
-    {
-      "id": "n-research-completion-1",
-      "name": "research-completion-1",
-      "type": "subAgent",
-      "data": {
-        "description": "research-completion-1 \u00b7 if not done",
-        "agentDefinition": "Archon node `research-completion-1` in kai-explainer-script. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
-        "agentType": "other",
-        "outputPorts": 1
-      },
-      "parentId": "group-1",
-      "position": {
-        "x": 874,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-research-state-2",
-      "name": "research-state-2",
-      "type": "prompt",
-      "data": {
-        "label": "research-state-2",
-        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
-      },
-      "parentId": "group-1",
-      "position": {
-        "x": 1044,
-        "y": 52
-      }
-    },
-    {
-      "id": "n-research-completion-2",
-      "name": "research-completion-2",
-      "type": "subAgent",
-      "data": {
-        "description": "research-completion-2 \u00b7 if not done",
-        "agentDefinition": "Archon node `research-completion-2` in kai-explainer-script. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
-        "agentType": "other",
-        "outputPorts": 1
-      },
-      "parentId": "group-1",
-      "position": {
-        "x": 1214,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-research-state-3",
-      "name": "research-state-3",
-      "type": "prompt",
-      "data": {
-        "label": "research-state-3",
-        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
-      },
-      "parentId": "group-1",
-      "position": {
-        "x": 1384,
         "y": 52
       }
     },
@@ -179,17 +87,33 @@
       },
       "parentId": "group-1",
       "position": {
-        "x": 1724,
+        "x": 1044,
         "y": 52
       }
     },
     {
-      "id": "n-script-cycle-state-1",
-      "name": "script-cycle-state-1",
+      "id": "group-2",
+      "type": "group",
+      "name": "2 · script-cycle · loop ≤4 passes until script-loop-check",
+      "position": {
+        "x": 190,
+        "y": 310
+      },
+      "style": {
+        "width": 3408,
+        "height": 240
+      },
+      "data": {
+        "label": "2 · script-cycle · loop ≤4 passes until script-loop-check"
+      }
+    },
+    {
+      "id": "n-script-answer",
+      "name": "script-answer",
       "type": "prompt",
       "data": {
-        "label": "script-cycle-state-1",
-        "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+        "label": "script-answer",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nconst answer = process.env.INPUTS_ANSWER;\nawait emit(\"answer\", {kind:\"script\", expected: process.env.INPUTS_BINDING, answer: answer ? JSON.parse(answer) : null});"
       },
       "parentId": "group-2",
       "position": {
@@ -198,26 +122,12 @@
       }
     },
     {
-      "id": "n-script-cycle-round-1",
-      "name": "script-cycle-round-1",
+      "id": "n-script-stop",
+      "name": "script-stop",
       "type": "prompt",
       "data": {
-        "label": "script-cycle-round-1 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
-        "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
-      },
-      "parentId": "group-2",
-      "position": {
-        "x": 194,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-script-cycle-state-2",
-      "name": "script-cycle-state-2",
-      "type": "prompt",
-      "data": {
-        "label": "script-cycle-state-2",
-        "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+        "label": "script-stop · stop run · if script-answer.rejected == true",
+        "prompt": "Operator stopped this production; retained artifacts remain available."
       },
       "parentId": "group-2",
       "position": {
@@ -226,26 +136,12 @@
       }
     },
     {
-      "id": "n-script-cycle-round-2",
-      "name": "script-cycle-round-2",
+      "id": "n-script-state",
+      "name": "script-state",
       "type": "prompt",
       "data": {
-        "label": "script-cycle-round-2 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
-        "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
-      },
-      "parentId": "group-2",
-      "position": {
-        "x": 534,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-script-cycle-state-3",
-      "name": "script-cycle-state-3",
-      "type": "prompt",
-      "data": {
-        "label": "script-cycle-state-3",
-        "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+        "label": "script-state",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-status \"$INPUTS_PROJECT\""
       },
       "parentId": "group-2",
       "position": {
@@ -254,26 +150,15 @@
       }
     },
     {
-      "id": "n-script-cycle-round-3",
-      "name": "script-cycle-round-3",
-      "type": "prompt",
+      "id": "n-write",
+      "name": "write",
+      "type": "subAgent",
       "data": {
-        "label": "script-cycle-round-3 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
-        "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
-      },
-      "parentId": "group-2",
-      "position": {
-        "x": 874,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-script-cycle-state-4",
-      "name": "script-cycle-state-4",
-      "type": "prompt",
-      "data": {
-        "label": "script-cycle-state-4",
-        "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+        "description": "write · if script-state.needsWrite == true",
+        "agentDefinition": "Archon node `write` in kai-explainer-script. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "agentType": "other",
+        "outputPorts": 1
       },
       "parentId": "group-2",
       "position": {
@@ -282,26 +167,12 @@
       }
     },
     {
-      "id": "n-script-cycle-round-4",
-      "name": "script-cycle-round-4",
+      "id": "n-script-binding",
+      "name": "script-binding",
       "type": "prompt",
       "data": {
-        "label": "script-cycle-round-4 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
-        "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
-      },
-      "parentId": "group-2",
-      "position": {
-        "x": 1214,
-        "y": 220
-      }
-    },
-    {
-      "id": "n-script-cycle",
-      "name": "script-cycle",
-      "type": "prompt",
-      "data": {
-        "label": "script-cycle",
-        "prompt": "node scripts/archon/kai-explainer.mjs script-loop-check \"$INPUTS_PROJECT\""
+        "label": "script-binding",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-review-request \"$INPUTS_PROJECT\""
       },
       "parentId": "group-2",
       "position": {
@@ -310,12 +181,102 @@
       }
     },
     {
+      "id": "n-script-review",
+      "name": "script-review",
+      "type": "subAgent",
+      "data": {
+        "description": "script-review · if script-binding.ready == false && script-binding.valid == true",
+        "agentDefinition": "Archon node `script-review` in kai-explainer-script. Completes only its assigned work.",
+        "prompt": "This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, withou…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1724,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-report",
+      "name": "script-report",
+      "type": "prompt",
+      "data": {
+        "label": "script-report · if script-binding.ready == false && script-binding.valid == true",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"script-reviewed\", {expected: process.env.INPUTS_BINDING});"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-reviewed-state",
+      "name": "script-reviewed-state",
+      "type": "prompt",
+      "data": {
+        "label": "script-reviewed-state",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-gate",
+      "name": "script-gate",
+      "type": "prompt",
+      "data": {
+        "label": "script-gate",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"script\"});"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2744,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-attention",
+      "name": "script-attention",
+      "type": "askUserQuestion",
+      "data": {
+        "questionText": "script-attention · operator decision · if script-reviewed-state.ready == true && script-gate.needsAnswer == true: Review $script-gate.output.artifacts.artifact for $INPUTS.project. Binding: $script-g…",
+        "options": [
+          {
+            "id": "opt-0",
+            "label": "Approve",
+            "description": "approve"
+          },
+          {
+            "id": "opt-1",
+            "label": "Request changes",
+            "description": "revise"
+          },
+          {
+            "id": "opt-2",
+            "label": "Stop",
+            "description": "reject"
+          }
+        ],
+        "outputPorts": 3
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 3084,
+        "y": 52
+      }
+    },
+    {
       "id": "end_1",
       "type": "end",
       "name": "end",
       "position": {
-        "x": 1948,
-        "y": 538
+        "x": 190,
+        "y": 620
       },
       "data": {
         "label": "end"
@@ -323,13 +284,6 @@
     }
   ],
   "connections": [
-    {
-      "id": "c-start-n-recover",
-      "from": "start",
-      "to": "n-recover",
-      "fromPort": "output",
-      "toPort": "input"
-    },
     {
       "id": "c-n-recover-n-research-state",
       "from": "n-recover",
@@ -345,162 +299,120 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-research-state-n-research-state-1",
+      "id": "c-n-research-state-n-research-ready",
       "from": "n-research-state",
-      "to": "n-research-state-1",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-n-research-state-1",
-      "from": "n-research",
-      "to": "n-research-state-1",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-state-1-n-research-completion-1",
-      "from": "n-research-state-1",
-      "to": "n-research-completion-1",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-state-1-n-research-state-2",
-      "from": "n-research-state-1",
-      "to": "n-research-state-2",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-completion-1-n-research-state-2",
-      "from": "n-research-completion-1",
-      "to": "n-research-state-2",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-state-2-n-research-completion-2",
-      "from": "n-research-state-2",
-      "to": "n-research-completion-2",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-state-2-n-research-state-3",
-      "from": "n-research-state-2",
-      "to": "n-research-state-3",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-completion-2-n-research-state-3",
-      "from": "n-research-completion-2",
-      "to": "n-research-state-3",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-research-state-3-n-research-ready",
-      "from": "n-research-state-3",
       "to": "n-research-ready",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-research-ready-n-script-cycle-state-1",
+      "id": "c-n-research-n-research-ready",
+      "from": "n-research",
+      "to": "n-research-ready",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-answer-n-script-stop",
+      "from": "n-script-answer",
+      "to": "n-script-stop",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-answer-n-script-state",
+      "from": "n-script-answer",
+      "to": "n-script-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-stop-n-script-state",
+      "from": "n-script-stop",
+      "to": "n-script-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-state-n-write",
+      "from": "n-script-state",
+      "to": "n-write",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-state-n-script-binding",
+      "from": "n-script-state",
+      "to": "n-script-binding",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-write-n-script-binding",
+      "from": "n-write",
+      "to": "n-script-binding",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-binding-n-script-review",
+      "from": "n-script-binding",
+      "to": "n-script-review",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-review-n-script-report",
+      "from": "n-script-review",
+      "to": "n-script-report",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-binding-n-script-reviewed-state",
+      "from": "n-script-binding",
+      "to": "n-script-reviewed-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-report-n-script-reviewed-state",
+      "from": "n-script-report",
+      "to": "n-script-reviewed-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-reviewed-state-n-script-gate",
+      "from": "n-script-reviewed-state",
+      "to": "n-script-gate",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-gate-n-script-attention",
+      "from": "n-script-gate",
+      "to": "n-script-attention",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-ready-n-script-answer",
       "from": "n-research-ready",
-      "to": "n-script-cycle-state-1",
+      "to": "n-script-answer",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-script-cycle-state-1-n-script-cycle-round-1",
-      "from": "n-script-cycle-state-1",
-      "to": "n-script-cycle-round-1",
+      "id": "c-start-n-recover",
+      "from": "start",
+      "to": "n-recover",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-script-cycle-state-1-n-script-cycle-state-2",
-      "from": "n-script-cycle-state-1",
-      "to": "n-script-cycle-state-2",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-round-1-n-script-cycle-state-2",
-      "from": "n-script-cycle-round-1",
-      "to": "n-script-cycle-state-2",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-state-2-n-script-cycle-round-2",
-      "from": "n-script-cycle-state-2",
-      "to": "n-script-cycle-round-2",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-state-2-n-script-cycle-state-3",
-      "from": "n-script-cycle-state-2",
-      "to": "n-script-cycle-state-3",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-round-2-n-script-cycle-state-3",
-      "from": "n-script-cycle-round-2",
-      "to": "n-script-cycle-state-3",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-state-3-n-script-cycle-round-3",
-      "from": "n-script-cycle-state-3",
-      "to": "n-script-cycle-round-3",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-state-3-n-script-cycle-state-4",
-      "from": "n-script-cycle-state-3",
-      "to": "n-script-cycle-state-4",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-round-3-n-script-cycle-state-4",
-      "from": "n-script-cycle-round-3",
-      "to": "n-script-cycle-state-4",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-state-4-n-script-cycle-round-4",
-      "from": "n-script-cycle-state-4",
-      "to": "n-script-cycle-round-4",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-state-4-n-script-cycle",
-      "from": "n-script-cycle-state-4",
-      "to": "n-script-cycle",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-script-cycle-round-4-n-script-cycle",
-      "from": "n-script-cycle-round-4",
-      "to": "n-script-cycle",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-end-n-script-cycle",
-      "from": "n-script-cycle",
+      "id": "c-n-script-attention-end_1",
+      "from": "n-script-attention",
       "to": "end_1",
       "fromPort": "output",
       "toPort": "input"

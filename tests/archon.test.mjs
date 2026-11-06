@@ -232,3 +232,30 @@ test('editing the brief or packaging invalidates script review', async t => {
   assert.equal((await stageOperation('script-status',ctx,{})).ready,false);
   assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,false);
 });
+test('a loop pass records the previous answer once and reports a rejection', async (t) => {
+  const ctx = await fixture(t);
+  assert.deepEqual(await stageOperation('answer', ctx, { kind: 'script', answer: null }), {
+    recorded: false,
+    rejected: false,
+  });
+  await writeFile(path.join(ctx.dir, 'review.md'), `Binding: ${await scriptBinding(ctx.dir)}\nDisposition: pass`);
+  const expected = await scriptBinding(ctx.dir);
+  await stageOperation('script-reviewed', ctx, { expected });
+  const revise = await stageOperation('answer', ctx, {
+    kind: 'script',
+    expected,
+    answer: { decision: 'revise', text: 'Tighten the opening' },
+  });
+  assert.equal(revise.recorded, true);
+  assert.equal(revise.rejected, false);
+  const decision = JSON.parse(await readFile(path.join(ctx.dir, 'archon/script-decision.json'), 'utf8'));
+  assert.equal(decision.answerText, 'Tighten the opening');
+  const stop = await stageOperation('answer', ctx, { kind: 'script', expected, answer: { decision: 'reject' } });
+  assert.equal(stop.rejected, true);
+  const approve = await stageOperation('answer', ctx, { kind: 'script', expected, answer: { decision: 'approve' } });
+  assert.equal(approve.rejected, false);
+  assert.equal((await stageOperation('script-loop-result', ctx, {})).done, true);
+  // A repeated answer after approval is not re-recorded over the approval.
+  const repeat = await stageOperation('answer', ctx, { kind: 'script', expected, answer: { decision: 'reject' } });
+  assert.equal(repeat.rejected, false);
+});

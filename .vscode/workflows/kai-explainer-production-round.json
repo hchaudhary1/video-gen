@@ -19,49 +19,17 @@
     {
       "id": "group-1",
       "type": "group",
-      "name": "1 \u00b7 Creative review",
+      "name": "1 · Creative review & film decision",
       "position": {
         "x": 190,
         "y": 0
       },
       "style": {
-        "width": 348,
-        "height": 208
+        "width": 1708,
+        "height": 408
       },
       "data": {
-        "label": "1 \u00b7 Creative review"
-      }
-    },
-    {
-      "id": "group-2",
-      "type": "group",
-      "name": "2 \u00b7 Operator decision",
-      "position": {
-        "x": 608,
-        "y": 0
-      },
-      "style": {
-        "width": 1368,
-        "height": 458
-      },
-      "data": {
-        "label": "2 \u00b7 Operator decision"
-      }
-    },
-    {
-      "id": "group-3",
-      "type": "group",
-      "name": "3 \u00b7 Render & verify",
-      "position": {
-        "x": 2046,
-        "y": 0
-      },
-      "style": {
-        "width": 1368,
-        "height": 376
-      },
-      "data": {
-        "label": "3 \u00b7 Render & verify"
+        "label": "1 · Creative review & film decision"
       }
     },
     {
@@ -69,8 +37,8 @@
       "name": "creative-review",
       "type": "prompt",
       "data": {
-        "label": "creative-review \u25b8 kai-explainer-creative-review-round",
-        "prompt": "Run Archon sub-workflow `kai-explainer-creative-review-round` (see kai-explainer-creative-review-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+        "label": "creative-review ▸ kai-explainer-creative-review-round",
+        "prompt": "Run Archon sub-workflow `kai-explainer-creative-review-round`"
       },
       "parentId": "group-1",
       "position": {
@@ -86,9 +54,9 @@
         "label": "film-gate",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"film\"});"
       },
-      "parentId": "group-2",
+      "parentId": "group-1",
       "position": {
-        "x": 24,
+        "x": 364,
         "y": 52
       }
     },
@@ -97,7 +65,7 @@
       "name": "film-attention",
       "type": "askUserQuestion",
       "data": {
-        "questionText": "film-attention \u00b7 operator decision \u00b7 if needsAnswer: Watch $film-gate.output.artifacts.view and review $film-gate.output.artifacts.artifact for $INPUTS.project.",
+        "questionText": "film-attention · operator decision · if film-gate.needsAnswer == true: Watch $film-gate.output.artifacts.view and review $film-gate.output.artifacts.artifact for $INPUTS.project. Binding: $film-gate.…",
         "options": [
           {
             "id": "opt-0",
@@ -117,10 +85,10 @@
         ],
         "outputPorts": 3
       },
-      "parentId": "group-2",
+      "parentId": "group-1",
       "position": {
-        "x": 194,
-        "y": 220
+        "x": 704,
+        "y": 52
       }
     },
     {
@@ -128,13 +96,13 @@
       "name": "film-answer",
       "type": "prompt",
       "data": {
-        "label": "film-answer \u00b7 if needsAnswer",
+        "label": "film-answer · if film-gate.needsAnswer == true",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"checkpoint\", {kind:\"film\", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});"
       },
-      "parentId": "group-2",
+      "parentId": "group-1",
       "position": {
-        "x": 534,
-        "y": 220
+        "x": 1044,
+        "y": 52
       }
     },
     {
@@ -142,13 +110,13 @@
       "name": "film-stop",
       "type": "prompt",
       "data": {
-        "label": "film-stop \u00b7 stop run \u00b7 if rejected",
+        "label": "film-stop · stop run · if film-answer.rejected == true",
         "prompt": "Operator stopped this production; retained artifacts remain available."
       },
-      "parentId": "group-2",
+      "parentId": "group-1",
       "position": {
-        "x": 874,
-        "y": 220
+        "x": 1384,
+        "y": 52
       }
     },
     {
@@ -159,10 +127,26 @@
         "label": "film-accepted",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"film\"});"
       },
-      "parentId": "group-2",
+      "parentId": "group-1",
       "position": {
-        "x": 1044,
-        "y": 52
+        "x": 1384,
+        "y": 220
+      }
+    },
+    {
+      "id": "group-2",
+      "type": "group",
+      "name": "2 · Render & verify",
+      "position": {
+        "x": 190,
+        "y": 478
+      },
+      "style": {
+        "width": 688,
+        "height": 240
+      },
+      "data": {
+        "label": "2 · Render & verify"
       }
     },
     {
@@ -170,13 +154,13 @@
       "name": "render",
       "type": "prompt",
       "data": {
-        "label": "render \u00b7 if approved or not required",
+        "label": "render · if film-accepted.approved == true || film-accepted.required == false",
         "prompt": "node scripts/archon/kai-explainer.mjs render \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-3",
+      "parentId": "group-2",
       "position": {
-        "x": 194,
-        "y": 220
+        "x": 24,
+        "y": 52
       }
     },
     {
@@ -187,10 +171,26 @@
         "label": "verify",
         "prompt": "node scripts/archon/kai-explainer.mjs verify \"$INPUTS_PROJECT\" --route"
       },
-      "parentId": "group-3",
+      "parentId": "group-2",
       "position": {
         "x": 364,
         "y": 52
+      }
+    },
+    {
+      "id": "group-3",
+      "type": "group",
+      "name": "3 · Production",
+      "position": {
+        "x": 190,
+        "y": 788
+      },
+      "style": {
+        "width": 348,
+        "height": 240
+      },
+      "data": {
+        "label": "3 · Production"
       }
     },
     {
@@ -203,8 +203,24 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 704,
+        "x": 24,
         "y": 52
+      }
+    },
+    {
+      "id": "group-4",
+      "type": "group",
+      "name": "4 · Steps",
+      "position": {
+        "x": 190,
+        "y": 1098
+      },
+      "style": {
+        "width": 348,
+        "height": 240
+      },
+      "data": {
+        "label": "4 · Steps"
       }
     },
     {
@@ -215,9 +231,9 @@
         "label": "round-result",
         "prompt": "node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-3",
+      "parentId": "group-4",
       "position": {
-        "x": 1044,
+        "x": 24,
         "y": 52
       }
     },
@@ -226,8 +242,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 3464,
-        "y": 92
+        "x": 190,
+        "y": 1408
       },
       "data": {
         "label": "end"
@@ -235,13 +251,6 @@
     }
   ],
   "connections": [
-    {
-      "id": "c-start-n-creative-review",
-      "from": "start",
-      "to": "n-creative-review",
-      "fromPort": "output",
-      "toPort": "input"
-    },
     {
       "id": "c-n-creative-review-n-film-gate",
       "from": "n-creative-review",
@@ -274,13 +283,6 @@
       "id": "c-n-film-answer-n-film-stop",
       "from": "n-film-answer",
       "to": "n-film-stop",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-end-n-film-stop",
-      "from": "n-film-stop",
-      "to": "end_1",
       "fromPort": "output",
       "toPort": "input"
     },
@@ -334,7 +336,21 @@
       "toPort": "input"
     },
     {
-      "id": "c-end-n-round-result",
+      "id": "c-start-n-creative-review",
+      "from": "start",
+      "to": "n-creative-review",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-stop-end_1",
+      "from": "n-film-stop",
+      "to": "end_1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-round-result-end_1",
       "from": "n-round-result",
       "to": "end_1",
       "fromPort": "output",

@@ -1,4 +1,4 @@
-name: "rules-story-build-cycle"
+name: rules-story-build-cycle
 description: "Bounded technical build and repair; no independent review or creative revision."
 worktree:
   enabled: false
@@ -8,85 +8,40 @@ inputs:
     required: true
   phase:
     description: "pre-review or post-revision; repairs must remain technical"
-    default: "pre-review"
+    default: pre-review
 nodes:
-  -
-    id: "register-repair"
-    depends_on: []
-    always_run: true
-    runtime: "bun"
-    script: |-
-      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("producer", {role:"technical-repair",runId:process.env.INPUTS_RUN});
-    with:
-      run: "$WORKFLOW_ID"
-  -
-    id: "build-1"
-    depends_on:
-      - "register-repair"
-    always_run: true
-    bash: 'node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route'
-  -
-    id: "repair-1"
-    depends_on:
-      - "build-1"
-    when: "$build-1.output.status == 'repair'"
-    context: "fresh"
-    prompt: |-
-      You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-1.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.
-    retry:
-      max_attempts: 2
-      on_error: "transient"
-  -
-    id: "build-2"
-    depends_on:
-      - "build-1"
-      - "repair-1"
-    always_run: true
-    bash: 'node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route'
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "repair-2"
-    depends_on:
-      - "build-2"
-    when: "$build-2.output.status == 'repair'"
-    context: "fresh"
-    prompt: |-
-      You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-2.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.
-    retry:
-      max_attempts: 2
-      on_error: "transient"
-  -
-    id: "build-3"
-    depends_on:
-      - "build-2"
-      - "repair-2"
-    always_run: true
-    bash: 'node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route'
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "repair-3"
-    depends_on:
-      - "build-3"
-    when: "$build-3.output.status == 'repair'"
-    context: "fresh"
-    prompt: |-
-      You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-3.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.
-    retry:
-      max_attempts: 2
-      on_error: "transient"
-  -
-    id: "build-4"
-    depends_on:
-      - "build-3"
-      - "repair-3"
-    always_run: true
-    bash: 'node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route'
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "result"
-    depends_on:
-      - "build-4"
-    always_run: true
-    bash: 'node scripts/archon/rules-story.mjs build-check "$INPUTS_PROJECT"'
-returns: "result"
+- id: register-repair
+  depends_on: []
+  always_run: true
+  runtime: bun
+  script: |-
+    const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+    await emit("producer", {role:"technical-repair",runId:process.env.INPUTS_RUN});
+  with:
+    run: "$WORKFLOW_ID"
+- id: build-loop
+  depends_on:
+  - register-repair
+  loop_group:
+    max_iterations: 4
+    until_bash: "status=$build.output.status; [ \"$status\" = complete ]"
+    nodes:
+    - id: repair
+      when: "$LOOP_PREV.build.output.status == 'repair'"
+      context: fresh
+      prompt: "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-$INPUTS.phase.md, appending a new section for this pass and keeping earlier sections. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair."
+      retry:
+        max_attempts: 2
+        on_error: transient
+    - id: build
+      depends_on:
+      - repair
+      always_run: true
+      bash: "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
+      trigger_rule: all_done
+- id: result
+  depends_on:
+  - build-loop
+  always_run: true
+  bash: "node scripts/archon/rules-story.mjs build-check \"$INPUTS_PROJECT\""
+returns: result
