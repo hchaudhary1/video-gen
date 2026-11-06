@@ -1,0 +1,229 @@
+{
+  "id": "kai-explainer-publishing-cycle-round",
+  "name": "kai-explainer-publishing-cycle-round",
+  "description": "One explicit publishing-cycle pass; called by kai-explainer.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "name": "start",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "start"
+      }
+    },
+    {
+      "id": "n-publishing-copy",
+      "name": "publishing-copy",
+      "position": {
+        "x": 280,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node publishing-copy",
+        "agentDefinition": "Archon node `publishing-copy` in kai-explainer-publishing-cycle-round. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nWrite publishing.json in the script project folder with title, description, tags, privacy: unlisted and exact channelId for abdupdates (obtain from operator/config, never invent). Read archon/publishing-decision.json and apply requested copy revisions. Preserve existing approved copy. Include sources. Read docs/publishing.md. This node authors copy only; it does not approve or upload.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-publishing-gate",
+      "name": "publishing-gate",
+      "position": {
+        "x": 560,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"publishing\"});"
+      }
+    },
+    {
+      "id": "n-publishing-attention",
+      "name": "publishing-attention",
+      "position": {
+        "x": 840,
+        "y": 0
+      },
+      "type": "askUserQuestion",
+      "data": {
+        "questionText": "Review $publishing-gate.output.artifacts.artifact for $INPUTS.project. Binding: $publishing-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback. [when: $publishing-gate.output.artifacts.needsAnswer == true]",
+        "options": [
+          {
+            "id": "opt-0",
+            "label": "Approve unlisted upload",
+            "description": "approve"
+          },
+          {
+            "id": "opt-1",
+            "label": "Revise copy",
+            "description": "revise"
+          },
+          {
+            "id": "opt-2",
+            "label": "Keep local only",
+            "description": "opt-out"
+          },
+          {
+            "id": "opt-3",
+            "label": "Stop",
+            "description": "reject"
+          }
+        ],
+        "outputPorts": 4
+      }
+    },
+    {
+      "id": "n-publishing-answer",
+      "name": "publishing-answer",
+      "position": {
+        "x": 1120,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\"); [when: $publishing-gate.output.artifacts.needsAnswer == true]",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"checkpoint\", {kind:\"publishing\", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});"
+      }
+    },
+    {
+      "id": "n-publishing-stop",
+      "name": "publishing-stop",
+      "position": {
+        "x": 1400,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "cancel [when: $publishing-answer.output.artifacts.rejected == true]",
+        "prompt": "Operator stopped this production; retained artifacts remain available."
+      }
+    },
+    {
+      "id": "n-publishing-accepted",
+      "name": "publishing-accepted",
+      "position": {
+        "x": 1400,
+        "y": 140
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"publishing\"});"
+      }
+    },
+    {
+      "id": "n-round-result",
+      "name": "round-result",
+      "position": {
+        "x": 1680,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/kai-explainer.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "name": "end",
+      "position": {
+        "x": 1960,
+        "y": 0
+      },
+      "data": {
+        "label": "end"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-start-n-publishing-copy",
+      "from": "start",
+      "to": "n-publishing-copy",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-copy-n-publishing-gate",
+      "from": "n-publishing-copy",
+      "to": "n-publishing-gate",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-gate-n-publishing-attention",
+      "from": "n-publishing-gate",
+      "to": "n-publishing-attention",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-gate-n-publishing-answer",
+      "from": "n-publishing-gate",
+      "to": "n-publishing-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-attention-n-publishing-answer",
+      "from": "n-publishing-attention",
+      "to": "n-publishing-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-answer-n-publishing-stop",
+      "from": "n-publishing-answer",
+      "to": "n-publishing-stop",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-gate-n-publishing-accepted",
+      "from": "n-publishing-gate",
+      "to": "n-publishing-accepted",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-answer-n-publishing-accepted",
+      "from": "n-publishing-answer",
+      "to": "n-publishing-accepted",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-accepted-n-round-result",
+      "from": "n-publishing-accepted",
+      "to": "n-round-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-publishing-stop",
+      "from": "n-publishing-stop",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-round-result",
+      "from": "n-round-result",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    }
+  ],
+  "createdAt": "2026-11-06T00:00:00.000Z",
+  "updatedAt": "2026-11-06T00:00:00.000Z"
+}

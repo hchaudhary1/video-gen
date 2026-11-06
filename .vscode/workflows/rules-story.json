@@ -1,0 +1,1235 @@
+{
+  "id": "rules-story",
+  "name": "rules-story",
+  "description": "Produce rules-story films with measured narration, independent evidence-bound review, human decisions and unlisted delivery.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "name": "start",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "start"
+      }
+    },
+    {
+      "id": "n-recover",
+      "name": "recover",
+      "position": {
+        "x": 280,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"init\", JSON.parse(process.env.INPUTS_OPTIONS || \"{}\"));"
+      }
+    },
+    {
+      "id": "n-research-state",
+      "name": "research-state",
+      "position": {
+        "x": 560,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-research",
+      "name": "research",
+      "position": {
+        "x": 840,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node research [when: $research-state.output.artifacts.done == false]",
+        "agentDefinition": "Archon node `research` in rules-story. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-research-state-1",
+      "name": "research-state-1",
+      "position": {
+        "x": 1120,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-research-completion-1",
+      "name": "research-completion-1",
+      "position": {
+        "x": 1400,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node research-completion-1 [when: $research-state-1.output.artifacts.done == false]",
+        "agentDefinition": "Archon node `research-completion-1` in rules-story. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-research-state-2",
+      "name": "research-state-2",
+      "position": {
+        "x": 1680,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-research-completion-2",
+      "name": "research-completion-2",
+      "position": {
+        "x": 1960,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node research-completion-2 [when: $research-state-2.output.artifacts.done == false]",
+        "agentDefinition": "Archon node `research-completion-2` in rules-story. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-research-state-3",
+      "name": "research-state-3",
+      "position": {
+        "x": 2240,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-research-ready",
+      "name": "research-ready",
+      "position": {
+        "x": 2520,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs research-check \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs research-check \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-identity",
+      "name": "identity",
+      "position": {
+        "x": 2800,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-script-cycle-state-1",
+      "name": "script-cycle-state-1",
+      "position": {
+        "x": 3080,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-script-cycle-round-1",
+      "name": "script-cycle-round-1",
+      "position": {
+        "x": 3360,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-1.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-script-cycle-state-2",
+      "name": "script-cycle-state-2",
+      "position": {
+        "x": 3640,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-script-cycle-round-2",
+      "name": "script-cycle-round-2",
+      "position": {
+        "x": 3920,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-2.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-script-cycle-state-3",
+      "name": "script-cycle-state-3",
+      "position": {
+        "x": 4200,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-script-cycle-round-3",
+      "name": "script-cycle-round-3",
+      "position": {
+        "x": 4480,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-3.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-script-cycle-state-4",
+      "name": "script-cycle-state-4",
+      "position": {
+        "x": 4760,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-script-cycle-round-4",
+      "name": "script-cycle-round-4",
+      "position": {
+        "x": 5040,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-4.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-script-cycle",
+      "name": "script-cycle",
+      "position": {
+        "x": 5320,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-check \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs script-loop-check \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-narration",
+      "name": "narration",
+      "position": {
+        "x": 5600,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs narration \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs narration \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-prepare",
+      "name": "prepare",
+      "position": {
+        "x": 5880,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-timing",
+      "name": "timing",
+      "position": {
+        "x": 6160,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-audio-evidence",
+      "name": "audio-evidence",
+      "position": {
+        "x": 6440,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs audio-evidence \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs audio-evidence \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-audio-review",
+      "name": "audio-review",
+      "position": {
+        "x": 6720,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs audio-review \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs audio-review \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-audio-reviewed",
+      "name": "audio-reviewed",
+      "position": {
+        "x": 7000,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs audio-reviewed \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs audio-reviewed \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-sound",
+      "name": "sound",
+      "position": {
+        "x": 7280,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-production-state",
+      "name": "production-state",
+      "position": {
+        "x": 7560,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs production-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs production-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-register-director",
+      "name": "register-director",
+      "position": {
+        "x": 7840,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $production-state.output.artifacts.done == false]",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"producer\", {role:\"director\",runId:process.env.INPUTS_RUN});"
+      }
+    },
+    {
+      "id": "n-direction",
+      "name": "direction",
+      "position": {
+        "x": 8120,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node direction [when: $production-state.output.artifacts.done == false]",
+        "agentDefinition": "Archon node `direction` in rules-story. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/hyperframes/SKILL.md, docs/motion-explainer.md and docs/composition.md. Author film.json and series.json: series identity, rules and measured cue phrases. Use saved canvas and measured narration. Incorporate generated sound kit from review/archon-sound.json, series overlay, captions and -15 LUFS target. Your registered production identity is $WORKFLOW_ID:director. Recover existing valid direction; do not overwrite a completed film without findings.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-series",
+      "name": "series",
+      "position": {
+        "x": 8400,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs series \"$INPUTS_PROJECT\" [when: $production-state.output.artifacts.done == false]",
+        "prompt": "node scripts/archon/rules-story.mjs series \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-register-scenes",
+      "name": "register-scenes",
+      "position": {
+        "x": 8680,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $production-state.output.artifacts.done == false]",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"producer\", {role:\"scene-author\",runId:process.env.INPUTS_RUN});"
+      }
+    },
+    {
+      "id": "n-production",
+      "name": "production",
+      "position": {
+        "x": 8960,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-production-round [when: $production-state.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-production-round` (see rules-story-production-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-delivery",
+      "name": "delivery",
+      "position": {
+        "x": 9240,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-state-1",
+      "name": "thumbnail-cycle-state-1",
+      "position": {
+        "x": 9520,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-round-1",
+      "name": "thumbnail-cycle-round-1",
+      "position": {
+        "x": 9800,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-1.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-state-2",
+      "name": "thumbnail-cycle-state-2",
+      "position": {
+        "x": 10080,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-round-2",
+      "name": "thumbnail-cycle-round-2",
+      "position": {
+        "x": 10360,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-2.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-state-3",
+      "name": "thumbnail-cycle-state-3",
+      "position": {
+        "x": 10640,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-round-3",
+      "name": "thumbnail-cycle-round-3",
+      "position": {
+        "x": 10920,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-3.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-state-4",
+      "name": "thumbnail-cycle-state-4",
+      "position": {
+        "x": 11200,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle-round-4",
+      "name": "thumbnail-cycle-round-4",
+      "position": {
+        "x": 11480,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-4.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-thumbnail-cycle",
+      "name": "thumbnail-cycle",
+      "position": {
+        "x": 11760,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-check \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-check \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-publishing-cycle-state-1",
+      "name": "publishing-cycle-state-1",
+      "position": {
+        "x": 12040,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-publishing-cycle-round-1",
+      "name": "publishing-cycle-round-1",
+      "position": {
+        "x": 12320,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-1.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-publishing-cycle-state-2",
+      "name": "publishing-cycle-state-2",
+      "position": {
+        "x": 12600,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-publishing-cycle-round-2",
+      "name": "publishing-cycle-round-2",
+      "position": {
+        "x": 12880,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-2.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-publishing-cycle-state-3",
+      "name": "publishing-cycle-state-3",
+      "position": {
+        "x": 13160,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-publishing-cycle-round-3",
+      "name": "publishing-cycle-round-3",
+      "position": {
+        "x": 13440,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-3.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-publishing-cycle-state-4",
+      "name": "publishing-cycle-state-4",
+      "position": {
+        "x": 13720,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-publishing-cycle-round-4",
+      "name": "publishing-cycle-round-4",
+      "position": {
+        "x": 14000,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-4.output.artifacts.done == false]",
+        "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-publishing-cycle",
+      "name": "publishing-cycle",
+      "position": {
+        "x": 14280,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-check \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs publishing-loop-check \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-publish",
+      "name": "publish",
+      "position": {
+        "x": 14560,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs publish \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs publish \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "name": "end",
+      "position": {
+        "x": 14840,
+        "y": 0
+      },
+      "data": {
+        "label": "end"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-start-n-recover",
+      "from": "start",
+      "to": "n-recover",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-recover-n-research-state",
+      "from": "n-recover",
+      "to": "n-research-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-n-research",
+      "from": "n-research-state",
+      "to": "n-research",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-n-research-state-1",
+      "from": "n-research-state",
+      "to": "n-research-state-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-n-research-state-1",
+      "from": "n-research",
+      "to": "n-research-state-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-1-n-research-completion-1",
+      "from": "n-research-state-1",
+      "to": "n-research-completion-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-1-n-research-state-2",
+      "from": "n-research-state-1",
+      "to": "n-research-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-completion-1-n-research-state-2",
+      "from": "n-research-completion-1",
+      "to": "n-research-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-2-n-research-completion-2",
+      "from": "n-research-state-2",
+      "to": "n-research-completion-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-2-n-research-state-3",
+      "from": "n-research-state-2",
+      "to": "n-research-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-completion-2-n-research-state-3",
+      "from": "n-research-completion-2",
+      "to": "n-research-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-state-3-n-research-ready",
+      "from": "n-research-state-3",
+      "to": "n-research-ready",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-ready-n-identity",
+      "from": "n-research-ready",
+      "to": "n-identity",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-identity-n-script-cycle-state-1",
+      "from": "n-identity",
+      "to": "n-script-cycle-state-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-1-n-script-cycle-round-1",
+      "from": "n-script-cycle-state-1",
+      "to": "n-script-cycle-round-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-1-n-script-cycle-state-2",
+      "from": "n-script-cycle-state-1",
+      "to": "n-script-cycle-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-round-1-n-script-cycle-state-2",
+      "from": "n-script-cycle-round-1",
+      "to": "n-script-cycle-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-2-n-script-cycle-round-2",
+      "from": "n-script-cycle-state-2",
+      "to": "n-script-cycle-round-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-2-n-script-cycle-state-3",
+      "from": "n-script-cycle-state-2",
+      "to": "n-script-cycle-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-round-2-n-script-cycle-state-3",
+      "from": "n-script-cycle-round-2",
+      "to": "n-script-cycle-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-3-n-script-cycle-round-3",
+      "from": "n-script-cycle-state-3",
+      "to": "n-script-cycle-round-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-3-n-script-cycle-state-4",
+      "from": "n-script-cycle-state-3",
+      "to": "n-script-cycle-state-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-round-3-n-script-cycle-state-4",
+      "from": "n-script-cycle-round-3",
+      "to": "n-script-cycle-state-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-4-n-script-cycle-round-4",
+      "from": "n-script-cycle-state-4",
+      "to": "n-script-cycle-round-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-state-4-n-script-cycle",
+      "from": "n-script-cycle-state-4",
+      "to": "n-script-cycle",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-round-4-n-script-cycle",
+      "from": "n-script-cycle-round-4",
+      "to": "n-script-cycle",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-cycle-n-narration",
+      "from": "n-script-cycle",
+      "to": "n-narration",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-narration-n-prepare",
+      "from": "n-narration",
+      "to": "n-prepare",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-prepare-n-timing",
+      "from": "n-prepare",
+      "to": "n-timing",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-timing-n-audio-evidence",
+      "from": "n-timing",
+      "to": "n-audio-evidence",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-evidence-n-audio-review",
+      "from": "n-audio-evidence",
+      "to": "n-audio-review",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-review-n-audio-reviewed",
+      "from": "n-audio-review",
+      "to": "n-audio-reviewed",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-reviewed-n-sound",
+      "from": "n-audio-reviewed",
+      "to": "n-sound",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-sound-n-production-state",
+      "from": "n-sound",
+      "to": "n-production-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-state-n-register-director",
+      "from": "n-production-state",
+      "to": "n-register-director",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-state-n-direction",
+      "from": "n-production-state",
+      "to": "n-direction",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-register-director-n-direction",
+      "from": "n-register-director",
+      "to": "n-direction",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-state-n-series",
+      "from": "n-production-state",
+      "to": "n-series",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-direction-n-series",
+      "from": "n-direction",
+      "to": "n-series",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-state-n-register-scenes",
+      "from": "n-production-state",
+      "to": "n-register-scenes",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-series-n-register-scenes",
+      "from": "n-series",
+      "to": "n-register-scenes",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-state-n-production",
+      "from": "n-production-state",
+      "to": "n-production",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-register-scenes-n-production",
+      "from": "n-register-scenes",
+      "to": "n-production",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-state-n-delivery",
+      "from": "n-production-state",
+      "to": "n-delivery",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-n-delivery",
+      "from": "n-production",
+      "to": "n-delivery",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-delivery-n-thumbnail-cycle-state-1",
+      "from": "n-delivery",
+      "to": "n-thumbnail-cycle-state-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-1-n-thumbnail-cycle-round-1",
+      "from": "n-thumbnail-cycle-state-1",
+      "to": "n-thumbnail-cycle-round-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-1-n-thumbnail-cycle-state-2",
+      "from": "n-thumbnail-cycle-state-1",
+      "to": "n-thumbnail-cycle-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-round-1-n-thumbnail-cycle-state-2",
+      "from": "n-thumbnail-cycle-round-1",
+      "to": "n-thumbnail-cycle-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-2-n-thumbnail-cycle-round-2",
+      "from": "n-thumbnail-cycle-state-2",
+      "to": "n-thumbnail-cycle-round-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-2-n-thumbnail-cycle-state-3",
+      "from": "n-thumbnail-cycle-state-2",
+      "to": "n-thumbnail-cycle-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-round-2-n-thumbnail-cycle-state-3",
+      "from": "n-thumbnail-cycle-round-2",
+      "to": "n-thumbnail-cycle-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-3-n-thumbnail-cycle-round-3",
+      "from": "n-thumbnail-cycle-state-3",
+      "to": "n-thumbnail-cycle-round-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-3-n-thumbnail-cycle-state-4",
+      "from": "n-thumbnail-cycle-state-3",
+      "to": "n-thumbnail-cycle-state-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-round-3-n-thumbnail-cycle-state-4",
+      "from": "n-thumbnail-cycle-round-3",
+      "to": "n-thumbnail-cycle-state-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-4-n-thumbnail-cycle-round-4",
+      "from": "n-thumbnail-cycle-state-4",
+      "to": "n-thumbnail-cycle-round-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-state-4-n-thumbnail-cycle",
+      "from": "n-thumbnail-cycle-state-4",
+      "to": "n-thumbnail-cycle",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-round-4-n-thumbnail-cycle",
+      "from": "n-thumbnail-cycle-round-4",
+      "to": "n-thumbnail-cycle",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-cycle-n-publishing-cycle-state-1",
+      "from": "n-thumbnail-cycle",
+      "to": "n-publishing-cycle-state-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-1-n-publishing-cycle-round-1",
+      "from": "n-publishing-cycle-state-1",
+      "to": "n-publishing-cycle-round-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-1-n-publishing-cycle-state-2",
+      "from": "n-publishing-cycle-state-1",
+      "to": "n-publishing-cycle-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-round-1-n-publishing-cycle-state-2",
+      "from": "n-publishing-cycle-round-1",
+      "to": "n-publishing-cycle-state-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-2-n-publishing-cycle-round-2",
+      "from": "n-publishing-cycle-state-2",
+      "to": "n-publishing-cycle-round-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-2-n-publishing-cycle-state-3",
+      "from": "n-publishing-cycle-state-2",
+      "to": "n-publishing-cycle-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-round-2-n-publishing-cycle-state-3",
+      "from": "n-publishing-cycle-round-2",
+      "to": "n-publishing-cycle-state-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-3-n-publishing-cycle-round-3",
+      "from": "n-publishing-cycle-state-3",
+      "to": "n-publishing-cycle-round-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-3-n-publishing-cycle-state-4",
+      "from": "n-publishing-cycle-state-3",
+      "to": "n-publishing-cycle-state-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-round-3-n-publishing-cycle-state-4",
+      "from": "n-publishing-cycle-round-3",
+      "to": "n-publishing-cycle-state-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-4-n-publishing-cycle-round-4",
+      "from": "n-publishing-cycle-state-4",
+      "to": "n-publishing-cycle-round-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-state-4-n-publishing-cycle",
+      "from": "n-publishing-cycle-state-4",
+      "to": "n-publishing-cycle",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-round-4-n-publishing-cycle",
+      "from": "n-publishing-cycle-round-4",
+      "to": "n-publishing-cycle",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-publishing-cycle-n-publish",
+      "from": "n-publishing-cycle",
+      "to": "n-publish",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-publish",
+      "from": "n-publish",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    }
+  ],
+  "createdAt": "2026-11-06T00:00:00.000Z",
+  "updatedAt": "2026-11-06T00:00:00.000Z"
+}

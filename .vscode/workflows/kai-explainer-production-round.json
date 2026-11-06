@@ -1,0 +1,288 @@
+{
+  "id": "kai-explainer-production-round",
+  "name": "kai-explainer-production-round",
+  "description": "One explicit production pass; called by kai-explainer.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "name": "start",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "start"
+      }
+    },
+    {
+      "id": "n-creative-review",
+      "name": "creative-review",
+      "position": {
+        "x": 280,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "sub-workflow: kai-explainer-creative-review-round",
+        "prompt": "Run Archon sub-workflow `kai-explainer-creative-review-round` (see kai-explainer-creative-review-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      }
+    },
+    {
+      "id": "n-film-gate",
+      "name": "film-gate",
+      "position": {
+        "x": 560,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"film\"});"
+      }
+    },
+    {
+      "id": "n-film-attention",
+      "name": "film-attention",
+      "position": {
+        "x": 840,
+        "y": 0
+      },
+      "type": "askUserQuestion",
+      "data": {
+        "questionText": "Watch $film-gate.output.artifacts.view and review $film-gate.output.artifacts.artifact for $INPUTS.project. Binding: $film-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback. [when: $film-gate.output.artifacts.needsAnswer == true]",
+        "options": [
+          {
+            "id": "opt-0",
+            "label": "Approve",
+            "description": "approve"
+          },
+          {
+            "id": "opt-1",
+            "label": "Request changes",
+            "description": "revise"
+          },
+          {
+            "id": "opt-2",
+            "label": "Stop",
+            "description": "reject"
+          }
+        ],
+        "outputPorts": 3
+      }
+    },
+    {
+      "id": "n-film-answer",
+      "name": "film-answer",
+      "position": {
+        "x": 1120,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\"); [when: $film-gate.output.artifacts.needsAnswer == true]",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"checkpoint\", {kind:\"film\", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});"
+      }
+    },
+    {
+      "id": "n-film-stop",
+      "name": "film-stop",
+      "position": {
+        "x": 1400,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "cancel [when: $film-answer.output.artifacts.rejected == true]",
+        "prompt": "Operator stopped this production; retained artifacts remain available."
+      }
+    },
+    {
+      "id": "n-film-accepted",
+      "name": "film-accepted",
+      "position": {
+        "x": 1400,
+        "y": 140
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"film\"});"
+      }
+    },
+    {
+      "id": "n-render",
+      "name": "render",
+      "position": {
+        "x": 1680,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs render \"$INPUTS_PROJECT\" [when: $film-accepted.output.artifacts.approved == true || $film-accepted.output.artifacts.required == false]",
+        "prompt": "node scripts/archon/kai-explainer.mjs render \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-verify",
+      "name": "verify",
+      "position": {
+        "x": 1960,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs verify \"$INPUTS_PROJECT\" --route",
+        "prompt": "node scripts/archon/kai-explainer.mjs verify \"$INPUTS_PROJECT\" --route"
+      }
+    },
+    {
+      "id": "n-production-result",
+      "name": "production-result",
+      "position": {
+        "x": 2240,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs production-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/kai-explainer.mjs production-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-round-result",
+      "name": "round-result",
+      "position": {
+        "x": 2520,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/kai-explainer.mjs production-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "name": "end",
+      "position": {
+        "x": 2800,
+        "y": 0
+      },
+      "data": {
+        "label": "end"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-start-n-creative-review",
+      "from": "start",
+      "to": "n-creative-review",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-creative-review-n-film-gate",
+      "from": "n-creative-review",
+      "to": "n-film-gate",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-gate-n-film-attention",
+      "from": "n-film-gate",
+      "to": "n-film-attention",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-gate-n-film-answer",
+      "from": "n-film-gate",
+      "to": "n-film-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-attention-n-film-answer",
+      "from": "n-film-attention",
+      "to": "n-film-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-answer-n-film-stop",
+      "from": "n-film-answer",
+      "to": "n-film-stop",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-gate-n-film-accepted",
+      "from": "n-film-gate",
+      "to": "n-film-accepted",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-answer-n-film-accepted",
+      "from": "n-film-answer",
+      "to": "n-film-accepted",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-accepted-n-render",
+      "from": "n-film-accepted",
+      "to": "n-render",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-render-n-verify",
+      "from": "n-render",
+      "to": "n-verify",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-film-accepted-n-production-result",
+      "from": "n-film-accepted",
+      "to": "n-production-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-verify-n-production-result",
+      "from": "n-verify",
+      "to": "n-production-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-production-result-n-round-result",
+      "from": "n-production-result",
+      "to": "n-round-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-film-stop",
+      "from": "n-film-stop",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-round-result",
+      "from": "n-round-result",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    }
+  ],
+  "createdAt": "2026-11-06T00:00:00.000Z",
+  "updatedAt": "2026-11-06T00:00:00.000Z"
+}

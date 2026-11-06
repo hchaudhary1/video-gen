@@ -1,0 +1,253 @@
+{
+  "id": "kai-explainer-build-cycle",
+  "name": "kai-explainer-build-cycle",
+  "description": "Bounded technical build and repair; no independent review or creative revision.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "name": "start",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "start"
+      }
+    },
+    {
+      "id": "n-register-repair",
+      "name": "register-repair",
+      "position": {
+        "x": 280,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"producer\", {role:\"technical-repair\",runId:process.env.INPUTS_RUN});"
+      }
+    },
+    {
+      "id": "n-build-1",
+      "name": "build-1",
+      "position": {
+        "x": 560,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route",
+        "prompt": "node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route"
+      }
+    },
+    {
+      "id": "n-repair-1",
+      "name": "repair-1",
+      "position": {
+        "x": 840,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node repair-1 [when: $build-1.output.status == 'repair']",
+        "agentDefinition": "Archon node `repair-1` in kai-explainer-build-cycle. Completes only its assigned work.",
+        "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/kai-explainer/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-1.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-build-2",
+      "name": "build-2",
+      "position": {
+        "x": 1120,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route",
+        "prompt": "node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route"
+      }
+    },
+    {
+      "id": "n-repair-2",
+      "name": "repair-2",
+      "position": {
+        "x": 1400,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node repair-2 [when: $build-2.output.status == 'repair']",
+        "agentDefinition": "Archon node `repair-2` in kai-explainer-build-cycle. Completes only its assigned work.",
+        "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/kai-explainer/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-2.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-build-3",
+      "name": "build-3",
+      "position": {
+        "x": 1680,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route",
+        "prompt": "node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route"
+      }
+    },
+    {
+      "id": "n-repair-3",
+      "name": "repair-3",
+      "position": {
+        "x": 1960,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node repair-3 [when: $build-3.output.status == 'repair']",
+        "agentDefinition": "Archon node `repair-3` in kai-explainer-build-cycle. Completes only its assigned work.",
+        "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/kai-explainer/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-3.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-build-4",
+      "name": "build-4",
+      "position": {
+        "x": 2240,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route",
+        "prompt": "node scripts/archon/kai-explainer.mjs build \"$INPUTS_PROJECT\" --route"
+      }
+    },
+    {
+      "id": "n-result",
+      "name": "result",
+      "position": {
+        "x": 2520,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/kai-explainer.mjs build-check \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/kai-explainer.mjs build-check \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "name": "end",
+      "position": {
+        "x": 2800,
+        "y": 0
+      },
+      "data": {
+        "label": "end"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-start-n-register-repair",
+      "from": "start",
+      "to": "n-register-repair",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-register-repair-n-build-1",
+      "from": "n-register-repair",
+      "to": "n-build-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-1-n-repair-1",
+      "from": "n-build-1",
+      "to": "n-repair-1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-1-n-build-2",
+      "from": "n-build-1",
+      "to": "n-build-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-repair-1-n-build-2",
+      "from": "n-repair-1",
+      "to": "n-build-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-2-n-repair-2",
+      "from": "n-build-2",
+      "to": "n-repair-2",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-2-n-build-3",
+      "from": "n-build-2",
+      "to": "n-build-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-repair-2-n-build-3",
+      "from": "n-repair-2",
+      "to": "n-build-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-3-n-repair-3",
+      "from": "n-build-3",
+      "to": "n-repair-3",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-3-n-build-4",
+      "from": "n-build-3",
+      "to": "n-build-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-repair-3-n-build-4",
+      "from": "n-repair-3",
+      "to": "n-build-4",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-4-n-result",
+      "from": "n-build-4",
+      "to": "n-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-result",
+      "from": "n-result",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    }
+  ],
+  "createdAt": "2026-11-06T00:00:00.000Z",
+  "updatedAt": "2026-11-06T00:00:00.000Z"
+}

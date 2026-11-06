@@ -1,0 +1,282 @@
+{
+  "id": "rules-story-thumbnail-cycle-round",
+  "name": "rules-story-thumbnail-cycle-round",
+  "description": "One explicit thumbnail-cycle pass; called by rules-story.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "name": "start",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "start"
+      }
+    },
+    {
+      "id": "n-thumbnail-generate",
+      "name": "thumbnail-generate",
+      "position": {
+        "x": 280,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node thumbnail-generate",
+        "agentDefinition": "Archon node `thumbnail-generate` in rules-story-thumbnail-cycle-round. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead docs/publishing.md. Make or repair variants at the saved canvas dimensions. Use lib/thumbnails.mjs exportThumbnail for full PNG and feed preview. Read thumbnailStatus for requested count and per-variant feedback; preserve unchanged passing variants. Write BRIEF.md with Title, Headline, Description and original editable SVG with actual heavy fonts. Use the pinned local node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2 for heavy type; embed the actual font in the editable SVG. Do not search the web for a font. Inspect and export actual files, not a plan. Do not review your own variants.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-thumbnail-review",
+      "name": "thumbnail-review",
+      "position": {
+        "x": 560,
+        "y": 0
+      },
+      "type": "subAgent",
+      "data": {
+        "description": "Archon agent node thumbnail-review",
+        "agentDefinition": "Archon node `thumbnail-review` in rules-story-thumbnail-cycle-round. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nYour actual assignment is thumbnail review, not workflow discovery. Call thumbnailStatus(job) from lib/thumbnails.mjs, where job is jobs/$INPUTS.project. Open each returned thumbnail.png and preview file using the native view_image tool; these are local files. Read personalities/rules-story/PROFILE.md, not a nonexistent project PROFILE.md. Independently view every made thumbnail PNG and feed preview. Use recordVerdict and recordRanking from lib/thumbnails.mjs with reviewer $WORKFLOW_ID:thumbnail-reviewer. Add actionable blocked findings as reviewer feedback with addThumbnailFeedback. Preserve all findings and rank only current passing variants. No claimed CTR measurements. Read the actual function signatures and finish the verdict/ranking library calls before returning. A summary of what you still need to read is not completion. Missing viewing capability must be recorded honestly as a blocked verdict, never an invented pass.",
+        "agentType": "other",
+        "outputPorts": 1
+      }
+    },
+    {
+      "id": "n-thumbnail-join",
+      "name": "thumbnail-join",
+      "position": {
+        "x": 840,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-status \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-status \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-thumbnail-gate",
+      "name": "thumbnail-gate",
+      "position": {
+        "x": 1120,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"gate\", {kind:\"thumbnail\"});"
+      }
+    },
+    {
+      "id": "n-thumbnail-attention",
+      "name": "thumbnail-attention",
+      "position": {
+        "x": 1400,
+        "y": 0
+      },
+      "type": "askUserQuestion",
+      "data": {
+        "questionText": "Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbnail-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback. [when: $thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true]",
+        "options": [
+          {
+            "id": "opt-0",
+            "label": "decision",
+            "description": "Options resolved at run time from $thumbnail-gate.output.artifacts.options"
+          },
+          {
+            "id": "opt-1",
+            "label": "revise",
+            "description": "Operator feedback required"
+          }
+        ],
+        "outputPorts": 2
+      }
+    },
+    {
+      "id": "n-thumbnail-answer",
+      "name": "thumbnail-answer",
+      "position": {
+        "x": 1680,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true]",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"checkpoint\", {kind:\"thumbnail\", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});"
+      }
+    },
+    {
+      "id": "n-thumbnail-stop",
+      "name": "thumbnail-stop",
+      "position": {
+        "x": 1960,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "cancel [when: $thumbnail-answer.output.artifacts.rejected == true]",
+        "prompt": "Operator stopped this production; retained artifacts remain available."
+      }
+    },
+    {
+      "id": "n-thumbnail-accepted",
+      "name": "thumbnail-accepted",
+      "position": {
+        "x": 1960,
+        "y": 140
+      },
+      "type": "prompt",
+      "data": {
+        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"gate\", {kind:\"thumbnail\"});"
+      }
+    },
+    {
+      "id": "n-selection",
+      "name": "selection",
+      "position": {
+        "x": 2240,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-select \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-select \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "n-round-result",
+      "name": "round-result",
+      "position": {
+        "x": 2520,
+        "y": 0
+      },
+      "type": "prompt",
+      "data": {
+        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      }
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "name": "end",
+      "position": {
+        "x": 2800,
+        "y": 0
+      },
+      "data": {
+        "label": "end"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c-start-n-thumbnail-generate",
+      "from": "start",
+      "to": "n-thumbnail-generate",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-generate-n-thumbnail-review",
+      "from": "n-thumbnail-generate",
+      "to": "n-thumbnail-review",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-review-n-thumbnail-join",
+      "from": "n-thumbnail-review",
+      "to": "n-thumbnail-join",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-join-n-thumbnail-gate",
+      "from": "n-thumbnail-join",
+      "to": "n-thumbnail-gate",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-gate-n-thumbnail-attention",
+      "from": "n-thumbnail-gate",
+      "to": "n-thumbnail-attention",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-gate-n-thumbnail-answer",
+      "from": "n-thumbnail-gate",
+      "to": "n-thumbnail-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-attention-n-thumbnail-answer",
+      "from": "n-thumbnail-attention",
+      "to": "n-thumbnail-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-answer-n-thumbnail-stop",
+      "from": "n-thumbnail-answer",
+      "to": "n-thumbnail-stop",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-gate-n-thumbnail-accepted",
+      "from": "n-thumbnail-gate",
+      "to": "n-thumbnail-accepted",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-answer-n-thumbnail-accepted",
+      "from": "n-thumbnail-answer",
+      "to": "n-thumbnail-accepted",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-accepted-n-selection",
+      "from": "n-thumbnail-accepted",
+      "to": "n-selection",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-selection-n-round-result",
+      "from": "n-selection",
+      "to": "n-round-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-thumbnail-stop",
+      "from": "n-thumbnail-stop",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-end-n-round-result",
+      "from": "n-round-result",
+      "to": "end",
+      "fromPort": "output",
+      "toPort": "input"
+    }
+  ],
+  "createdAt": "2026-11-06T00:00:00.000Z",
+  "updatedAt": "2026-11-06T00:00:00.000Z"
+}
