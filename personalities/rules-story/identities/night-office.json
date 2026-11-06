@@ -21,7 +21,7 @@
       4
     ]
   },
-  "counter": 2,
+  "counter": 3,
   "issues": [
     {
       "number": 1,
@@ -47,6 +47,12 @@
       "number": 2,
       "project": "last-lift",
       "at": "2026-11-03T14:44:23.140Z"
+    },
+    {
+      "number": 3,
+      "project": "night-train-001",
+      "format": "landscape",
+      "at": "2026-11-06T15:26:41.473Z"
     }
   ],
   "createdAt": "2026-11-01T00:00:00.000Z"

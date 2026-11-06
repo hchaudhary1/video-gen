@@ -185,3 +185,66 @@ test('Kai direct nodes retain recording, reuse narration/render and reject stale
   await writeFile(voicePaths(loadProject(job), 'intro').wav, 'Changed take');
   await assert.rejects(op('narration'), /narration\/timing changed/);
 });
+test('Kai narration duration miss routes to one script fix, regenerates once and continues', async (t) => {
+  const slug = 'kai-duration-' + randomUUID().slice(0, 8);
+  const dir = path.join(root, 'jobs/scripts', slug), job = path.join(root, 'jobs', slug);
+  t.after(async () => { for (const f of [dir, job]) await rm(f, { recursive: true, force: true }); });
+  await run('init', slug, { brief: 'Synthetic duration fixture brief.', review: 'none', optOut: true, duration: 10 });
+  await writeFile(path.join(dir, 'SCRIPT.md'), '# Synthetic fixture\n\n## intro\nOne two three four five six seven eight.');
+  await writeFile(path.join(dir, 'VISUALS.md'), 'Synthetic visual intent fixture.');
+  const ctx = { root, dir, job, project: JSON.parse(await readFile(path.join(dir, 'project.json'))) };
+  await writeFile(path.join(dir, 'review.md'),
+    `Binding: ${await scriptBinding(dir)}\nDisposition: pass\nSynthetic fixture judgment, not an actual creative review.`);
+  await stageOperation('script-reviewed', ctx, { expected: await scriptBinding(dir) });
+  let measured = 20, preparations = 0;
+  const media = {
+    loadProject, voicePaths,
+    prepare: async (p) => {
+      preparations++;
+      await mkdir(p.paths.voice, { recursive: true });
+      await writeFile(voicePaths(p, 'intro').wav, 'SYNTHETIC take ' + preparations);
+      await saveJSON(voicePaths(p, 'intro').json, { id: 'intro', duration: measured, matchRate: 1 });
+      const timeline = { duration: measured, scenes: [{ id: 'intro', start: 0, dur: measured }] };
+      await saveJSON(path.join(job, 'build/timeline.json'), timeline);
+      return { timeline };
+    },
+  };
+  const first = await run('narration', slug, {}, { media });
+  assert.equal(first.status, 'repair');
+  assert.equal(first.artifacts.reason, 'duration');
+  assert.equal(first.artifacts.targetWords, 4);
+  // The fix node trims the script; the final attempt binds that revision without a review.
+  await writeFile(path.join(dir, 'SCRIPT.md'), '# Synthetic fixture\n\n## intro\nOne two three four.');
+  measured = 13;
+  const final = await run('narration', slug, { final: true }, { media });
+  assert.equal(final.status, 'complete');
+  assert.equal(preparations, 2);
+  const revision = JSON.parse(await readFile(path.join(dir, 'archon/script-revision.json')));
+  assert.equal(revision.mode, 'duration-fix');
+  assert.equal((await stageOperation('script-ready', ctx, {})).done, true);
+  const receipt = JSON.parse(await readFile(path.join(job, 'review/kai-narration.json')));
+  assert.equal(receipt.duration, 13);
+  // 13 s is still outside 8–12 s after the fix round: production continues and discloses it.
+  assert.match(receipt.durationMiss, /13\.0 s against the 10 s target/);
+  const { listContinuations } = await import('../lib/acceptance.mjs');
+  assert.deepEqual((await listContinuations(job)).map((e) => e.stage), ['narration-duration']);
+  assert.equal(await readFile(path.join(job, 'script.md'), 'utf8'), await readFile(path.join(dir, 'SCRIPT.md'), 'utf8'));
+  // The earlier take is retained, not deleted.
+  const { readdir } = await import('node:fs/promises');
+  assert.equal((await readdir(path.join(job, 'review/narration-attempts'))).length, 1);
+});
+
+test('Kai verification routes issues to one fix and accepts what remains; fatal problems still stop', async () => {
+  const { verificationProblems } = await import('../scripts/archon/kai-explainer.mjs');
+  const manifest = { width: 1920, height: 1080, fps: 30, duration: 2 };
+  const report = {
+    video: { width: 1920, height: 1080, fps: '30/1' }, audio: { codec: 'aac' }, duration: 2,
+    speech: { matchRate: 0.99, scenes: [{ matchRate: 0.99 }] }, issues: [],
+  };
+  assert.deepEqual(verificationProblems(report, manifest), { fatal: [], issues: [] });
+  assert.equal(verificationProblems({ ...report, issues: [{ level: 'warn', message: 'black frame' }] }, manifest).issues.length, 1);
+  assert.equal(verificationProblems({ ...report, speech: { matchRate: 0.7, scenes: [{ matchRate: 0.7 }] } }, manifest).fatal.length, 0);
+  for (const bad of [{ ...report, audio: null }, { ...report, video: { ...report.video, width: 720 } },
+    { ...report, duration: 9 }, { ...report, speech: { matchRate: 0.2 } }])
+    assert.ok(verificationProblems(bad, manifest).fatal.length, JSON.stringify(bad));
+});

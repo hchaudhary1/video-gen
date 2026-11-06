@@ -28,6 +28,12 @@ Read only the reference relevant to your role. The writer can request missing ev
 
 `node skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text. Estimate
 speaking duration from word count when useful, then measure the actual generated recording.
+When the measured take misses the brief's target by more than 20% (minimum 2 s), the
+narration goes back for one resize and then continues at whatever length it measures, so
+size the script to the target, not to the brief's outer range. The default
+Kokoro voice is slower than conversational speech: the RIDAR film measured about 1,228
+spoken words at 522 s (about 141 words per minute), while reviewers had estimated 150–165.
+Plan on roughly 140 words per minute, about 2.35 words per second of target, and leave margin.
 
 The host commissions independent script review. Report what you produced, word count, duration estimate,
 review status and any unresolved evidence. A self-check is not independent review.

@@ -82,22 +82,30 @@ test("96.1% speech with two unconfirmed words is reviewable and cannot be reject
     false,
   );
 });
-test("audio review fails weak coverage, reviewer rejection and changed audio or script", async (t) => {
+test("audio review routes weak coverage to one fix, then accepts above the floor or fails below it", async (t) => {
   const weak = await fixture(t, 0.89),
     weakEvidence = await audioEvidence(weak);
+  const first = await saveAudioReview(weak, { expected: weakEvidence.binding, report });
+  assert.equal(first.status, "repair");
+  await assert.rejects(assertAudioReview(weak), /Current passing or accepted audio review required/);
+  const accepted = await saveAudioReview(weak, { expected: weakEvidence.binding, report, final: true });
+  assert.equal(accepted.status, "complete");
+  assert.equal(accepted.accepted, true);
+  assert.match(accepted.acceptedLimitations.join(" "), /after the one fix round/);
+  assert.equal((await assertAudioReview(weak)).accepted, true);
+  const missing = await fixture(t, 0.3),
+    missingEvidence = await audioEvidence(missing);
+  assert.equal((await saveAudioReview(missing, { expected: missingEvidence.binding, report })).status, "repair");
   await assert.rejects(
-    saveAudioReview(weak, { expected: weakEvidence.binding, report }),
-    /Audio review failed/,
+    saveAudioReview(missing, { expected: missingEvidence.binding, report, final: true }),
+    /below the 50% speech floor/,
   );
   const ctx = await fixture(t),
     evidence = await audioEvidence(ctx);
-  await assert.rejects(
-    saveAudioReview(ctx, {
-      expected: evidence.binding,
-      report: { ...report, pass: false },
-    }),
-    /Audio review failed/,
-  );
+  assert.equal((await saveAudioReview(ctx, {
+    expected: evidence.binding,
+    report: { ...report, pass: false },
+  })).status, "repair");
   await assert.rejects(
     saveAudioReview(ctx, { expected: "stale", report }),
     /changed during review/,
@@ -106,7 +114,7 @@ test("audio review fails weak coverage, reviewer rejection and changed audio or 
   await writeFile(path.join(ctx.dir, "SCRIPT.md"), "Changed narration text");
   await assert.rejects(
     assertAudioReview(ctx),
-    /Current passing audio review required/,
+    /Current passing or accepted audio review required/,
   );
   await writeFile(path.join(ctx.job, "build/voice/scene.wav"), "Changed take");
   await assert.rejects(audioEvidence(ctx), /Narration changed/);

@@ -1,13 +1,13 @@
 name: rules-story-build-cycle
-description: "Bounded technical build and repair; no independent review or creative revision."
+description: One technical build, one repair when it reports issues, one final build; no independent review or creative revision.
 worktree:
   enabled: false
 inputs:
   project:
-    description: "Explicit project slug"
+    description: Explicit project slug
     required: true
   phase:
-    description: "pre-review or post-revision; repairs must remain technical"
+    description: pre-review or post-revision; repairs must remain technical
     default: pre-review
 nodes:
 - id: register-repair
@@ -18,30 +18,38 @@ nodes:
     const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
     await emit("producer", {role:"technical-repair",runId:process.env.INPUTS_RUN});
   with:
-    run: "$WORKFLOW_ID"
-- id: build-loop
+    run: $WORKFLOW_ID
+- id: build
   depends_on:
   - register-repair
-  loop_group:
-    max_iterations: 4
-    until_bash: "status=$build.output.status; [ \"$status\" = complete ]"
-    nodes:
-    - id: repair
-      when: "$LOOP_PREV.build.output.status == 'repair'"
-      context: fresh
-      prompt: "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-$INPUTS.phase.md, appending a new section for this pass and keeping earlier sections. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair."
-      retry:
-        max_attempts: 2
-        on_error: transient
-    - id: build
-      depends_on:
-      - repair
-      always_run: true
-      bash: "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
-      trigger_rule: all_done
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route
+  retry:
+    max_attempts: 1
+    on_error: all
+- id: repair
+  depends_on:
+  - build
+  when: $build.output.status == 'repair'
+  context: fresh
+  prompt: 'You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-$INPUTS.phase.md, appending a new section for this pass and keeping earlier sections. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair. This is the ONE technical repair round: the build runs once more afterwards, and any issue it still reports is accepted and disclosed rather than repaired again, so fix every reported error now. A scene module the engine cannot load still stops production.'
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: build-final
+  depends_on:
+  - repair
+  when: $build.output.status == 'repair'
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" '{"final":true}' --route
+  retry:
+    max_attempts: 1
+    on_error: all
 - id: result
   depends_on:
-  - build-loop
+  - build
+  - build-final
   always_run: true
-  bash: "node scripts/archon/rules-story.mjs build-check \"$INPUTS_PROJECT\""
+  bash: node scripts/archon/rules-story.mjs build-check "$INPUTS_PROJECT"
+  trigger_rule: none_failed_min_one_success
 returns: result

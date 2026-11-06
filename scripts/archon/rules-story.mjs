@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import { assertAudioReview } from './audio-review.mjs';
 import path from 'node:path';
-import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, access, rename } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createProject, loadProject } from '../../lib/project.mjs';
-import { stageOperation, saveJSON } from './stages.mjs';
+import { stageOperation, saveJSON, scriptBinding, scriptFixAllowed, recordScriptRevision } from './stages.mjs';
+import { acceptBuild, buildUsable, recordContinuation } from '../../lib/acceptance.mjs';
+import { verifySpeech } from '../../lib/speech.mjs';
 import { prepare, finishPreparation, verify, hf } from './media.mjs';
 import { assertSpeechEvidence } from '../../lib/speech.mjs';
 import { extractNarration } from '../../lib/timing.mjs';
@@ -49,8 +51,9 @@ export function assertFreshBuild(build, sourceHash) {
   if (!build?.ok || build.scope !== 'all' || build.sourceHash !== sourceHash)
     throw new Error('Successful current full build required before freeze');
 }
+// `accepted` pixels are the encoded result after the one technical fix round, disclosed in delivery.
 export function assertFreshPixels(pixels, sourceHash, videoSha256) {
-  if (!pixels?.ok || pixels.sourceHash !== sourceHash || pixels.videoSha256 !== videoSha256)
+  if ((!pixels?.ok && !pixels?.accepted) || pixels.sourceHash !== sourceHash || pixels.videoSha256 !== videoSha256)
     throw new Error('Current passing encoded pixel evidence required');
 }
 async function verifyCurrent(job) {
@@ -83,8 +86,16 @@ export async function run(stage, slug, options = {}) {
   let value = {};
   const ctx = { root, dir, job, project };
   if (['build','freeze','render','verify','deliver'].includes(stage)) await assertAudioReview(ctx);
+  // A low-coverage generated take is redone once (Ming varies between takes); supplied
+  // recordings and the redone take go straight to the final check.
+  if (stage === 'audio-review') {
+    const redone = await exists(path.join(dir, 'archon/narration-redo.json'));
+    const routed = await stageOperation('audio-review', ctx, { final: options.final === true || redone || Boolean(project.audio) });
+    return { version: 1, status: routed.status === 'repair' ? 'repair' : 'complete', stage, artifacts: routed };
+  }
   const routed = await stageOperation(stage, ctx, options);
-  if (routed !== undefined) return { version: 1, status: 'complete', stage, artifacts: routed };
+  if (routed !== undefined)
+    return { version: 1, status: routed?.status === 'repair' ? 'repair' : 'complete', stage, artifacts: routed };
   const script = path.join(dir, 'SCRIPT.md'),
     audio = project.audio ? path.resolve(root, project.audio) : path.join(dir, 'narration.wav');
   if (stage === 'init') {
@@ -94,6 +105,15 @@ export async function run(stage, slug, options = {}) {
     }
     value = { project, scriptSupplied: Boolean(project.inputScript), audioSupplied: Boolean(project.audio) };
   } else if (stage === 'narration') {
+    // `final` is the take after the one fix round: no duration target, and a speech
+    // mismatch is measured and disclosed by the audio review instead of rejected here.
+    const final = options.final === true;
+    const repairFile = path.join(dir, 'archon/narration-repair.json');
+    const repair = await json(repairFile).catch(() => null);
+    if (repair && !repair.recorded && repair.reason === 'duration' && repair.scriptSha256 !== (await fileHash(script))) {
+      await recordScriptRevision(ctx, { mode: 'duration-fix', reason: repair.detail, priorBinding: repair.binding });
+      await save(repairFile, { ...repair, recorded: true });
+    }
     const ready = await stageOperation('script-ready', ctx, {});
     if (!ready.done) throw new Error('Current independent script review required');
     const approval = await stageOperation('gate', ctx, { kind: 'script' });
@@ -108,17 +128,52 @@ export async function run(stage, slug, options = {}) {
           throw new Error(
             'Approved narration exists but inputs changed; operator must archive it before generating another take',
           );
-        await generateSpeech({
-          text,
-          output: audio,
-          provider: 'ming',
-          narration: true,
-          targetSeconds: project.duration || undefined,
-        });
-        await save(receipt, { script: key, audio: await fileHash(audio) });
+        try {
+          await generateSpeech({
+            text,
+            output: audio,
+            provider: 'ming',
+            narration: true,
+            targetSeconds: final ? undefined : project.duration || undefined,
+          }, final ? { verify: async (args) => ({ ...(await verifySpeech(args)), ok: true }) } : {});
+        } catch (error) {
+          const status = await json(path.join(path.dirname(audio), 'tts-status.json')).catch(() => ({}));
+          const measured = status.durationSeconds;
+          const duration = /^Narration is [\d.]+s; target is/.test(error.message);
+          const speech = /speech verification failed/.test(error.message);
+          if (final || !(duration || speech)) throw error;
+          const artifacts = { reason: duration ? 'duration' : 'speech', detail: error.message, measured,
+            target: project.duration || null, scriptSha256: await fileHash(script), binding: await scriptBinding(dir),
+            // Only a duration miss changes the text; a speech mismatch is simply re-taken.
+            needsScriptFix: duration && scriptFixAllowed(project) };
+          await save(repairFile, { version: 1, ...artifacts });
+          return { version: 1, status: 'repair', stage, artifacts };
+        }
+        const status = await json(path.join(path.dirname(audio), 'tts-status.json')).catch(() => ({}));
+        // The job folder does not exist yet; `prepare` records this as a continuation.
+        const durationMiss = final && project.duration &&
+            Math.abs((status.durationSeconds || 0) - project.duration) > Math.max(2, project.duration * 0.2)
+          ? `Measured narration is ${status.durationSeconds?.toFixed(1)} s against the ${project.duration} s target after the fix round.`
+          : null;
+        await save(receipt, { script: key, audio: await fileHash(audio), ...(durationMiss ? { durationMiss } : {}) });
       }
     }
-    value = { audio, sha256: await fileHash(audio) };
+    value = { audio, sha256: await fileHash(audio), needsScriptFix: false };
+  } else if (stage === 'audio-redo') {
+    // The one fix round for a generated take below the speech threshold: retain the
+    // earlier take and its preparation, then generate, prepare and time a new take.
+    if (project.audio) throw new Error('Supplied recordings are never re-taken');
+    const manifest = await json(path.join(job, 'job.json')).catch(() => ({}));
+    if (manifest.review?.producerAgentIds?.length) throw new Error('Production has started; the approved take is retained');
+    const attempt = path.join(dir, 'archon/attempts', new Date().toISOString().replace(/[:.]/g, '-'));
+    await mkdir(attempt, { recursive: true });
+    for (const [from, to] of [[job, 'job'], [audio, 'narration.wav'], [path.join(dir, 'archon/narration.json'), 'narration.json']])
+      if (await exists(from)) await rename(from, path.join(attempt, to));
+    await save(path.join(dir, 'archon/narration-redo.json'), { version: 1, attempt: path.relative(root, attempt), at: new Date().toISOString() });
+    await run('narration', slug, { final: true });
+    await run('prepare', slug);
+    await run('asr-timing', slug);
+    value = { attempt: path.relative(root, attempt) };
   } else if (stage === 'prepare') {
     if (!(await exists(path.join(job, 'job.json'))))
       await prepare({
@@ -137,6 +192,9 @@ export async function run(stage, slug, options = {}) {
       throw new Error('Source audio changed; explicit preparation migration required');
     if (manifest.audio.sha256 !== (await fileHash(path.join(job, manifest.audio.path))))
       throw new Error('Prepared narration changed');
+    const narrationReceipt = await json(path.join(dir, 'archon/narration.json')).catch(() => null);
+    if (narrationReceipt?.durationMiss)
+      await recordContinuation(job, { stage: 'narration-duration', binding: narrationReceipt.script, reason: narrationReceipt.durationMiss });
     manifest.orchestrator = 'archon';
     manifest.humanReview = project.review.includes('final') ? ['final'] : [];
     manifest.pickThumbnail = project.review.includes('thumbnail');
@@ -167,18 +225,35 @@ export async function run(stage, slug, options = {}) {
       await save(receipt, { version: 1, inputs, outputs: await fingerprints() });
     }
     value = { job };
-  } else if (stage === 'series') value = await prepareSeries(job);
-  else if (stage === 'build') {
+  } else if (stage === 'series') {
+    try {
+      value = await prepareSeries(job);
+    } catch (error) {
+      // An invalid direction gets one fix by the director before production continues.
+      if (options.final === true || /no series file number/.test(error.message)) throw error;
+      await saveJSON(path.join(job, 'review/series-repair.json'), { version: 1, error: error.message });
+      return { version: 1, status: 'repair', stage, artifacts: { error: error.message } };
+    }
+  } else if (stage === 'build') {
     value = await buildFilm(job, { print: false });
     if (value.pipelineErrors?.length) throw new Error(value.pipelineErrors.join('; '));
     if (!value.ok) {
       const failure = classifyFailure(value.errors || []);
       if (failure.isInfrastructure) throw new Error(failure.infrastructure.join('; '));
+      // After the one technical repair round remaining build errors are disclosed, not fatal.
+      if (options.final === true) {
+        const sourceHash = await sourceFingerprint(job);
+        if (value.sourceHash !== sourceHash) throw new Error('Build is unusable after its technical repair round');
+        value.acceptance = await acceptBuild(job, { sourceHash, issues: (value.errors || []).map(String) });
+        return { version: 1, status: 'complete', stage, artifacts: value };
+      }
     }
     return { version: 1, status: value.ok ? 'complete' : 'repair', stage, artifacts: value };
   } else if (stage === 'freeze') {
     const build = await json(path.join(job, 'review/build.json'));
-    assertFreshBuild(build, await sourceFingerprint(job));
+    const sourceHash = await sourceFingerprint(job);
+    // An accepted build (issues left after its repair round) is frozen like a passing one.
+    if (build.scope !== 'all' || !(await buildUsable(job, build, sourceHash))) assertFreshBuild(build, sourceHash);
     try {
       value = (await loadReviewPack(job, 'final')).pack;
     } catch {
@@ -186,7 +261,7 @@ export async function run(stage, slug, options = {}) {
     }
   } else if (stage === 'reviews') {
     const build = await json(path.join(job, 'review/build.json'));
-    if (!build.ok || build.sourceHash !== (await sourceFingerprint(job)))
+    if (!(await buildUsable(job, build, await sourceFingerprint(job))))
       return { version: 1, status: 'repair', stage, artifacts: { reason: 'build requires repair' } };
     value = await reviewStatus(job, 'final');
     return { version: 1, status: value.ok ? 'complete' : 'repair', stage, artifacts: value };
@@ -202,18 +277,30 @@ export async function run(stage, slug, options = {}) {
       receipt.sourceHash !== (await sourceFingerprint(job)) ||
       receipt.videoSha256 !== (await fileHash(video).catch(() => null))
     )
-      await renderFilm(job, { hf, verify, quality: 'delivery', reuseBuild: true });
+    {
+      // An accepted build (errors left after its repair round) is rebuilt and forced.
+      const build = await json(path.join(job, 'review/build.json')).catch(() => null);
+      await renderFilm(job, { hf, verify, quality: 'delivery', reuseBuild: build?.ok === true, force: build?.ok !== true });
+    }
     value = { video };
   } else if (stage === 'verify') {
     await filmAudit(job);
     const pixels = await json(path.join(job, 'review/pixels.json'));
-    if (!pixels.ok) {
-      await saveJSON(path.join(job, 'review/archon-technical.json'), {
-        status: 'repair',
-        sourceHash: await sourceFingerprint(job),
-        pixels,
-      });
-      return { version: 1, status: 'repair', stage, artifacts: pixels };
+    if (!pixels.ok && !pixels.accepted) {
+      if (options.final !== true) {
+        await saveJSON(path.join(job, 'review/archon-technical.json'), {
+          status: 'repair',
+          sourceHash: await sourceFingerprint(job),
+          pixels,
+        });
+        const fixable = !(await stageOperation('gate', ctx, { kind: 'film' })).required;
+        return { version: 1, status: 'repair', stage, artifacts: { ...pixels, fixable } };
+      }
+      // After the one technical fix round, remaining playback findings are disclosed.
+      await saveJSON(path.join(job, 'review/pixels.json'), { ...pixels, accepted: true });
+      await recordContinuation(job, { stage: 'verify', binding: pixels.videoSha256,
+        reason: `Playback checks still reported ${(pixels.errors || []).length} issue(s) after the technical fix round.`,
+        details: pixels.errors || [] });
     }
     assertFreshPixels(
       pixels,
@@ -222,7 +309,8 @@ export async function run(stage, slug, options = {}) {
     );
     await verifyCurrent(job);
     await writeProductionReport(job);
-    value = await qualifyDelivery(job);
+    // `fixable` is always present: YAML `when:` field references fail on a missing key.
+    value = { ...(await qualifyDelivery(job)), fixable: false };
     await saveJSON(path.join(job, 'review/archon-technical.json'), {
       status: 'complete',
       sourceHash: await sourceFingerprint(job),

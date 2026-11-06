@@ -1,56 +1,78 @@
 name: rules-story-creative-review-round
-description: "One explicit creative-review pass; called by rules-story."
+description: One explicit creative-review pass; called by rules-story.
 worktree:
   enabled: false
 inputs:
   project:
-    description: "Explicit lowercase project slug"
+    description: Explicit lowercase project slug
     required: true
   options:
-    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut"
-    default: "{}"
+    description: 'Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut'
+    default: '{}'
 nodes:
 - id: build
   depends_on: []
   workflow: rules-story-build-cycle
   isolation: inherit
   with:
-    project: "$INPUTS.project"
+    project: $INPUTS.project
     phase: pre-review
 - id: freeze
   depends_on:
   - build
   always_run: true
-  bash: "node scripts/archon/rules-story.mjs freeze \"$INPUTS_PROJECT\""
-  when: "$build.output.status == 'complete'"
+  bash: node scripts/archon/rules-story.mjs freeze "$INPUTS_PROJECT"
+  when: $build.output.status == 'complete'
+  retry:
+    max_attempts: 1
+    on_error: all
 - id: visual-evidence
   depends_on:
   - freeze
   always_run: true
-  bash: "node scripts/archon/rules-story.mjs visual-evidence \"$INPUTS_PROJECT\""
-- id: visual-review
+  bash: node scripts/archon/rules-story.mjs visual-evidence "$INPUTS_PROJECT"
+- id: visual-review-state
   depends_on:
   - visual-evidence
-  loop_group:
-    max_iterations: 3
-    until_bash: "node scripts/archon/rules-story.mjs visual-review-check \"$INPUTS_PROJECT\""
-    nodes:
-    - id: visual-review-state
-      always_run: true
-      bash: "node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\""
-    - id: visual-review-pass
-      depends_on:
-      - visual-review-state
-      when: "$visual-review-state.output.artifacts.done == false"
-      context: fresh
-      prompt: |-
-        Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
-        Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
-- id: review-join
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs visual-review-status "$INPUTS_PROJECT"
+- id: visual-review
   depends_on:
+  - visual-review-state
+  when: $visual-review-state.output.artifacts.done == false
+  context: fresh
+  prompt: |-
+    Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
+    Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: visual-review-recheck
+  depends_on:
+  - visual-review-state
   - visual-review
   always_run: true
-  bash: "node scripts/archon/rules-story.mjs review-round \"$INPUTS_PROJECT\""
+  trigger_rule: none_failed_min_one_success
+  bash: node scripts/archon/rules-story.mjs visual-review-status "$INPUTS_PROJECT"
+- id: visual-review-retry
+  depends_on:
+  - visual-review-recheck
+  when: $visual-review-recheck.output.artifacts.done == false
+  context: fresh
+  prompt: |-
+    Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
+    Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
+    The previous attempt at this ONE review did not submit a complete report. Submit it now; if inspection is genuinely unavailable, submit an honest incomplete report. Production continues to the single revision after this attempt either way.
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: review-join
+  depends_on:
+  - visual-review-recheck
+  - visual-review-retry
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs review-round "$INPUTS_PROJECT"
+  trigger_rule: none_failed_min_one_success
 - id: register-revision
   depends_on:
   - review-join
@@ -60,28 +82,31 @@ nodes:
     const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
     await emit("producer", {role:"scene-author",runId:process.env.INPUTS_RUN});
   with:
-    run: "$WORKFLOW_ID"
+    run: $WORKFLOW_ID
 - id: revision
   depends_on:
   - register-revision
   context: fresh
-  prompt: "Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). Address all demonstrated findings in the project's scene files and visual settings. Preserve approved script, recording and measured timing. This invocation authorizes you to save changes. Create jobs/$INPUTS.project/review/revision-notes.md describing actual changes and any unresolved findings; if no change is warranted, explain that. Do not write reviewer reports or claim your revision was independently approved. The workflow proceeds after this revision and technical checks, without another creative review. Producer identity: $WORKFLOW_ID:scene-author."
+  prompt: 'Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). If review/archon-findings.json shows no complete inspection, inspect the frozen evidence in review/final/pack.json yourself and fix demonstrated technical or legibility defects only. Address all demonstrated findings in the project''s scene files and visual settings. Preserve approved script, recording and measured timing. This invocation authorizes you to save changes. Create jobs/$INPUTS.project/review/revision-notes.md describing actual changes and any unresolved findings; if no change is warranted, explain that. Do not write reviewer reports or claim your revision was independently approved. The workflow proceeds after this revision and technical checks, without another creative review. Producer identity: $WORKFLOW_ID:scene-author.'
+  retry:
+    max_attempts: 2
+    on_error: transient
 - id: revision-build
   depends_on:
   - revision
   workflow: rules-story-build-cycle
   isolation: inherit
   with:
-    project: "$INPUTS.project"
+    project: $INPUTS.project
     phase: post-revision
 - id: revision-complete
   depends_on:
   - revision-build
   always_run: true
-  bash: "node scripts/archon/rules-story.mjs revision-complete \"$INPUTS_PROJECT\""
+  bash: node scripts/archon/rules-story.mjs revision-complete "$INPUTS_PROJECT"
 - id: round-result
   depends_on:
   - revision-complete
   always_run: true
-  bash: "node scripts/archon/rules-story.mjs film-loop-check \"$INPUTS_PROJECT\""
+  bash: node scripts/archon/rules-story.mjs film-loop-result "$INPUTS_PROJECT"
 returns: round-result

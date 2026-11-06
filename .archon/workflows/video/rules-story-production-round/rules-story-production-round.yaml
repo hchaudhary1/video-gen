@@ -1,114 +1,146 @@
-name: "rules-story-production-round"
-description: "One explicit production pass; called by rules-story."
+name: rules-story-production-round
+description: One explicit production pass; called by rules-story.
 worktree:
   enabled: false
 inputs:
   project:
-    description: "Explicit lowercase project slug"
+    description: Explicit lowercase project slug
     required: true
   options:
-    description: "Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut"
-    default: "{}"
+    description: 'Creation options JSON: brief/brief-file, script/audio, review, duration, format, thumbnails, optOut'
+    default: '{}'
 nodes:
-  -
-    id: "creative-review"
-    depends_on: []
-    workflow: "rules-story-creative-review-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
-    id: "film-gate"
-    depends_on:
-      - "creative-review"
-    always_run: true
-    runtime: "bun"
-    script: |-
-      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("gate", {kind:"film"});
-  -
-    id: "film-attention"
-    depends_on:
-      - "film-gate"
-    when: "$film-gate.output.artifacts.needsAnswer == true"
-    wait:
-      form: "select"
-      attention: "Review $film-gate.output.artifacts.artifact for $INPUTS.project. Binding: $film-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback."
-      options:
-        -
-          id: "approve"
-          label: "Approve"
-        -
-          id: "revise"
-          label: "Request changes"
-        -
-          id: "reject"
-          label: "Stop"
-  -
-    id: "film-answer"
-    depends_on:
-      - "film-gate"
-      - "film-attention"
-    always_run: true
-    runtime: "bun"
-    script: |-
-      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("checkpoint", {kind:"film", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});
-    when: "$film-gate.output.artifacts.needsAnswer == true"
-    trigger_rule: "none_failed_min_one_success"
-    with:
-      binding: "$film-gate.output.artifacts.binding"
-      answer: "$film-attention.output"
-  -
-    id: "film-stop"
-    depends_on:
-      - "film-answer"
-    when: "$film-answer.output.artifacts.rejected == true"
-    cancel: "Operator stopped this production; retained artifacts remain available."
-  -
-    id: "film-accepted"
-    depends_on:
-      - "film-gate"
-      - "film-answer"
-    always_run: true
-    runtime: "bun"
-    script: |-
-      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-      await emit("gate", {kind:"film"});
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "render"
-    depends_on:
-      - "film-accepted"
-    always_run: true
-    bash: "node scripts/archon/rules-story.mjs render \"$INPUTS_PROJECT\""
-    when: "$film-accepted.output.artifacts.approved == true || $film-accepted.output.artifacts.required == false"
-    retry:
-      max_attempts: 2
-      on_error: "transient"
-  -
-    id: "verify"
-    depends_on:
-      - "render"
-    always_run: true
-    bash: "node scripts/archon/rules-story.mjs verify \"$INPUTS_PROJECT\" --route"
-    retry:
-      max_attempts: 2
-      on_error: "transient"
-  -
-    id: "production-result"
-    depends_on:
-      - "film-accepted"
-      - "verify"
-    always_run: true
-    bash: "node scripts/archon/rules-story.mjs production-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "round-result"
-    depends_on:
-      - "production-result"
-    always_run: true
-    bash: "node scripts/archon/rules-story.mjs production-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-returns: "round-result"
+- id: creative-review
+  depends_on: []
+  workflow: rules-story-creative-review-round
+  isolation: inherit
+  with:
+    project: $INPUTS.project
+    options: $INPUTS.options
+- id: film-gate
+  depends_on:
+  - creative-review
+  always_run: true
+  runtime: bun
+  script: |-
+    const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+    await emit("gate", {kind:"film"});
+- id: film-attention
+  depends_on:
+  - film-gate
+  when: $film-gate.output.artifacts.needsAnswer == true
+  wait:
+    form: select
+    attention: 'Review $film-gate.output.artifacts.artifact for $INPUTS.project. Binding: $film-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback.'
+    options:
+    - id: approve
+      label: Approve
+    - id: revise
+      label: Request changes
+    - id: reject
+      label: Stop
+- id: film-answer
+  depends_on:
+  - film-gate
+  - film-attention
+  always_run: true
+  runtime: bun
+  script: |-
+    const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+    await emit("checkpoint", {kind:"film", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});
+  when: $film-gate.output.artifacts.needsAnswer == true
+  trigger_rule: none_failed_min_one_success
+  with:
+    binding: $film-gate.output.artifacts.binding
+    answer: $film-attention.output
+- id: film-stop
+  depends_on:
+  - film-answer
+  when: $film-answer.output.artifacts.rejected == true
+  cancel: Operator stopped this production; retained artifacts remain available.
+- id: film-accepted
+  depends_on:
+  - film-gate
+  - film-answer
+  always_run: true
+  runtime: bun
+  script: |-
+    const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+    await emit("gate", {kind:"film"});
+  trigger_rule: none_failed_min_one_success
+- id: render
+  depends_on:
+  - film-accepted
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs render "$INPUTS_PROJECT"
+  when: $film-accepted.output.artifacts.approved == true || $film-accepted.output.artifacts.required == false
+  retry:
+    max_attempts: 1
+    on_error: all
+- id: verify
+  depends_on:
+  - render
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs verify "$INPUTS_PROJECT" --route
+  retry:
+    max_attempts: 1
+    on_error: all
+- id: technical-fix
+  depends_on:
+  - verify
+  when: $verify.output.artifacts.fixable == true
+  context: fresh
+  prompt: 'Project: $INPUTS.project. You are the active Archon technical-fix node; this invocation authorizes the assignment. Do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/archon-technical.json. Final verification of the rendered film reported the issues listed there. This is the ONE technical fix round: change only the scene sources and visual settings needed to resolve those issues. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md and docs/composition.md. Preserve script, recordings, voice configuration, measured timing and review evidence. The film is rebuilt, rendered and verified once more and then delivered with any remaining issue disclosed. Document fixes in jobs/$INPUTS.project/review/technical-fix-$WORKFLOW_ID.md. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.'
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: technical-build
+  depends_on:
+  - technical-fix
+  when: $verify.output.artifacts.fixable == true
+  workflow: rules-story-build-cycle
+  isolation: inherit
+  with:
+    project: $INPUTS.project
+    phase: post-verify
+- id: technical-revision
+  depends_on:
+  - technical-build
+  when: $verify.output.artifacts.fixable == true
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs technical-revision-complete "$INPUTS_PROJECT"
+- id: technical-render
+  depends_on:
+  - technical-revision
+  when: $verify.output.artifacts.fixable == true
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs render "$INPUTS_PROJECT"
+  retry:
+    max_attempts: 1
+    on_error: all
+- id: technical-verify
+  depends_on:
+  - verify
+  - technical-render
+  when: $verify.output.status == 'repair'
+  always_run: true
+  trigger_rule: none_failed_min_one_success
+  bash: node scripts/archon/rules-story.mjs verify "$INPUTS_PROJECT" '{"final":true}' --route
+  retry:
+    max_attempts: 1
+    on_error: all
+- id: production-result
+  depends_on:
+  - film-accepted
+  - verify
+  - technical-verify
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs production-result "$INPUTS_PROJECT"
+  trigger_rule: none_failed_min_one_success
+- id: round-result
+  depends_on:
+  - production-result
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs production-loop-result "$INPUTS_PROJECT"
+  trigger_rule: none_failed_min_one_success
+returns: round-result

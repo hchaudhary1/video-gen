@@ -142,13 +142,16 @@ test('review CLI uses an explicit slug and rejects a different Archon run identi
   await execute(process.execPath, args, { cwd: root, env: { ...env, WORKFLOW_ID: 'assigned-review-run' } });
   assert.match(await readFile(path.join(dir, 'review.md'), 'utf8'), new RegExp(`^Binding: ${binding}`));
 });
-test('exhausted/stale build repair fails closed before evidence capture', async t => {
+test('an unaccepted or stale build fails closed before evidence capture', async t => {
   const ctx = await fixture(t);
   const sourceHash = await sourceFingerprint(ctx.job);
   await saveJSON(path.join(ctx.job, 'review/build.json'), { ok: false, scope: 'all', sourceHash });
-  await assert.rejects(stageOperation('build-check', ctx, {}), /budget exhausted/);
+  await assert.rejects(stageOperation('build-check', ctx, {}), /unusable after its technical repair round/);
+  const { acceptBuild } = await import('../lib/acceptance.mjs');
+  await acceptBuild(ctx.job, { sourceHash, issues: ['Synthetic remaining layout error'] });
+  assert.equal((await stageOperation('build-check', ctx, {})).accepted, true, 'an accepted build continues');
   await saveJSON(path.join(ctx.job, 'review/build.json'), { ok: true, scope: 'all', sourceHash });
   assert.equal((await stageOperation('build-check', ctx, {})).done, true);
   await writeFile(path.join(ctx.job, 'scenes.js'), 'changed source');
-  await assert.rejects(stageOperation('build-check', ctx, {}), /budget exhausted/);
+  await assert.rejects(stageOperation('build-check', ctx, {}), /unusable after its technical repair round/);
 });

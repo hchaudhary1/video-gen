@@ -178,7 +178,29 @@ test('missing or stale script review is incomplete without rewriting existing au
   assert.equal((await stageOperation('script-reviewed',ctx,{expected})).done,false);
   await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${expected}\nConcrete requested edit.\nDisposition: revise`);
   assert.equal((await stageOperation('script-reviewed',ctx,{expected})).disposition,'revise');
-  assert.equal((await stageOperation('script-status',ctx,{})).needsWrite,true);
+  const revise=await stageOperation('script-status',ctx,{});
+  // A revise verdict routes to the single fix round, not another write-and-review pass.
+  assert.equal(revise.needsWrite,false);
+  assert.equal(revise.needsReview,false);
+  assert.equal(revise.needsFix,true);
+  assert.equal(revise.ready,false);
+});
+
+test('one fix after a non-passing script review continues without another review', async t => {
+  const ctx=await fixture(t), expected=await scriptBinding(ctx.dir);
+  await writeFile(path.join(ctx.dir,'review.md'),`Binding: ${expected}\nConcrete requested edit.\nDisposition: revise`);
+  await stageOperation('script-reviewed',ctx,{expected});
+  assert.equal((await stageOperation('script-ready',ctx,{})).done,false);
+  await writeFile(path.join(ctx.dir,'SCRIPT.md'),'Fixed narration after the review.');
+  const continued=await stageOperation('script-continue',ctx,{});
+  assert.equal(continued.mode,'revised-after-review');
+  const ready=await stageOperation('script-ready',ctx,{});
+  assert.equal(ready.done,true);
+  assert.equal(ready.mode,'revised-after-review');
+  const status=await stageOperation('script-status',ctx,{});
+  assert.equal(status.needsReview,false, 'the fixed script is not reviewed again');
+  await writeFile(path.join(ctx.dir,'SCRIPT.md'),'An unrelated later edit.');
+  assert.equal((await stageOperation('script-ready',ctx,{})).done,false, 'acceptance binds the fixed text');
 });
 
 test('script review cannot claim a pass after the script changed during inspection', async t => {

@@ -22,6 +22,9 @@ import { continueIdentity, identityForProject } from '../../lib/identities.mjs';
 import { renderSoundKit } from '../../lib/series.mjs';
 import { youtubeUpload } from '../../lib/youtube-upload.mjs';
 import { validateScript, validateResearch } from './contracts.mjs';
+import { buildUsable, recordContinuation } from '../../lib/acceptance.mjs';
+import { recordUnavailableVisualReview, recordTechnicalRevision } from '../../lib/review.mjs';
+import { acceptThumbnail } from '../../lib/thumbnails.mjs';
 export const readJSON = async (f) => JSON.parse(await readFile(f, 'utf8'));
 export async function saveJSON(f, v) {
   await mkdir(path.dirname(f), { recursive: true });
@@ -72,6 +75,38 @@ export async function scriptBinding(dir) {
   await sources(path.join(dir, 'sources'), 'sources');
   return digest(entries);
 }
+const reportHashOf = (dir) => fileHash(path.join(dir, 'review.md')).catch(e => {
+  if (e.code === 'ENOENT') return null;
+  throw e;
+});
+// A script is accepted when its current text passed independent review, or when it is the
+// result of the one fix round after a non-passing review (or a later duration/audio fix).
+// The fixed text is not reviewed again; archon/script-revision.json records why it continued.
+export async function scriptAcceptance(dir, project) {
+  const validation = await validateScript(dir, project);
+  const binding = await scriptBinding(dir);
+  const review = await optional(path.join(dir, 'archon/script-review.json'));
+  const reportHash = await reportHashOf(dir);
+  const reviewed = review?.binding === binding && review?.reportHash === reportHash;
+  const passed = validation.valid && reviewed && review.pass === true && review.disposition === 'pass';
+  const revision = await optional(path.join(dir, 'archon/script-revision.json'));
+  const continued = validation.valid && revision?.binding === binding;
+  return { done: Boolean(passed || continued), mode: passed ? 'passed' : continued ? revision.mode : null,
+    validation, binding, review, reviewed: Boolean(reviewed), revision };
+}
+// Automated script fixes never rewrite a supplied script or one the operator must approve.
+export const scriptFixAllowed = (project) => !project.inputScript && !project.review.includes('script');
+export async function recordScriptRevision(ctx, { mode, reason, priorBinding = null }) {
+  const validation = await validateScript(ctx.dir, ctx.project);
+  if (!validation.valid)
+    throw new Error(`Script is unusable after its fix round: ${validation.errors.join('; ')}`);
+  const receipt = { version: 1, mode, reason, priorBinding, binding: await scriptBinding(ctx.dir),
+    runId: process.env.WORKFLOW_ID || null, recordedAt: new Date().toISOString() };
+  await saveJSON(path.join(ctx.dir, 'archon/script-revision.json'), receipt);
+  return receipt;
+}
+const thumbnailReviewSet = (status) => digest(status.variants.map((v) => [v.id, v.review ? v.pngSha256 : null, v.review?.status ?? null]));
+const thumbnailCurrentSet = (status) => digest(status.variants.map((v) => [v.id, v.pngSha256 ?? null]));
 export function passingThumbnails(status) {
   return status.ranking.filter((id) =>
     status.variants.some(
@@ -79,6 +114,8 @@ export function passingThumbnails(status) {
     ),
   );
 }
+// Defects the copy author can fix; anything else is a real failure.
+export class PublicationCopyError extends Error {}
 export function publicationCopy(copy) {
   if (
     typeof copy?.title !== 'string' ||
@@ -86,13 +123,13 @@ export function publicationCopy(copy) {
     typeof copy.description !== 'string' ||
     !copy.description.trim()
   )
-    throw new Error('Publishing copy requires title and description');
-  if (copy.privacy && copy.privacy !== 'unlisted') throw new Error('Rules-story publication is unlisted');
+    throw new PublicationCopyError('Publishing copy requires title and description');
+  if (copy.privacy && copy.privacy !== 'unlisted') throw new PublicationCopyError('Rules-story publication is unlisted');
   if (copy.tags && (!Array.isArray(copy.tags) || copy.tags.some((t) => typeof t !== 'string')))
-    throw new Error('tags must be strings');
+    throw new PublicationCopyError('tags must be strings');
   // Channel ID is obtained by the operator from Studio, never inferred from a display name.
   if (!/^UC[\w-]{22}$/.test(copy.channelId || ''))
-    throw new Error('Approved publishing copy requires the exact abdupdates channelId');
+    throw new PublicationCopyError('Approved publishing copy requires the exact abdupdates channelId');
   return copy;
 }
 export async function gate(kind, { dir, job, project, engine }) {
@@ -121,15 +158,29 @@ export async function gate(kind, { dir, job, project, engine }) {
     view = engine ? path.join(job, 'review/preview/video.mp4') : path.join(job, 'index.html');
   } else if (kind === 'thumbnail') {
     const s = await thumbnailStatus(job);
+    const fixed = await optional(path.join(job, 'review/thumbnail-fix.json'));
+    const offered = passingThumbnails(s).length || !fixed ? passingThumbnails(s)
+      : s.variants.filter((v) => v.made).map((v) => v.id);
     options = [
-      ...passingThumbnails(s).map((id) => ({ id, label: id })),
+      ...offered.map((id) => ({ id, label: passingThumbnails(s).includes(id) ? id : `${id} (not passed review)` })),
       { id: 'revise', label: 'Revise thumbnails' },
       { id: 'reject', label: 'Stop' },
     ];
     binding = digest(s.variants.map((v) => [v.id, v.pngSha256, v.review, v.openFeedback]));
     artifact = path.join(job, 'thumbnail/variants');
   } else if (kind === 'publishing') {
-    const copy = publicationCopy(await readJSON(path.join(dir, 'publishing.json')));
+    // Invalid copy goes back to the copy author (publishing-errors.json) on the next pass
+    // instead of failing the workflow; nothing is asked of the operator until it is valid.
+    let copy;
+    try {
+      copy = publicationCopy(await readJSON(path.join(dir, 'publishing.json')));
+    } catch (error) {
+      if (error.code !== 'ENOENT' && !(error instanceof SyntaxError) && !(error instanceof PublicationCopyError))
+        throw error;
+      await saveJSON(path.join(dir, 'archon/publishing-errors.json'), { version: 1, errors: [error.message] });
+      return { kind, binding: 'invalid-copy', artifact: path.join(dir, 'publishing.json'), options: [],
+        required: true, approved: false, needsAnswer: false, valid: false, errors: [error.message] };
+    }
     binding = digest([
       copy,
       await fileHash(path.join(job, 'renders/video.mp4')),
@@ -199,7 +250,10 @@ export async function checkpoint(ctx, { kind, answer, expected }) {
     if (decision === 'revise') {
       for (const v of (await thumbnailStatus(ctx.job)).variants.filter((v) => v.made))
         await addThumbnailFeedback(ctx.job, { variant: v.id, text, by: 'you' });
-    } else await chooseThumbnail(ctx.job, { variant: decision, by: 'you' });
+    } else if (passingThumbnails(await thumbnailStatus(ctx.job)).includes(decision))
+      await chooseThumbnail(ctx.job, { variant: decision, by: 'you' });
+    else await acceptThumbnail(ctx.job, { variant: decision, by: 'you',
+      reason: `Operator selected ${decision} after the one fix round without a passing review.` });
   }
   return { ...current, done: record.decision === 'approve' || record.decision === 'select', rejected: false };
 }
@@ -216,9 +270,9 @@ export async function stageOperation(stage, ctx, opts) {
     return validateResearch(dir, project);
   if (stage === 'build-check') {
     const build = await optional(path.join(job, 'review/build.json'));
-    if (!build?.ok || build.scope !== 'all' || build.sourceHash !== await sourceFingerprint(job))
-      throw new Error('Technical build repair budget exhausted; inspect review/build.json.');
-    return { done: true };
+    if (!await buildUsable(job, build, await sourceFingerprint(job)))
+      throw new Error('Build is unusable after its technical repair round; inspect review/build.json.');
+    return { done: true, accepted: !build.ok };
   }
   if (stage === 'visual-review-status' || stage === 'visual-review-check') {
     const review = await reviewStatus(job, 'final');
@@ -233,7 +287,8 @@ export async function stageOperation(stage, ctx, opts) {
   if (stage === 'visual-evidence') return archiveVisualEvidence(job);
   if (stage === 'revision-complete') return recordVisualRevision(job);
   if (stage === 'audio-evidence') return audioEvidence(ctx);
-  if (stage === 'audio-review') return reviewAudio(ctx);
+  if (stage === 'audio-review') return reviewAudio(ctx, { final: opts.final === true });
+  if (stage === 'technical-revision-complete') return recordTechnicalRevision(job);
   if (stage === 'audio-reviewed') return assertAudioReview(ctx);
   if (stage === 'gate') return gate(opts.kind, ctx);
   if (stage === 'script-loop-check' || stage === 'script-loop-result') {
@@ -280,26 +335,25 @@ export async function stageOperation(stage, ctx, opts) {
     return { ...result, recorded: true, rejected: Boolean(result.rejected) };
   }
   if (stage === 'script-status') {
-    const validation = await validateScript(dir, project);
-    const binding = await scriptBinding(dir),
-      review = await optional(path.join(dir, 'archon/script-review.json'));
-    const reportHash = await fileHash(path.join(dir, 'review.md')).catch(error => {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    });
-    const current = review?.binding === binding && review?.reportHash === reportHash;
-    const ready = validation.valid && current && review.pass === true && review.disposition === 'pass';
+    const a = await scriptAcceptance(dir, project);
+    const { validation, binding, review, reviewed } = a;
     const feedback = await optional(path.join(dir, 'archon/script-decision.json'));
     const inputsExist = await hasAuthorOutputs(dir);
+    const canRevise = !project.inputScript || feedback?.decision === 'revise';
+    // Every flag is computed here so YAML gates on booleans instead of compound expressions.
+    const needsContinuation = !a.done && reviewed && review.disposition !== 'pass';
     return {
-      ready: Boolean(ready),
+      ready: a.done,
+      mode: a.mode,
       ...validation,
       needsWrite: !inputsExist || (!validation.valid && !project.inputScript) ||
-        Boolean(current && review.disposition === 'revise') ||
         Boolean(feedback?.binding === binding && feedback.decision === 'revise'),
+      needsReview: !a.done && validation.valid && !reviewed,
+      needsContinuation,
+      needsFix: needsContinuation && canRevise,
       binding,
       supplied: !!project.inputScript,
-      canRevise: !project.inputScript || feedback?.decision === 'revise',
+      canRevise,
       feedback,
     };
   }
@@ -346,17 +400,23 @@ export async function stageOperation(stage, ctx, opts) {
     return { done: pass, disposition, findings };
   }
   if (stage === 'script-ready') {
-    const review = await optional(path.join(dir, 'archon/script-review.json'));
-    const validation = await validateScript(dir, project);
-    return {
-      done: Boolean(
-        validation.valid && review?.pass === true &&
-          review.disposition === 'pass' &&
-          review.binding === (await scriptBinding(dir)) &&
-          review.reportHash === (await fileHash(path.join(dir, 'review.md')).catch(() => null)),
-      ),
-      review,
-    };
+    const a = await scriptAcceptance(dir, project);
+    return { done: a.done, mode: a.mode, review: a.review, revision: a.revision };
+  }
+  // Runs after the review report. A non-passing review gets one fix (script-fix) and then
+  // continues here without another review. Supplied or operator-approved scripts are
+  // retained unchanged and continue with the findings disclosed.
+  if (stage === 'script-continue') {
+    const a = await scriptAcceptance(dir, project);
+    if (a.done) return { done: true, mode: a.mode, recorded: false };
+    if (!a.review || a.review.pass === true) return { done: false, recorded: false };
+    const changed = a.review.binding !== a.binding;
+    const receipt = await recordScriptRevision(ctx, {
+      mode: changed ? 'revised-after-review' : 'retained-after-review',
+      reason: `Independent script review returned ${a.review.disposition}; ${changed ? 'one fix round applied' : 'script retained'} without another review.`,
+      priorBinding: a.review.binding,
+    });
+    return { done: true, mode: receipt.mode, recorded: true };
   }
   if (stage === 'identity') {
     if (!(await identityForProject(project.slug))) {
@@ -419,21 +479,25 @@ export async function stageOperation(stage, ctx, opts) {
   }
   if (stage === 'review-round') {
     let review = await reviewStatus(job, 'final');
-    if (review.reports.length !== 1)
-      throw new Error(
-        'One valid independent visual report required; missing inspection cannot count as a review',
-      );
     const manifest = await readJSON(path.join(job, 'job.json'));
     if (manifest.reviewRoundPacks?.final !== review.packSha256) {
       manifest.reviewRounds = { ...manifest.reviewRounds, final: (manifest.reviewRounds?.final || 0) + 1 };
       manifest.reviewRoundPacks = { ...manifest.reviewRoundPacks, final: review.packSha256 };
       await saveJSON(path.join(job, 'job.json'), manifest);
     }
+    const inspection = await stageOperation('visual-review-status', ctx, {});
+    // No complete inspection after the review and its one retry: record the absence and
+    // continue to the single revision instead of stopping the workflow.
+    if (!inspection.done) {
+      const reason = review.reports.length !== 1
+        ? `no valid visual report was submitted (${(review.errors || []).join('; ') || 'missing report'})`
+        : 'the submitted visual report was incomplete or did not cover the full interval';
+      await recordUnavailableVisualReview(job, reason);
+      await recordContinuation(job, { stage: 'visual-review', binding: review.packSha256, reason });
+    }
     review = await reviewStatus(job, 'final');
-    if (review.reports.some((r) => r.verdict === 'incomplete'))
-      throw new Error('Independent inspection incomplete; obtain actual viewing capability');
     await saveJSON(path.join(job, 'review/archon-findings.json'), review);
-    return { done: review.ok, review, budget: maxReviewRounds(manifest) };
+    return { done: review.ok, inspected: inspection.done, review, budget: maxReviewRounds(manifest) };
   }
   if (stage === 'thumbnail-status') {
     let status = await thumbnailStatus(job);
@@ -451,33 +515,70 @@ export async function stageOperation(stage, ctx, opts) {
       }
     }
     status = await thumbnailStatus(job);
+    const fix = await optional(path.join(job, 'review/thumbnail-fix.json'));
+    const reviewedSet = thumbnailReviewSet(status);
+    const passing = passingThumbnails(status).length > 0;
+    const fixApplied = fix?.reviewedSet === reviewedSet || fix?.afterSet === thumbnailCurrentSet(status);
     return {
       done:
-        status.variants.every((v) => v.made && v.review && !v.openFeedback.length) &&
-        passingThumbnails(status).length > 0,
+        status.variants.every((v) => v.made && v.review && !v.openFeedback.length) && passing,
+      // One fix round when no variant passed its review; afterwards selection continues.
+      needsFix: !passing && status.variants.some((v) => v.made) && !fixApplied,
+      // Fixed variants are not reviewed again.
+      needsReview: !fixApplied && status.variants.some((v) => v.made && !v.review),
+      fixApplied,
+      reviewedSet,
       status,
     };
   }
+  if (stage === 'thumbnail-fixed') {
+    const before = await optional(path.join(job, 'review/thumbnail-fix-request.json'));
+    const status = await thumbnailStatus(job);
+    const receipt = { version: 1, reviewedSet: before?.reviewedSet ?? null, afterSet: thumbnailCurrentSet(status),
+      recordedAt: new Date().toISOString() };
+    await saveJSON(path.join(job, 'review/thumbnail-fix.json'), receipt);
+    return receipt;
+  }
+  if (stage === 'thumbnail-fix-request') {
+    const state = await stageOperation('thumbnail-status', ctx, {});
+    await saveJSON(path.join(job, 'review/thumbnail-fix-request.json'), { version: 1, reviewedSet: state.reviewedSet });
+    return state;
+  }
   if (stage === 'thumbnail-select') {
-    if (!(await stageOperation('thumbnail-status', ctx, {})).done) return { done: false, chosen: null };
-    const s = await thumbnailStatus(job),
-      g = await gate('thumbnail', ctx);
-    if (
-      !s.chosen &&
-      !g.required &&
-      passingThumbnails(s).length &&
-      s.variants.every((v) => v.made && v.review && !v.openFeedback.length)
-    )
-      await chooseThumbnail(job, { variant: passingThumbnails(s)[0], by: 'reviewer' });
+    const state = await stageOperation('thumbnail-status', ctx, {});
+    const g = await gate('thumbnail', ctx);
+    const s = await thumbnailStatus(job);
+    const pass = passingThumbnails(s);
+    // Selectable once a variant passed, or once the one fix round has run.
+    const selectable = pass.length > 0 || state.fixApplied;
+    // Unmade variants and operator feedback start a new generate-review-fix pass.
+    const needsGenerate = s.variants.some((v) => !v.made || v.openFeedback.some((f) => f.by === 'you'));
+    if (!selectable || needsGenerate) return { done: false, selectable: selectable && !needsGenerate, needsGenerate, chosen: null };
+    if (!s.chosen && !g.required) {
+      if (pass.length) await chooseThumbnail(job, { variant: pass[0], by: 'reviewer' });
+      else {
+        // Continue after the fix round with the best finished variant, preferring the
+        // reviewer's ranking and PNGs within YouTube's 2 MB limit.
+        const made = s.variants.filter((v) => v.made);
+        if (!made.length) throw new Error('No finished thumbnail variant exists after the fix round.');
+        const order = [...s.ranking, ...made.map((v) => v.id)];
+        const fits = made.filter((v) => !v.openFeedback.some((f) => f.by === 'technical'));
+        const pick = order.find((id) => (fits.length ? fits : made).some((v) => v.id === id));
+        const reason = 'No variant passed independent review after the one fix round.';
+        await acceptThumbnail(job, { variant: pick, reason, by: 'archon' });
+        await recordContinuation(job, { stage: 'thumbnail', binding: state.reviewedSet, reason, details: { variant: pick } });
+      }
+    }
     let chosen = (await thumbnailStatus(job)).chosen;
     if (
       chosen &&
       (await fileHash(path.join(job, 'thumbnail/thumbnail.png')).catch(() => null)) !== chosen.pngSha256
     ) {
-      await chooseThumbnail(job, { variant: chosen.variant, by: chosen.by });
+      if (chosen.accepted) await acceptThumbnail(job, { variant: chosen.variant, reason: chosen.reason, by: chosen.by });
+      else await chooseThumbnail(job, { variant: chosen.variant, by: chosen.by });
       chosen = (await thumbnailStatus(job)).chosen;
     }
-    return { done: !!chosen && (!g.required || g.approved), chosen };
+    return { done: !!chosen && (!g.required || g.approved), selectable, needsGenerate: false, chosen };
   }
   if (stage === 'publish') {
     if (project.archon?.optOut) return { optOut: true };

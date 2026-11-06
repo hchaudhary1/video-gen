@@ -11,8 +11,12 @@ words. The audio-review node applies a deterministic measured check, requiring u
 and at least 90% speech coverage for every narrated scene. The audio-reviewed node validates
 that receipt before visual work. Listening capability is not required. It writes `review/audio-review.json`. Unconfirmed individual
 words above that threshold remain disclosed ASR uncertainty; they do not become a new visual
-build failure. A failed measurement or rejected review stops before visual work. Repairing audio
-requires a new authorized take and dependent timing, rather than an edit by the visual author.
+build failure. A first measurement below 90% routes to one fix before visual work: Kai respells
+the weak scenes in the script and regenerates them; rules-story takes one new Ming narration and
+re-times it, retaining the earlier take. The final measurement then accepts every scene at 50%
+coverage or more with `accepted: true` and the gap disclosed; below 50% is treated as missing
+speech and stops. Supplied recordings skip the fix and go straight to the final measurement.
+The visual author never edits audio.
 
 The report records findings, `mode: "measured"`, and the explicit limitation that audio was
 not listened to. ASR is not listening, naturalness or proof of pronunciation. Encoded final-mix
@@ -51,7 +55,9 @@ severity (`blocking` or `advisory`), numeric start/end seconds, subject, require
 observed defect, repair outcome and current evidence paths. Category is readability,
 truth, mechanism, style or evidence; scope is scene, plan or evidence. `sceneIds` may
 identify ownership. A pass requires full coverage and no blocking findings. Unavailable
-visual inspection requires `incomplete`, never pass.
+visual inspection requires `incomplete`, never pass. When no complete report exists after one
+retry, `review/visual-review-unavailable.json` records that and the single revision proceeds;
+delivery discloses the missing inspection and reports `independentReviewPassed: false`.
 
 Read review history. Respond to prior blockers with `priorFindingResponses`: sourceHash,
 findingId, resolved/unresolved/disputed disposition and an evidence-based reason. Retain

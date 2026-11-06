@@ -50,9 +50,47 @@ A completed local production leaves:
 - `jobs/<slug>/thumbnail/thumbnail.png`: selected reviewed thumbnail.
 - `jobs/<slug>/review/delivery.json`: qualified delivery record with artifact hashes.
 
-A running, paused or failed run is not a completed delivery. Automated repair rounds are
-bounded; missing tools, unavailable inspection or unresolved mandatory defects can fail
-the run. Inspect the failing node, fix the cause and use recovery below. Graph simulations alone do not establish full-video acceptance.
+A running, paused or failed run is not a completed delivery. Every automated check gets one
+fix round and production then continues (see [Failure policy](#failure-policy-one-fix-then-continue)),
+so a run stops only for the unusable states listed there. Inspect the failing node, fix the
+cause and use recovery below. Graph simulations alone do not establish full-video acceptance.
+
+### Failure policy: one fix, then continue
+
+Archon marks the whole run failed when any single node fails, so recoverable problems are
+never thrown as node failures. Each stage follows the same shape: **do it, check or review it
+once, and if that does not pass, run one fix round and continue without checking or reviewing
+again.** What the fix did not resolve is recorded in `jobs/<slug>/review/continuations.json`
+(script continuations in `jobs/scripts/<slug>/archon/script-revision.json`) and listed under
+`limitations` in `review/delivery.json`. A continuation is never reported as a pass:
+`independentReviewPassed` stays false wherever a review did not pass.
+
+| Stage | Check | Fix round | After the fix |
+|---|---|---|---|
+| Research | `research-status` | `research-fix` produces what is missing | Continues; the script review sees any gap |
+| Script | one independent review | `script-fix` addresses every finding | `script-continue` accepts the fixed text, no second review |
+| Kai narration | measured length within ±20% of `duration` (min ±2 s) | `narration-fix` resizes the script toward `targetWords` | `narration-final` regenerates once and keeps any length, disclosed |
+| Ming narration | length and speech verification | `narration-fix` (length only), then one new take | `narration-final` keeps the take; the audio review measures it |
+| Audio | ≥90% speech coverage per scene | Kai: `audio-fix` respells the weak scenes; Ming: `audio-redo` takes a new narration | `audio-review-final` accepts down to 50% coverage, disclosed |
+| Build | engine checks | `repair` fixes the reported errors | `build-final` accepts remaining issues for those exact sources |
+| Visual review | one complete independent inspection | one retry if no complete report was submitted, then the single revision | No second review; a missing inspection is recorded, not invented |
+| Series kit (rules-story) | `series` | `direction-fix` | `series-final` |
+| Final verification | encoded-media checks | `technical-fix`, rebuild and re-render | `technical-verify` accepts remaining issues, disclosed |
+| Thumbnails | one independent review | `thumbnail-fix` remakes blocked variants | Best finished variant is selected and marked `accepted-without-pass` |
+| Publishing copy | copy contract | the copy author fixes `archon/publishing-errors.json` | Operator approval is still required before any upload |
+
+Crashed deterministic media nodes (narration, build, preview, render, verify, delivery,
+publish) are redone once, and agent nodes retry transient provider errors.
+
+A run still stops when continuing would produce something wrong rather than imperfect:
+invalid options or slug, an operator stop, a changed supplied recording or approved take,
+a script the narration parser cannot read after its fix, a scene module the engine cannot
+load after its repair, missing heavy fonts, a render without video or audio streams, at the
+wrong canvas or frame rate, or truncated by more than 1 s, speech coverage below 50% after the
+fix, missing tools or provider access, and publication without operator approval,
+credentials or the exact channel ID. Automated fixes never rewrite a supplied script or one
+the operator must approve (`review` includes `script`), and never change film sources the
+operator must approve (`review` includes `final`); those continue with the finding disclosed.
 
 ### Unattended recovery contracts
 
@@ -61,8 +99,8 @@ independent inspection or turn a failed check into a passing delivery. Infrastru
 provider access and actual image-viewing capability remain prerequisites; no workflow can
 guarantee success when they are unavailable.
 
-The workflow checks research files before writing. Missing research runs as one Archon `loop`
-of at most three fresh-context passes that ends as soon as `research-check` passes. Script syntax and required author outputs are checked before
+The workflow checks research files before writing. Missing research gets one research pass
+and, if `research-status` still reports gaps, one fix pass. Script syntax and required author outputs are checked before
 independent script review or an approval wait. Kai uses the actual narration parser, including
 the first scene heading. Syntax defects return to the script writer while supplied scripts
 remain protected. Script reviewers write `review-draft.md` and run
@@ -76,17 +114,18 @@ narration-input receipt also prevents changed voice/script settings from replaci
 after an interrupted generation. New jobs receive actual local Inter 700/800 fonts from the
 pinned dependency; theme weights and face availability are checked by the build.
 
-Both treatments schedule a `*-build-cycle` before visual inspection and after the single
-creative revision. Its `build-loop` repairs only after a build reports `repair`, so at most four
-builds and three registered technical repair assignments run; an exhausted budget fails the loop.
-These nodes repair reported syntax, missing exports, fonts and layout defects while preserving
-narration, timing and review evidence. They do not commission more creative reviews. Current
-successful builds are reused. Transient retries on idempotent media and agent nodes remain
-bounded separately.
+Both treatments schedule a `*-build-cycle` before visual inspection, after the single
+creative revision and after a final-verification fix. Each cycle is one build, one technical
+`repair` when that build reports `repair`, and one `build-final`. The final build accepts
+remaining check issues in `review/build-acceptance.json`, bound to the exact sources; a scene
+module the engine cannot load still stops. Repairs fix reported syntax, missing exports, fonts
+and layout defects while preserving narration, timing and review evidence. They do not
+commission more creative reviews. Current builds are reused.
 
-The independent visual-review assignment has at most three completion attempts, stopping as
-soon as one complete, valid inspection report exists, including a `revise` report. Missing or
-incomplete inspection is never approval. One author revision follows that report. A fresh root
+The independent visual review runs once, with one retry only when no complete, valid report
+was submitted. A `revise` report counts as complete. When inspection is still missing, the
+`review-join` node records `review/visual-review-unavailable.json` and production continues to
+the one author revision; missing inspection is disclosed, never treated as approval. A fresh root
 run reuses an already verified current production rather than reauthoring it; changed source
 hashes invalidate that reuse. Thumbnail cycles likewise require actual exported files, viewed
 PNGs, current verdicts and rankings before selecting an image.
@@ -191,6 +230,16 @@ corresponding script. Keep credentials out of these inputs. Independent review a
 checks remain mandatory; `review` requests optional human script, final and thumbnail
 checkpoints. `optOut: true` keeps the entire production local.
 
+`duration` is a target in seconds, not an exact length. The narration node measures the
+generated take and accepts it within ±20% of the target (minimum ±2 s): a 420 s target
+accepts 336–504 s. Outside that band it returns `repair` and writes the measured length,
+target and a `targetWords` estimate to `jobs/<slug>/review/narration-repair.json` (Ming:
+`jobs/scripts/<slug>/archon/narration-repair.json`). `narration-fix` resizes the script once,
+`narration-final` regenerates and keeps whatever it measures, and a remaining miss is
+disclosed in delivery. The earlier take is retained under `review/narration-attempts/`.
+Supplied recordings and supplied or operator-approved scripts are not resized; their
+measured length continues with the miss disclosed.
+
 Frozen editorial intent and script files live in `jobs/scripts/<slug>/`; media and evidence
 live in `jobs/<slug>/`. The YAML packs under `.archon/workflows/video/` expose individual
 stages; bounded rounds are Archon loops (see [Cycles as loops](#cycles-as-loops)). Model/provider settings belong in
@@ -203,8 +252,9 @@ The script reviewer is a tool-using agent without a structured-output constraint
 `jobs/scripts/<slug>/review.md` with `Binding: <current hash>`, concrete findings and a
 `Disposition: pass`, `revise` or `incomplete`. The following script node reads that file;
 it derives machine output from the report instead of trusting an agent's completion reply.
-A missing or mismatched report is an incomplete attempt and can reach the next bounded
-review attempt. It is never a passing review or an automatic rewrite request.
+A missing or mismatched report is an incomplete review. It is never a passing review: like a
+`revise` report it routes to the one `script-fix` round, after which `script-continue`
+records the continuation and the script proceeds without another review.
 
 On resume the reviewer runs again only when the current binding lacks a passing review.
 Approving an unchanged reviewed script skips the author and reviewer. Existing substantive script
@@ -222,7 +272,8 @@ Use the Archon console/CLI attention queue. Each checkpoint displays the artifac
 and its binding hash. Select approve, revise, or stop. A bare `./bin/archon workflow approve <run-id>` is a real
 operator decision and needs no comment; its selected decision is recorded explicitly, without
 inventing a sentence. A revise decision requires your actual feedback as answer text. Thumbnail attention offers the current passing variants plus revise
-and stop. Publishing offers approve, revise, keep local, or stop. A requested revision
+and stop; when none passed after the fix round it offers the finished variants, labelled as
+not passed. Publishing offers approve, revise, keep local, or stop. A requested revision
 is retained as operator feedback. Script and thumbnail cycles can return to their authors;
 the film itself has one independent visual review and one revision per run.
 
@@ -238,11 +289,12 @@ attention wait, the only place a loop body may pause. The next pass opens with
 Its state node then skips work that is already current, so an approval is recorded by a pass
 that only re-checks the gate. `<kind>-loop-check` is the loop's `until_bash`.
 
-`max_iterations` carries over the earlier round budgets: Kai script 2, rules-story and
-`kai-explainer-script` script 4, thumbnails 4, publishing 4. Exceeding it without passing the
-check fails the cycle. Each accepted operator answer permits one more pass, so requested
-revisions are never cut off by the budget. Visual review is a three-pass loop inside the
-creative-review round, and research is a three-pass `loop`.
+Without an operator answer every cycle finishes in its first pass, because each pass
+contains its own review and single fix. `max_iterations` (Kai script and
+`kai-explainer-script` 2, rules-story script 4, thumbnails 4, publishing 4) only bounds
+operator-driven passes and the publishing-copy fixes; each accepted operator answer permits
+one more pass, so requested revisions are never cut off by the budget. Research, narration,
+audio, build, visual review and verification are straight-line nodes, not loops.
 
 Attention is the operator boundary under the repository's existing trust model. Archon
 also exposes an agent-accessible answer API: agents must never answer for a person.
@@ -275,10 +327,11 @@ the 90% coverage threshold remain disclosed uncertainty, not a contradictory bui
 See [review contracts](review.md) for the audio and visual receipt fields.
 
 Visual production runs once: technical build/repair → draft → one independent visual review
-→ one author revision → technical build/repair → render and encoded verification. There is no second creative
-review or repeated film repair cycle. Delivery retains the original findings, revision notes
-and inspection limitations without claiming a review of the revised output. Exhausted technical
-repairs, missing inspection, changed narration and failed encoded verification stop explicitly.
+→ one author revision → technical build/repair → render and encoded verification → at most one
+technical fix, rebuild, re-render and final verification. There is no second creative review.
+Delivery retains the original findings, revision notes, inspection limitations and
+continuations without claiming a review of the revised output. Changed narration and the
+unusable states in the [failure policy](#failure-policy-one-fix-then-continue) stop explicitly.
 
 Script, thumbnail and optional operator cycles remain bounded separately in YAML. Review
 depth controls evidence sampling density, not the number of visual reviewers or revisions.

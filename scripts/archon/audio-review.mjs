@@ -82,7 +82,10 @@ export async function audioEvidence({ job, dir }) {
     ],
   };
 }
-export async function saveAudioReview(ctx, { expected, report }) {
+// Below this coverage the take is treated as missing speech, not an ASR uncertainty, and
+// production stops even after the fix round.
+export const AUDIO_FLOOR = 0.5;
+export async function saveAudioReview(ctx, { expected, report, final = false }) {
   const evidence = await audioEvidence(ctx);
   if (expected !== evidence.binding)
     throw new Error("Audio changed during review");
@@ -93,10 +96,20 @@ export async function saveAudioReview(ctx, { expected, report }) {
     !Array.isArray(report.limitations)
   )
     throw new Error("Audio review requires pass, findings and limitations");
+  const passed = evidence.ok && report.pass;
+  // After the one fix round a take above the floor continues with its gaps disclosed.
+  const usable = evidence.measurements.length > 0 && evidence.measurements.every(
+    (v) => Number.isFinite(v.matchRate) && v.matchRate >= AUDIO_FLOOR && v.duration > 0,
+  );
+  const accepted = !passed && final && usable;
   const receipt = {
     version: 1,
     ...evidence,
     report,
+    accepted,
+    ...(accepted ? { acceptedLimitations: [
+      `Speech coverage stayed below ${evidence.threshold * 100}% in some scenes after the one fix round; production continued with those words unconfirmed.`,
+    ] } : {}),
     mode: "measured",
     reviewer: "measured-audio-check",
     reviewedAt: new Date().toISOString(),
@@ -106,29 +119,29 @@ export async function saveAudioReview(ctx, { expected, report }) {
     "review/audio-review.json",
     JSON.stringify(receipt, null, 2) + "\n",
   );
-  if (!evidence.ok || !report.pass)
-    throw new Error(`Audio review failed: ${report.findings}`);
-  return receipt;
+  if (final && !passed && !accepted)
+    throw new Error(`Audio review failed below the ${AUDIO_FLOOR * 100}% speech floor: ${report.findings}`);
+  return { ...receipt, status: passed || accepted ? "complete" : "repair" };
 }
 export async function assertAudioReview(ctx) {
   const evidence = await audioEvidence(ctx),
     receipt = await json(path.join(ctx.job, "review/audio-review.json"));
   if (
-    !evidence.ok ||
     receipt.version !== 1 ||
     receipt.binding !== evidence.binding ||
-    receipt.report?.pass !== true
+    !((evidence.ok && receipt.report?.pass === true) || receipt.accepted === true)
   )
-    throw new Error("Current passing audio review required");
+    throw new Error("Current passing or accepted audio review required");
   return receipt;
 }
 
-export async function reviewAudio(ctx) {
+// The first pass routes a low-coverage take to its one fix; `final` accepts what the fix produced.
+export async function reviewAudio(ctx, { final = false } = {}) {
   const evidence = await audioEvidence(ctx);
   const findings = evidence.measurements.map(v =>
     `${v.scene || 'narration'}: ${(v.matchRate * 100).toFixed(1)}% speech coverage; ${(v.unconfirmed || []).length} unconfirmed words retained.`
   ).join(' ');
-  return saveAudioReview(ctx, {expected:evidence.binding, report:{
+  return saveAudioReview(ctx, {expected:evidence.binding, final, report:{
     pass:evidence.ok, findings:findings || 'No valid speech measurements available.',
     limitations:[...evidence.limitations, 'Measured review only; audio was not listened to.']
   }});

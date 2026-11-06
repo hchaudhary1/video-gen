@@ -7,7 +7,10 @@ experiences and unsupported promises in proposed packaging.
 
 This review happens before narration and visual production. Measured duration, alignment, audio,
 scene implementation and rendered thumbnails are not prerequisites. Estimate duration from words
-when needed; do not demand evidence from later stages.
+when needed; do not demand evidence from later stages. Kai narration gets only one resize when the
+measured take misses the target by more than 20%, and the default Kokoro voice runs at roughly 140 words
+per minute. A script whose estimate at that pace falls outside the band is a blocking finding,
+not a low-priority note.
 
 For technical/AI explainers, read PACKAGE.md when present and check the
 opening against that promise. Otherwise use the brief and script; missing packaging is not a

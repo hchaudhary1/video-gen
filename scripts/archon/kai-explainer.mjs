@@ -3,11 +3,12 @@ import { assertAudioReview } from './audio-review.mjs';
 // Direct explainroo operations. Archon YAML exclusively owns the production lifecycle.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFile, writeFile, mkdir, copyFile, readdir, stat } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile, readdir, stat, cp, rm } from 'node:fs/promises';
 import { createProject, loadProject } from '../../lib/project.mjs';
 import { freezePersonality, readPersonality } from '../../lib/personalities.mjs';
 import { fileHash, sourceFingerprint, loadReviewPack, reviewStatus } from '../../lib/review.mjs';
-import { stageOperation, saveJSON, readJSON, digest, gate } from './stages.mjs';
+import { stageOperation, saveJSON, readJSON, digest, gate, scriptBinding, scriptFixAllowed, recordScriptRevision } from './stages.mjs';
+import { acceptBuild, buildUsable, recordContinuation, listContinuations, continuationLimitations } from '../../lib/acceptance.mjs';
 import { getTheme } from '../../engines/explainroo/engine/themes.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ENGINE = path.join(ROOT, 'engines/explainroo');
@@ -65,21 +66,26 @@ export async function kaiFontIssues(p) {
   }
   return issues;
 }
-export function validateEngineVerification(report, manifest) {
-  if (!report?.video || !report.audio) throw new Error('Final video and audio streams required');
+// `fatal` problems make the file unusable as this film (no streams, wrong canvas, a
+// truncated render or essentially missing speech) and stop production. `issues` route to
+// the one technical fix round and are disclosed when they remain afterwards.
+export function verificationProblems(report, manifest) {
+  const fatal = [], issues = [];
+  if (!report?.video || !report.audio) return { fatal: ['Final video and audio streams required'], issues };
   if (!Number.isFinite(report.duration) || report.duration <= 0)
-    throw new Error('Finite measured duration required');
-  if (
-    report.video.width !== manifest.width ||
-    report.video.height !== manifest.height ||
-    Math.abs(report.duration - manifest.duration) > 0.12
-  )
-    throw new Error('Final canvas or duration differs from measured Kai timeline');
-  const rate = report.video.fps.split('/').map(Number);
+    return { fatal: ['Finite measured duration required'], issues };
+  if (report.video.width !== manifest.width || report.video.height !== manifest.height)
+    fatal.push('Final canvas or duration differs from measured Kai timeline');
+  else if (Math.abs(report.duration - manifest.duration) > 1)
+    fatal.push('Final canvas or duration differs from measured Kai timeline');
+  else if (Math.abs(report.duration - manifest.duration) > 0.12)
+    issues.push('Final canvas or duration differs from measured Kai timeline');
+  const rate = String(report.video.fps || '').split('/').map(Number);
   if (!Number.isFinite(rate[0] / (rate[1] || 1)) || Math.abs(rate[0] / (rate[1] || 1) - manifest.fps) > 0.01)
-    throw new Error('Final frame rate differs from saved canvas');
-  if (
-    !Number.isFinite(report.speech?.matchRate) ||
+    fatal.push('Final frame rate differs from saved canvas');
+  if (!Number.isFinite(report.speech?.matchRate) || report.speech.matchRate < 0.5)
+    fatal.push('Final-mix speech verification failed');
+  else if (
     report.speech.matchRate < 0.85 ||
     !Array.isArray(report.speech.scenes) ||
     !report.speech.scenes.length ||
@@ -88,9 +94,29 @@ export function validateEngineVerification(report, manifest) {
       JSON.stringify([...manifest.speechScenes].sort()) !==
         JSON.stringify(report.speech.scenes.map((s) => s.id).sort()))
   )
-    throw new Error('Final-mix speech verification failed');
-  if (!validateEngineChecks(report)) throw new Error('Encoded media checks have unresolved warnings/errors');
+    issues.push('Final-mix speech verification failed');
+  if (!validateEngineChecks(report)) issues.push('Encoded media checks have unresolved warnings/errors');
+  return { fatal, issues };
+}
+export function validateEngineVerification(report, manifest) {
+  const { fatal, issues } = verificationProblems(report, manifest);
+  if (fatal.length || issues.length) throw new Error([...fatal, ...issues][0]);
   return true;
+}
+async function wordCount(p) {
+  return p.script.scenes.reduce((n, sc) => n + sc.units.filter((u) => u.type === 'word').length, 0);
+}
+// Earlier takes are retained, never deleted, when an accepted script fix replaces them
+// before production starts.
+async function archiveNarration(job) {
+  const target = path.join(job, 'review/narration-attempts', new Date().toISOString().replace(/[:.]/g, '-'));
+  await mkdir(target, { recursive: true });
+  for (const rel of ['build/voice', 'build/timeline.json', 'script.md', 'review/kai-narration.json',
+    'review/kai-narration-inputs.json', 'review/audio-review.json'])
+    if (await exists(path.join(job, rel))) await cp(path.join(job, rel), path.join(target, rel), { recursive: true });
+  for (const rel of ['review/kai-narration.json', 'review/kai-narration-inputs.json', 'review/audio-review.json'])
+    await rm(path.join(job, rel), { force: true });
+  return target;
 }
 async function narrationKey(ctx, p) {
   const voiceSettings = Object.fromEntries(
@@ -237,9 +263,14 @@ export async function qualifyKai(job) {
   if (receipt.sourceHash !== (await sourceFingerprint(job)) || receipt.videoSha256 !== videoSha256)
     throw new Error('Kai render is stale');
   const technical = await readJSON(path.join(job, 'review/render-verification.json'));
-  if (!technical.ok || technical.sha256 !== videoSha256 || technical.sourceHash !== receipt.sourceHash)
+  if ((!technical.ok && !technical.accepted) || technical.sha256 !== videoSha256 || technical.sourceHash !== receipt.sourceHash)
     throw new Error('Current final verification required');
-  validateEngineVerification(technical.report, manifest);
+  if (technical.ok) validateEngineVerification(technical.report, manifest);
+  else if (verificationProblems(technical.report, manifest).fatal.length)
+    throw new Error(verificationProblems(technical.report, manifest).fatal[0]);
+  const continuations = await listContinuations(job);
+  const scriptRevision = await optional(path.join(ctx.dir, 'archon/script-revision.json'));
+  const scriptAccepted = scriptRevision?.binding === (await scriptBinding(ctx.dir)) ? scriptRevision : null;
   return {
     version: 1,
     ok: true,
@@ -256,8 +287,13 @@ export async function qualifyKai(job) {
     limitations: [
       ...reviews.reports.flatMap((r) => r.inspection.limitations),
       ...(reviews.limitations || []),
+      ...(technical.limitations || []),
+      ...continuationLimitations(continuations),
+      ...(scriptAccepted ? [`Script continued without a passing re-review (${scriptAccepted.mode}): ${scriptAccepted.reason}`] : []),
       'Engine speech checks are ASR measurements; no listening or naturalness judgment is established.',
     ],
+    continuations,
+    scriptAcceptance: scriptAccepted ? { mode: scriptAccepted.mode, reason: scriptAccepted.reason } : { mode: 'passed' },
   };
 }
 export async function run(stage, slug, options = {}, { media } = {}) {
@@ -279,15 +315,33 @@ export async function run(stage, slug, options = {}, { media } = {}) {
   let artifacts;
   if (stage === 'init') artifacts = { project };
   else if (stage === 'narration') {
+    // `final` is the attempt after the one fix round: it keeps whatever duration it measures.
+    const final = options.final === true;
+    const e = media || (await engine());
+    const engineScript = path.join(job, 'script.md');
+    const scriptHash = await fileHash(path.join(dir, 'SCRIPT.md'));
+    const repair = await optional(path.join(job, 'review/narration-repair.json'));
+    // The fix node edited SCRIPT.md in response to a narration or audio repair; bind that
+    // revision so the changed text continues without another script review.
+    if (repair && !repair.recorded && (await exists(engineScript)) &&
+        repair.scriptSha256 === (await fileHash(engineScript)) && scriptHash !== repair.scriptSha256) {
+      await recordScriptRevision(ctx, { mode: `${repair.reason}-fix`, reason: repair.detail, priorBinding: repair.binding });
+      await saveJSON(path.join(job, 'review/narration-repair.json'), { ...repair, recorded: true });
+    }
     const ready = await stageOperation('script-ready', ctx, {}),
       approval = await gate('script', ctx);
     if (!ready.done || (approval.required && !approval.approved))
       throw new Error('Current independently reviewed and requested approved script required');
-    const e = media || (await engine()),
-      p = await initializeEngine(ctx, e),
-      prior = await optional(path.join(job, 'review/kai-narration.json'));
-    if ((await fileHash(path.join(dir, 'SCRIPT.md'))) !== (await fileHash(path.join(job, 'script.md'))))
-      throw new Error('Engine script differs from approved script');
+    let p = await initializeEngine(ctx, e);
+    if (scriptHash !== (await fileHash(engineScript))) {
+      // Only before production: once a director is registered the take is approved input.
+      const manifest = await readJSON(path.join(job, 'job.json'));
+      if (manifest.review?.producerAgentIds?.length) throw new Error('Engine script differs from approved script');
+      await archiveNarration(job);
+      await copyFile(path.join(dir, 'SCRIPT.md'), engineScript);
+      p = e.loadProject(job);
+    }
+    const prior = await optional(path.join(job, 'review/kai-narration.json'));
     if (prior) await assertNarration(ctx, p, e);
     else {
       const inputs = await narrationKey(ctx, p);
@@ -296,7 +350,7 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       if (pending && pending.inputs !== inputs)
         throw new Error('Narration inputs changed after generation started; preserve existing takes.');
       await saveJSON(pendingFile, { version: 1, inputs });
-      const { voices, timeline } = await e.prepare(p);
+      const { timeline } = await e.prepare(p);
       const spoken = p.script.scenes.filter((sc) => sc.units.some((u) => u.type === 'word'));
       if (!spoken.length) throw new Error('Kai requires narrated scenes');
       const manifest = await readJSON(path.join(job, 'job.json'));
@@ -304,22 +358,43 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       manifest.speechScenes = spoken.map((sc) => sc.id);
       manifest.status = 'prepared';
       await saveJSON(path.join(job, 'job.json'), manifest);
-      if (
-        project.duration &&
-        Math.abs(timeline.duration - project.duration) > Math.max(2, project.duration * 0.2)
-      )
-        throw new Error(
-          'Measured narration duration differs from requested target; preserve take and inspect script coverage',
-        );
+      const target = project.duration, tolerance = Math.max(2, (target || 0) * 0.2);
+      const miss = Boolean(target) && Math.abs(timeline.duration - target) > tolerance;
+      const detail = miss
+        ? `Measured narration is ${timeline.duration.toFixed(1)} s against the ${target} s target (accepted ${(target - tolerance).toFixed(0)}–${(target + tolerance).toFixed(0)} s).`
+        : null;
+      if (miss && !final && !project.audio && scriptFixAllowed(project)) {
+        const words = await wordCount(p);
+        const artifacts = { reason: 'duration', detail, measured: timeline.duration, target, tolerance, words,
+          targetWords: Math.round((words * target) / timeline.duration),
+          scriptSha256: await fileHash(engineScript), binding: await scriptBinding(dir) };
+        await saveJSON(path.join(job, 'review/narration-repair.json'), { version: 1, ...artifacts });
+        return { version: 1, status: 'repair', stage, artifacts };
+      }
+      if (miss) await recordContinuation(job, { stage: 'narration-duration', binding: inputs, reason: detail });
       await saveJSON(path.join(job, 'review/kai-narration.json'), {
         version: 1,
         inputs,
         outputs: await voiceFiles(p, e),
         timing: await timingBinding(job),
         duration: timeline.duration,
+        ...(miss ? { durationMiss: detail } : {}),
       });
     }
     artifacts = { duration: (await readJSON(path.join(job, 'job.json'))).duration };
+  } else if (stage === 'audio-review') {
+    // A low-coverage take gets one script fix (respelling for the speech engine) and one
+    // regeneration. Supplied recordings and protected scripts go straight to the final check.
+    const fixable = !project.audio && scriptFixAllowed(project);
+    const result = await stageOperation('audio-review', ctx, { final: options.final === true || !fixable });
+    if (result.status === 'repair') {
+      const weak = result.measurements.filter((m) => m.matchRate < result.threshold).map((m) => m.scene);
+      const artifacts = { reason: 'audio', detail: `Speech coverage below ${result.threshold * 100}% in: ${weak.join(', ')}.`,
+        scenes: weak, scriptSha256: await fileHash(path.join(job, 'script.md')), binding: await scriptBinding(dir) };
+      await saveJSON(path.join(job, 'review/narration-repair.json'), { version: 1, ...artifacts });
+      return { version: 1, status: 'repair', stage, artifacts };
+    }
+    artifacts = result;
   } else if (['build', 'preview', 'freeze', 'render', 'verify', 'deliver'].includes(stage)) {
     const e = media || (await engine()),
       p = e.loadProject(job);
@@ -329,8 +404,11 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       const sourceHash = await sourceFingerprint(job);
       const cached = await optional(path.join(job, 'review/build.json'));
       const fontIssues = await kaiFontIssues(p);
-      if (!fontIssues.length && cached?.ok && cached.scope === 'all' && cached.sourceHash === sourceHash)
+      if (!fontIssues.length && cached?.scope === 'all' && (await buildUsable(job, cached, sourceHash)))
         return { version: 1, stage, status: 'complete', artifacts: cached };
+      // `final` is the build after the one technical repair round: remaining check issues
+      // are accepted and disclosed, but a film the engine cannot load still stops here.
+      const final = options.final === true;
       let report;
       try {
         report = fontIssues.length ? { issues: fontIssues } : await e.check(p, { viewWidth: 854 });
@@ -344,6 +422,7 @@ export async function run(stage, slug, options = {}, { media } = {}) {
           const sourceHash = await sourceFingerprint(job);
           artifacts = { ok: false, scope: 'all', sourceHash, report: null, error: String(error.message || error) };
           await saveJSON(path.join(job, 'review/build.json'), artifacts);
+          if (final) throw new Error(`Build is unusable after its technical repair round: ${artifacts.error}`);
           return { version: 1, stage, status: 'repair', artifacts };
         }
         throw error;
@@ -351,13 +430,19 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       const ok = validateEngineChecks(report, { audioReviewed: true, layoutAdvisory: true });
       artifacts = { ok, scope: 'all', sourceHash: await sourceFingerprint(job), report };
       await saveJSON(path.join(job, 'review/build.json'), artifacts);
+      if (!ok && final) {
+        if (fontIssues.length) throw new Error(`Heavy fonts are still unavailable after the repair round: ${fontIssues.map((i) => i.message).join('; ')}`);
+        const issues = report.issues.filter((i) => ['error', 'warn'].includes(i.level)).map((i) => i.message || String(i));
+        artifacts.acceptance = await acceptBuild(job, { sourceHash: artifacts.sourceHash, issues });
+        return { version: 1, stage, status: 'complete', artifacts };
+      }
       return { version: 1, stage, status: ok ? 'complete' : 'repair', artifacts };
     }
     if (stage === 'preview') {
       const build = await readJSON(path.join(job, 'review/build.json')),
         sourceHash = await sourceFingerprint(job);
-      if (!build.ok || build.sourceHash !== sourceHash)
-        throw new Error('Current successful build required before preview');
+      if (!(await buildUsable(job, build, sourceHash)))
+        throw new Error('Current usable build required before preview');
       const file = path.join(job, 'review/preview/video.mp4'),
         prior = await optional(path.join(job, 'review/kai-preview.json'));
       if (
@@ -377,8 +462,8 @@ export async function run(stage, slug, options = {}, { media } = {}) {
     }
     if (stage === 'freeze') {
       const build = await readJSON(path.join(job, 'review/build.json'));
-      if (!build.ok || build.sourceHash !== (await sourceFingerprint(job)))
-        throw new Error('Current successful build required');
+      if (!(await buildUsable(job, build, await sourceFingerprint(job))))
+        throw new Error('Current usable build required');
       try {
         artifacts = (await loadReviewPack(job, 'final')).pack;
       } catch {
@@ -479,27 +564,39 @@ export async function run(stage, slug, options = {}, { media } = {}) {
       artifacts = { video };
     }
     if (stage === 'verify') {
+      // `final` is verification after the one technical fix round: remaining issues are
+      // accepted and disclosed; fatal problems (no streams, wrong canvas, truncated render,
+      // missing speech) still stop production.
+      const final = options.final === true;
       const sourceHash = await sourceFingerprint(job),
         sha256 = await fileHash(path.join(job, 'renders/video.mp4')),
-        prior = await optional(path.join(job, 'review/render-verification.json'));
-      if (prior?.ok && prior.sourceHash === sourceHash && prior.sha256 === sha256)
-        validateEngineVerification(prior.report, await readJSON(path.join(job, 'job.json')));
-      else {
+        prior = await optional(path.join(job, 'review/render-verification.json')),
+        manifest = await readJSON(path.join(job, 'job.json'));
+      if ((prior?.ok || prior?.accepted) && prior.sourceHash === sourceHash && prior.sha256 === sha256) {
+        if (prior.ok) validateEngineVerification(prior.report, manifest);
+      } else {
         const report = await e.verify(p, { file: path.join(job, 'renders/video.mp4') });
-        try {
-          validateEngineVerification(report, await readJSON(path.join(job, 'job.json')));
-        } catch (error) {
-          if (error.message !== 'Encoded media checks have unresolved warnings/errors') throw error;
+        const { fatal, issues } = verificationProblems(report, manifest);
+        if (fatal.length) throw new Error(fatal[0]);
+        if (issues.length && !final) {
           await saveJSON(path.join(job, 'review/archon-technical.json'), {
             status: 'repair',
             sourceHash,
             videoSha256: sha256,
+            issues,
             report,
           });
-          return { version: 1, status: 'repair', stage, artifacts: report };
+          // Operator-approved film sources are not changed by an automated fix.
+          const fixable = !(await gate('film', ctx)).required;
+          return { version: 1, status: 'repair', stage, artifacts: { issues, fixable, report } };
         }
+        if (issues.length)
+          await recordContinuation(job, { stage: 'verify', binding: sha256,
+            reason: `Final verification issues remained after the technical fix round: ${issues.join('; ')}.` });
         await saveJSON(path.join(job, 'review/render-verification.json'), {
-          ok: true,
+          ok: !issues.length,
+          ...(issues.length ? { accepted: true, issues,
+            limitations: issues.map((i) => `Final verification after the fix round: ${i}`) } : {}),
           sourceHash,
           sha256,
           report,
@@ -510,7 +607,8 @@ export async function run(stage, slug, options = {}, { media } = {}) {
         sourceHash,
         videoSha256: sha256,
       });
-      artifacts = await qualifyKai(job);
+      // `fixable` is always present: YAML `when:` field references fail on a missing key.
+      artifacts = { ...(await qualifyKai(job)), fixable: false };
     }
     if (stage === 'deliver') {
       const approval = await gate('film', ctx);
@@ -524,7 +622,7 @@ export async function run(stage, slug, options = {}, { media } = {}) {
     }
   } else artifacts = await stageOperation(stage, ctx, options);
   if (artifacts === undefined) throw new Error(`Unknown Kai operation: ${stage}`);
-  return { version: 1, status: 'complete', stage, artifacts };
+  return { version: 1, status: artifacts?.status === 'repair' ? 'repair' : 'complete', stage, artifacts };
 }
 export async function emit(stage, options = {}) {
   console.log = (...args) => console.error(...args);
