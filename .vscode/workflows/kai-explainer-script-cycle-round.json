@@ -9,8 +9,8 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 280,
+        "y": 40
       },
       "data": {
         "label": "start"
@@ -20,8 +20,8 @@
       "id": "n-script-state",
       "name": "script-state",
       "position": {
-        "x": 280,
-        "y": 0
+        "x": 210,
+        "y": 170
       },
       "type": "prompt",
       "data": {
@@ -33,14 +33,14 @@
       "id": "n-write",
       "name": "write",
       "position": {
-        "x": 560,
-        "y": 0
+        "x": 125,
+        "y": 336
       },
       "type": "subAgent",
       "data": {
         "description": "Archon agent node write [when: $script-state.output.artifacts.needsWrite == true]",
         "agentDefinition": "Archon node `write` in kai-explainer-script-cycle-round. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. The Archon invocation and this node assignment authorize creation of this project\u2019s outputs; missing SCRIPT.md, VISUALS.md, review.md, or archon/script-decision.json is expected on a new project and is never a reason to stop or self-discover whether this is the active author node. jobs/scripts/$INPUTS.project/SOURCES.md and local evidence must already exist from the upstream research node; use those cited sources before writing factual claims. Create SCRIPT.md, research.md, and VISUALS.md in the project directory (jobs/scripts/$INPUTS.project) and ensure they are substantive. Read review.md and archon/script-decision.json only when present. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work; do not report success unless required files were actually written.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. The Archon invocation and this node assignment authorize creation of this project’s outputs; missing SCRIPT.md, VISUALS.md, review.md, or archon/script-decision.json is expected on a new project and is never a reason to stop or self-discover whether this is the active author node. jobs/scripts/$INPUTS.project/SOURCES.md and local evidence must already exist from the upstream research node; use those cited sources before writing factual claims. Create SCRIPT.md, research.md, and VISUALS.md in the project directory (jobs/scripts/$INPUTS.project) and ensure they are substantive. Read review.md and archon/script-decision.json only when present. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work; do not report success unless required files were actually written.",
         "agentType": "other",
         "outputPorts": 1
       }
@@ -49,8 +49,8 @@
       "id": "n-script-binding",
       "name": "script-binding",
       "position": {
-        "x": 840,
-        "y": 0
+        "x": 210,
+        "y": 502
       },
       "type": "prompt",
       "data": {
@@ -62,8 +62,8 @@
       "id": "n-script-review",
       "name": "script-review",
       "position": {
-        "x": 1120,
-        "y": 0
+        "x": 125,
+        "y": 668
       },
       "type": "subAgent",
       "data": {
@@ -78,8 +78,8 @@
       "id": "n-script-report",
       "name": "script-report",
       "position": {
-        "x": 1400,
-        "y": 0
+        "x": 125,
+        "y": 834
       },
       "type": "prompt",
       "data": {
@@ -91,8 +91,8 @@
       "id": "n-script-reviewed-state",
       "name": "script-reviewed-state",
       "position": {
-        "x": 1680,
-        "y": 0
+        "x": 210,
+        "y": 1000
       },
       "type": "prompt",
       "data": {
@@ -104,8 +104,8 @@
       "id": "n-script-gate",
       "name": "script-gate",
       "position": {
-        "x": 1960,
-        "y": 0
+        "x": 210,
+        "y": 1166
       },
       "type": "prompt",
       "data": {
@@ -117,8 +117,8 @@
       "id": "n-script-attention",
       "name": "script-attention",
       "position": {
-        "x": 2240,
-        "y": 0
+        "x": 40,
+        "y": 1332
       },
       "type": "askUserQuestion",
       "data": {
@@ -147,8 +147,8 @@
       "id": "n-script-answer",
       "name": "script-answer",
       "position": {
-        "x": 2520,
-        "y": 0
+        "x": 125,
+        "y": 1498
       },
       "type": "prompt",
       "data": {
@@ -160,8 +160,8 @@
       "id": "n-script-stop",
       "name": "script-stop",
       "position": {
-        "x": 2800,
-        "y": 0
+        "x": 50,
+        "y": 1830
       },
       "type": "prompt",
       "data": {
@@ -173,8 +173,8 @@
       "id": "n-script-accepted",
       "name": "script-accepted",
       "position": {
-        "x": 2800,
-        "y": 140
+        "x": 370,
+        "y": 1664
       },
       "type": "prompt",
       "data": {
@@ -186,8 +186,8 @@
       "id": "n-round-result",
       "name": "round-result",
       "position": {
-        "x": 3080,
-        "y": 0
+        "x": 370,
+        "y": 1830
       },
       "type": "prompt",
       "data": {
@@ -200,8 +200,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 3360,
-        "y": 0
+        "x": 280,
+        "y": 1996
       },
       "data": {
         "label": "end"

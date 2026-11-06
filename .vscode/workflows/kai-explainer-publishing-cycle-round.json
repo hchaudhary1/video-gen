@@ -9,8 +9,8 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 355,
+        "y": 40
       },
       "data": {
         "label": "start"
@@ -20,8 +20,8 @@
       "id": "n-publishing-copy",
       "name": "publishing-copy",
       "position": {
-        "x": 280,
-        "y": 0
+        "x": 285,
+        "y": 170
       },
       "type": "subAgent",
       "data": {
@@ -36,8 +36,8 @@
       "id": "n-publishing-gate",
       "name": "publishing-gate",
       "position": {
-        "x": 560,
-        "y": 0
+        "x": 285,
+        "y": 336
       },
       "type": "prompt",
       "data": {
@@ -49,8 +49,8 @@
       "id": "n-publishing-attention",
       "name": "publishing-attention",
       "position": {
-        "x": 840,
-        "y": 0
+        "x": 40,
+        "y": 502
       },
       "type": "askUserQuestion",
       "data": {
@@ -84,8 +84,8 @@
       "id": "n-publishing-answer",
       "name": "publishing-answer",
       "position": {
-        "x": 1120,
-        "y": 0
+        "x": 125,
+        "y": 668
       },
       "type": "prompt",
       "data": {
@@ -97,8 +97,8 @@
       "id": "n-publishing-stop",
       "name": "publishing-stop",
       "position": {
-        "x": 1400,
-        "y": 0
+        "x": 50,
+        "y": 1000
       },
       "type": "prompt",
       "data": {
@@ -110,8 +110,8 @@
       "id": "n-publishing-accepted",
       "name": "publishing-accepted",
       "position": {
-        "x": 1400,
-        "y": 140
+        "x": 370,
+        "y": 834
       },
       "type": "prompt",
       "data": {
@@ -123,8 +123,8 @@
       "id": "n-round-result",
       "name": "round-result",
       "position": {
-        "x": 1680,
-        "y": 0
+        "x": 370,
+        "y": 1000
       },
       "type": "prompt",
       "data": {
@@ -137,8 +137,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 1960,
-        "y": 0
+        "x": 280,
+        "y": 1166
       },
       "data": {
         "label": "end"
