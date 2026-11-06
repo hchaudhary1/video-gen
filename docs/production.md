@@ -70,14 +70,22 @@ again.** What the fix did not resolve is recorded in `jobs/<slug>/review/continu
 | Research | `research-status` | `research-fix` produces what is missing | Continues; the script review sees any gap |
 | Script | one independent review | `script-fix` addresses every finding | `script-continue` accepts the fixed text, no second review |
 | Kai narration | measured length within ±20% of `duration` (min ±2 s) | `narration-fix` resizes the script toward `targetWords` | `narration-final` regenerates once and keeps any length, disclosed |
-| Ming narration | length and speech verification | `narration-fix` (length only), then one new take | `narration-final` keeps the take; the audio review measures it |
+| Ming narration | length, text contract, generation and speech verification | `narration-fix` for a length or text defect (`reason` in `narration-repair.json`), then one new take | `narration-final` keeps the take; the audio review measures it |
 | Audio | ≥90% speech coverage per scene | Kai: `audio-fix` respells the weak scenes; Ming: `audio-redo` takes a new narration | `audio-review-final` accepts down to 50% coverage, disclosed |
 | Build | engine checks | `repair` fixes the reported errors | `build-final` accepts remaining issues for those exact sources |
 | Visual review | one complete independent inspection | one retry if no complete report was submitted, then the single revision | No second review; a missing inspection is recorded, not invented |
 | Series kit (rules-story) | `series` | `direction-fix` | `series-final` |
+| Identity (rules-story) | `identity` continues or registers the series identity | `identity-fix` repairs `identity.json` / registration | `identity-final` |
+| Preparation (rules-story) | `prepare` builds the job folder | `prepare-fix` clears the reported cause | `prepare-final` |
+| Timing (rules-story) | `timing` measures ASR word timing | `timing-fix` clears stale measured outputs | `timing-final` |
+| Sound kit (rules-story) | `sound` renders the identity's sound | `sound-fix` clears partial sound files | `sound-final` |
 | Final verification | encoded-media checks | `technical-fix`, rebuild and re-render | `technical-verify` accepts remaining issues, disclosed |
 | Thumbnails | one independent review | `thumbnail-fix` remakes blocked variants | Best finished variant is selected and marked `accepted-without-pass` |
 | Publishing copy | copy contract | the copy author fixes `archon/publishing-errors.json` | Operator approval is still required before any upload |
+
+Routed rules-story stages write `jobs/scripts/<slug>/archon/<stage>-repair.json` for their fix
+round. Integrity guards are never routed: a changed approved script, narration or recording,
+and a missing approval or review stop the run explicitly; a missing tool or model fails the final attempt.
 
 Crashed deterministic media nodes (narration, build, preview, render, verify, delivery,
 publish) are redone once, and agent nodes retry transient provider errors.

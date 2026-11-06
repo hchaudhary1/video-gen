@@ -66,10 +66,30 @@ nodes:
   depends_on:
   - research-ready
   always_run: true
-  bash: node scripts/archon/rules-story.mjs identity "$INPUTS_PROJECT"
+  bash: node scripts/archon/rules-story.mjs identity "$INPUTS_PROJECT" --route
+- id: identity-fix
+  depends_on:
+  - identity
+  when: $identity.output.status == 'repair'
+  context: fresh
+  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project''s folders. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not submit reviews. Read jobs/scripts/$INPUTS.project/archon/identity-repair.json, lib/identities.mjs and personalities/rules-story/PROFILE.md. The identity node could not continue the series identity named in jobs/scripts/$INPUTS.project/identity.json. This is the ONE identity fix round: fix exactly the reported error. Name an existing suitable identity from personalities/rules-story/identities/ in identity.json (with a parent only for a Short whose parent already has a file number), or, only if a new identity is genuinely needed, register it with createIdentity from lib/identities.mjs so it passes validateIdentity. Never edit or renumber another project''s issues. The identity node runs once more and the run continues.'
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: identity-final
+  depends_on:
+  - identity-fix
+  when: $identity.output.status == 'repair'
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs identity "$INPUTS_PROJECT" '{"final":true}'
+  retry:
+    max_attempts: 1
+    on_error: all
 - id: script-cycle
   depends_on:
   - identity
+  - identity-final
+  trigger_rule: none_failed_min_one_success
   loop_group:
     max_iterations: 4
     until_bash: node scripts/archon/rules-story.mjs script-loop-check "$INPUTS_PROJECT"
@@ -204,7 +224,7 @@ nodes:
   - narration
   when: $narration.output.artifacts.needsScriptFix == true
   context: fresh
-  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, skills/script-writing/SKILL.md and jobs/scripts/$INPUTS.project/archon/narration-repair.json. The Ming narration missed the duration target by more than 20%. This is the ONE narration fix round: edit jobs/scripts/$INPUTS.project/SCRIPT.md so its spoken prose fits the target, cutting or adding proportionally while keeping the story, rules and cue phrases. The narration is regenerated once after this fix and production continues WITHOUT another script review, whatever length it measures. Append what you changed to research.md under "## Duration fix". Do not edit any other project files.'
+  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, skills/script-writing/SKILL.md and jobs/scripts/$INPUTS.project/archon/narration-repair.json. This is the ONE narration fix round; its "reason" says what to fix. If reason is "duration", the Ming narration missed the duration target by more than 20%: edit jobs/scripts/$INPUTS.project/SCRIPT.md so its spoken prose fits the target, cutting or adding proportionally while keeping the story, rules and cue phrases. If reason is "text", the narration text broke the Ming contract described in "detail" and docs/audio.md: edit only the offending spoken text in SCRIPT.md (remove angle brackets, bracketed cues or other unsupported characters) and leave a ming-performance.json sidecar out unless it matches the edited text exactly. The narration is regenerated once after this fix and production continues WITHOUT another script review, whatever length it measures. Append what you changed to research.md under "## Narration fix". Do not edit any other project files.'
   retry:
     max_attempts: 2
     on_error: transient
@@ -224,16 +244,56 @@ nodes:
   - narration
   - narration-final
   always_run: true
-  bash: node scripts/archon/rules-story.mjs prepare "$INPUTS_PROJECT"
+  bash: node scripts/archon/rules-story.mjs prepare "$INPUTS_PROJECT" --route
   trigger_rule: none_failed_min_one_success
+- id: prepare-fix
+  depends_on:
+  - prepare
+  when: $prepare.output.status == 'repair'
+  context: fresh
+  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project''s folders. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not submit reviews. Read jobs/scripts/$INPUTS.project/archon/prepare-repair.json. Preparing the job folder jobs/$INPUTS.project from the reviewed SCRIPT.md and the generated narration failed. This is the ONE preparation fix round: diagnose the reported error and fix only its cause, for example by removing an incomplete jobs/$INPUTS.project folder left by an interrupted preparation (one without job.json). Never touch jobs/scripts/$INPUTS.project/narration.wav, SCRIPT.md or any review, approval or narration receipt, and do not regenerate narration. Record what you did in jobs/scripts/$INPUTS.project/archon/prepare-fix.md. Preparation runs once more and the run continues.'
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: prepare-final
+  depends_on:
+  - prepare-fix
+  when: $prepare.output.status == 'repair'
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs prepare "$INPUTS_PROJECT" '{"final":true}'
+  retry:
+    max_attempts: 1
+    on_error: all
 - id: timing
   depends_on:
   - prepare
+  - prepare-final
   always_run: true
-  bash: node scripts/archon/rules-story.mjs asr-timing "$INPUTS_PROJECT"
+  trigger_rule: none_failed_min_one_success
+  bash: node scripts/archon/rules-story.mjs asr-timing "$INPUTS_PROJECT" --route
+- id: timing-fix
+  depends_on:
+  - timing
+  when: $timing.output.status == 'repair'
+  context: fresh
+  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project''s folders. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not submit reviews. Read jobs/scripts/$INPUTS.project/archon/asr-timing-repair.json. Measuring word timing (ASR and forced alignment) for jobs/$INPUTS.project failed. This is the ONE timing fix round: fix only the reported cause. Stale or partial measured outputs (jobs/$INPUTS.project/transcript.json, alignment.json and review/archon-timing.json) may be removed so they are measured again; check the speech models with node scripts/media-readiness.mjs if the error points at them. Never edit the narration audio, SCRIPT.md or measured outputs by hand, and never invent timing. Record what you did in jobs/scripts/$INPUTS.project/archon/asr-timing-fix.md. Timing runs once more and the run continues.'
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: timing-final
+  depends_on:
+  - timing-fix
+  when: $timing.output.status == 'repair'
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs asr-timing "$INPUTS_PROJECT" '{"final":true}'
+  retry:
+    max_attempts: 1
+    on_error: all
 - id: audio-evidence
   depends_on:
   - timing
+  - timing-final
+  trigger_rule: none_failed_min_one_success
   always_run: true
   bash: node scripts/archon/rules-story.mjs audio-evidence "$INPUTS_PROJECT"
 - id: audio-review
@@ -270,13 +330,33 @@ nodes:
   depends_on:
   - audio-reviewed
   always_run: true
-  bash: node scripts/archon/rules-story.mjs sound "$INPUTS_PROJECT"
+  bash: node scripts/archon/rules-story.mjs sound "$INPUTS_PROJECT" --route
+  retry:
+    max_attempts: 1
+    on_error: all
+- id: sound-fix
+  depends_on:
+  - sound
+  when: $sound.output.status == 'repair'
+  context: fresh
+  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project''s folders. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Do not submit reviews. Read jobs/scripts/$INPUTS.project/archon/sound-repair.json and lib/sound-design.mjs. Rendering the series sound kit from the project''s identity failed. This is the ONE sound fix round: fix only the reported cause inside jobs/$INPUTS.project, for example by removing partial sound files under jobs/$INPUTS.project/assets and a stale review/archon-sound.json so the kit renders again. Do not change any identity''s sound signature or other identities. Record what you did in jobs/scripts/$INPUTS.project/archon/sound-fix.md. The sound kit renders once more and the run continues.'
+  retry:
+    max_attempts: 2
+    on_error: transient
+- id: sound-final
+  depends_on:
+  - sound-fix
+  when: $sound.output.status == 'repair'
+  always_run: true
+  bash: node scripts/archon/rules-story.mjs sound "$INPUTS_PROJECT" '{"final":true}'
   retry:
     max_attempts: 1
     on_error: all
 - id: production-state
   depends_on:
   - sound
+  - sound-final
+  trigger_rule: none_failed_min_one_success
   always_run: true
   bash: node scripts/archon/rules-story.mjs production-result "$INPUTS_PROJECT"
 - id: register-director

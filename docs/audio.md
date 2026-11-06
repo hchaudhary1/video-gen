@@ -70,6 +70,12 @@ the exact approved narration in order, including punctuation. Segments are at mo
 words, with speed 0.9–1.15, global speed 0.9–1.25 and pauseAfter 0–2 seconds. Arbitrary
 instruction/voiceInstruction fields and unsupported emotion tags are rejected.
 
+Without a sidecar, narration is split automatically into paragraph thought groups of at
+most 150 words (sentences, then clauses, for longer paragraphs), with a 0.6 s pause between
+paragraphs. The rules-story adapter uses a valid sidecar; one that no longer matches the
+reviewed narration is set aside for the automatic plan and disclosed as a
+`narration-performance` continuation rather than stopping the run.
+
 Supported inline vocal events, with exact spelling:
 `[Breathing]`, `[Cough]`, `[Sigh]`, `[Laughter]`, `[Uhm]`, `[Surprise-ah]`, `[Surprise-oh]`,
 `[Dissatisfaction-hnn]`, `[Confirmation-en]`, `[Question-ei]`, `[Question-ah]`, `[Question-en]`,

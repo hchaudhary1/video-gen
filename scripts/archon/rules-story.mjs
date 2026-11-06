@@ -11,7 +11,7 @@ import { verifySpeech } from '../../lib/speech.mjs';
 import { prepare, finishPreparation, verify, hf } from './media.mjs';
 import { assertSpeechEvidence } from '../../lib/speech.mjs';
 import { extractNarration } from '../../lib/timing.mjs';
-import { generateSpeech } from '../../lib/narration.mjs';
+import { generateSpeech, mingPlan } from '../../lib/narration.mjs';
 import { buildFilm, renderFilm, filmAudit, writeProductionReport, classifyFailure } from '../../lib/film.mjs';
 import { createReviewPack } from '../../lib/review-pack.mjs';
 import {
@@ -38,6 +38,19 @@ const exists = async (f) => {
   }
 };
 export const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+// Reads `ming-performance.json` beside the approved script. A sidecar that fails the Ming
+// plan contract is set aside for the automatic plan, with the reason kept for disclosure.
+export async function loadPerformance(dir, text) {
+  const file = path.join(dir, 'ming-performance.json');
+  if (!(await exists(file))) return { performance: undefined, performanceFallback: null };
+  try {
+    const performance = JSON.parse(await readFile(file, 'utf8'));
+    mingPlan(text, performance);
+    return { performance, performanceFallback: null };
+  } catch (error) {
+    return { performance: undefined, performanceFallback: `ming-performance.json was not used (${error.message}); the automatic paragraph plan narrated the reviewed script.` };
+  }
+}
 export function validateDecision(record, binding) {
   // Archon attention is the existing operator boundary, not an identity proof.
   if (!['operator', 'archon-attention'].includes(record?.source) || !record.quote?.trim())
@@ -110,8 +123,8 @@ export async function run(stage, slug, options = {}) {
     const final = options.final === true;
     const repairFile = path.join(dir, 'archon/narration-repair.json');
     const repair = await json(repairFile).catch(() => null);
-    if (repair && !repair.recorded && repair.reason === 'duration' && repair.scriptSha256 !== (await fileHash(script))) {
-      await recordScriptRevision(ctx, { mode: 'duration-fix', reason: repair.detail, priorBinding: repair.binding });
+    if (repair && !repair.recorded && ['duration', 'text'].includes(repair.reason) && repair.scriptSha256 !== (await fileHash(script))) {
+      await recordScriptRevision(ctx, { mode: repair.reason === 'text' ? 'narration-text-fix' : 'duration-fix', reason: repair.detail, priorBinding: repair.binding });
       await save(repairFile, { ...repair, recorded: true });
     }
     const ready = await stageOperation('script-ready', ctx, {});
@@ -128,12 +141,17 @@ export async function run(stage, slug, options = {}) {
           throw new Error(
             'Approved narration exists but inputs changed; operator must archive it before generating another take',
           );
+        // The documented `ming-performance.json` sidecar sets pacing; when it is absent or no
+        // longer matches the reviewed narration, the automatic paragraph plan is used instead
+        // and the fallback is disclosed rather than stopping the run.
+        const { performance, performanceFallback } = await loadPerformance(dir, text);
         try {
           await generateSpeech({
             text,
             output: audio,
             provider: 'ming',
             narration: true,
+            performance,
             targetSeconds: final ? undefined : project.duration || undefined,
           }, final ? { verify: async (args) => ({ ...(await verifySpeech(args)), ok: true }) } : {});
         } catch (error) {
@@ -141,11 +159,14 @@ export async function run(stage, slug, options = {}) {
           const measured = status.durationSeconds;
           const duration = /^Narration is [\d.]+s; target is/.test(error.message);
           const speech = /speech verification failed/.test(error.message);
-          if (final || !(duration || speech)) throw error;
-          const artifacts = { reason: duration ? 'duration' : 'speech', detail: error.message, measured,
+          const textDefect = /Ming does not support|Unsupported Ming cue|Malformed Ming vocal cue|exact reviewed narration|exceeds 150 words|no narration text/.test(error.message);
+          // An unusable installation cannot be fixed by another take or a script edit.
+          if (final || /not installed in this checkout/.test(error.message)) throw error;
+          const reason = duration ? 'duration' : speech ? 'speech' : textDefect ? 'text' : 'generation';
+          const artifacts = { reason, detail: error.message, measured,
             target: project.duration || null, scriptSha256: await fileHash(script), binding: await scriptBinding(dir),
-            // Only a duration miss changes the text; a speech mismatch is simply re-taken.
-            needsScriptFix: duration && scriptFixAllowed(project) };
+            // Duration and text defects change the script; speech and generation failures are re-taken.
+            needsScriptFix: (duration || textDefect) && scriptFixAllowed(project) };
           await save(repairFile, { version: 1, ...artifacts });
           return { version: 1, status: 'repair', stage, artifacts };
         }
@@ -155,7 +176,8 @@ export async function run(stage, slug, options = {}) {
             Math.abs((status.durationSeconds || 0) - project.duration) > Math.max(2, project.duration * 0.2)
           ? `Measured narration is ${status.durationSeconds?.toFixed(1)} s against the ${project.duration} s target after the fix round.`
           : null;
-        await save(receipt, { script: key, audio: await fileHash(audio), ...(durationMiss ? { durationMiss } : {}) });
+        await save(receipt, { script: key, audio: await fileHash(audio), performance: performance ? 'sidecar' : 'automatic',
+          ...(durationMiss ? { durationMiss } : {}), ...(performanceFallback ? { performanceFallback } : {}) });
       }
     }
     value = { audio, sha256: await fileHash(audio), needsScriptFix: false };
@@ -195,6 +217,8 @@ export async function run(stage, slug, options = {}) {
     const narrationReceipt = await json(path.join(dir, 'archon/narration.json')).catch(() => null);
     if (narrationReceipt?.durationMiss)
       await recordContinuation(job, { stage: 'narration-duration', binding: narrationReceipt.script, reason: narrationReceipt.durationMiss });
+    if (narrationReceipt?.performanceFallback)
+      await recordContinuation(job, { stage: 'narration-performance', binding: narrationReceipt.script, reason: narrationReceipt.performanceFallback });
     manifest.orchestrator = 'archon';
     manifest.humanReview = project.review.includes('final') ? ['final'] : [];
     manifest.pickThumbnail = project.review.includes('thumbnail');
@@ -350,12 +374,31 @@ export async function run(stage, slug, options = {}) {
   } else throw new Error(`Unknown adapter stage: ${stage}`);
   return { version: 1, status: 'complete', stage, artifacts: value };
 }
+// Deterministic stages that, like `series`, get one agent fix round and one final attempt
+// (`<node>-fix`, `<node>-final` in YAML) instead of failing the run on their first error.
+export const ROUTED_STAGES = new Set(['identity', 'prepare', 'asr-timing', 'sound']);
+// Integrity guards are never routed to a fix: they protect approved narration, measured
+// timing, approvals and the saved project, which a fix round must not replace.
+const INTEGRITY =
+  /changed; explicit|Prepared narration changed|Approved narration exists|approval required|independent script review required|Explicit project slug|only accepts saved rules-story/;
+export async function runRouted(stage, slug, options = {}) {
+  try {
+    return await run(stage, slug, options);
+  } catch (error) {
+    if (!ROUTED_STAGES.has(stage) || options.final === true || INTEGRITY.test(error.message)) throw error;
+    const file = path.join(root, 'jobs/scripts', slug, 'archon', `${stage}-repair.json`);
+    await save(file, { version: 1, stage, error: error.message, at: new Date().toISOString() });
+    return { version: 1, status: 'repair', stage, artifacts: { error: error.message, repair: path.relative(root, file) } };
+  }
+}
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // Media diagnostics belong on stderr; stdout is exclusively the machine contract.
   console.log = (...args) => console.error(...args);
   try {
     const [stage, slug, opts] = process.argv.slice(2);
-    const result = await run(stage, slug, opts && opts !== '--route' ? JSON.parse(opts) : {});
+    const options = opts && opts !== '--route' ? JSON.parse(opts) : {};
+    // Only a `--route` node has a fix branch; elsewhere an error still stops the node.
+    const result = process.argv.includes('--route') ? await runRouted(stage, slug, options) : await run(stage, slug, options);
     process.stdout.write(JSON.stringify(result) + '\n');
     if (stage.endsWith('-check') && !result.artifacts?.done) process.exitCode = 2;
     if (result.status !== 'complete' && !(result.status === 'repair' && process.argv.includes('--route')))

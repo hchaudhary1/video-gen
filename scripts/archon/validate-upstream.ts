@@ -26,6 +26,8 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
   const w = { ...parsed.workflow, plan: planGraph(parsed.workflow!.nodes) } as any;
   const nodes = allNodes(w.nodes);
   const has = (id: string) => nodes.some((n: any) => n.id === id);
+  // rules-story deterministic nodes with a `<id>-fix` / `<id>-final` round (adapter ROUTED_STAGES).
+  const ROUTED = ['identity', 'prepare', 'timing', 'sound'];
   for (const route of ['approve', 'revise', 'reject', 'cached', 'repair', 'missing-review', 'bad-script', 'missing-research']) {
     const stubs: any = {};
     for (const n of nodes) {
@@ -49,6 +51,14 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         ],
         artifact: 'fixture-only',
         view: 'fixture-preview.mp4',
+        // The adapters always emit these route keys; a `when:` reference fails on a missing key.
+        fixable: false,
+        needsScriptFix: false,
+        needsReview: !['cached', 'bad-script'].includes(route),
+        needsFix: false,
+        needsContinuation: false,
+        needsGenerate: route !== 'cached',
+        selectable: true,
       };
       stubs[n.id] = n.id.endsWith('-attention')
         ? {
@@ -82,6 +92,9 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         stubs.build = { version: 1, status: 'repair', artifacts: { errors: ['Fixture scene defect'] } };
       if (stubs['script-report']) stubs['script-report'].artifacts.done = false;
       if (stubs['thumbnail-join']) stubs['thumbnail-join'].artifacts.done = false;
+      // Routed deterministic stages report a repair; their one fix and final attempt follow.
+      for (const id of ROUTED)
+        if (stubs[id]) stubs[id] = { version: 1, status: 'repair', stage: id, artifacts: { ...stubs[id].artifacts, error: 'Fixture stage error' } };
     }
     if (stubs['visual-review-state'])
       stubs['visual-review-state'].artifacts.done = route === 'cached';
@@ -105,6 +118,13 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
     const hasWait = nodes.some((n: any) => n.id.endsWith('-attention'));
     const expected = route === 'reject' && hasWait ? 'cancelled' : 'completed';
     if (result.outcome !== expected) await fail(`expected ${expected}, got ${result.outcome}`);
+    for (const id of ROUTED.filter(has)) {
+      const runs = route === 'repair' ? 1 : 0;
+      for (const branch of [`${id}-fix`, `${id}-final`])
+        if (ran(branch) !== runs) await fail(`expected ${runs} ${branch} after a ${route === 'repair' ? 'repair' : 'complete'} ${id}`);
+    }
+    if (route === 'repair' && has('production-state') && ran('production-state') !== 1)
+      await fail('routed fix rounds must continue to production');
     if (route !== 'reject') {
       for (const n of nodes.filter((n: any) => n.id.endsWith('-stop')))
         if (ran(n.id)) await fail(`${n.id} cancelled without a recorded rejection`);
@@ -122,7 +142,7 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         if (has(id) && ran(id) !== 1) await fail(`expected one ${id} in the first pass`);
     }
     if (route === 'approve' && w.name.endsWith('-creative-review-round')) {
-      for (const id of ['visual-review-pass', 'revision'])
+      for (const id of ['visual-review', 'revision'])
         if (ran(id) !== 1) await fail(`expected exactly one ${id}`);
     }
     if (w.name.endsWith('-build-cycle')) {
@@ -131,7 +151,7 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
       if (ran('build') !== 1) await fail('expected one build in the first pass');
     }
     if (w.name.endsWith('-creative-review-round') && ['cached', 'missing-review'].includes(route)) {
-      if (ran('visual-review-pass') !== (route === 'cached' ? 0 : 1))
+      if (ran('visual-review') !== (route === 'cached' ? 0 : 1))
         await fail('a complete inspection must be reused; only incomplete attempts may retry');
     }
     if (has('script-reviewed-state') && route === 'bad-script') {
@@ -151,7 +171,7 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
     if (route === 'repair' && w.name.endsWith('-creative-review-round')) {
       for (const id of [
         'freeze',
-        'visual-review-pass',
+        'visual-review',
         'revision',
         ...(w.name.startsWith('kai-') ? ['preview'] : []),
       ])

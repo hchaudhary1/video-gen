@@ -9,21 +9,59 @@ REFERENCE_TEXT = (
 CONTINUITY_MODE = 'fixed-acoustic-reference-v2'
 
 
+# Ming can return silence for a request of one or two words, so no fragment is that short
+# unless the whole text is.
+MIN_FRAGMENT_WORDS = 5
+FRAGMENT_ATTEMPTS = 3
+
+
+def _even(words, limit):
+    """Split a word list into the fewest near-equal chunks of at most `limit` words."""
+    count = -(-len(words) // limit)
+    size = -(-len(words) // count)
+    return [words[i:i + size] for i in range(0, len(words), size)]
+
+
+def _sentence_chunks(sentence, limit):
+    """An over-long sentence splits at clause punctuation first, then evenly."""
+    words = sentence.split()
+    if len(words) <= limit:
+        return [words]
+    groups, current = [], []
+    for clause in re.split(r'(?<=[,;:—])\s+', sentence):
+        clause_words = clause.split()
+        if current and len(current) + len(clause_words) > limit:
+            groups.append(current)
+            current = []
+        current = current + clause_words
+    if current:
+        groups.append(current)
+    return [chunk for group in groups for chunk in _even(group, limit)]
+
+
 def speech_fragments(text, limit=24):
     """Bound English requests without rewriting punctuation or orphaning quotes."""
-    pending = []
+    fragments, pending = [], []
     sentences = re.split(r'(?<=[.!?])\s+|(?<=[.!?]["”])\s+', text.strip())
     for sentence in sentences:
-        words = sentence.split()
-        if pending and len(pending) + len(words) > limit:
-            yield ' '.join(pending)
-            pending = []
-        while len(words) >= limit:
-            yield ' '.join(words[:limit])
-            words = words[limit:]
-        pending.extend(words)
+        for words in _sentence_chunks(sentence, limit):
+            if pending and len(pending) + len(words) > limit:
+                fragments.append(pending)
+                pending = []
+            pending = pending + words
     if pending:
-        yield ' '.join(pending)
+        fragments.append(pending)
+    # A tiny fragment joins its neighbour, or the pair is rebalanced within the limit.
+    merged = []
+    for words in fragments:
+        if merged and (len(words) < MIN_FRAGMENT_WORDS or len(merged[-1]) < MIN_FRAGMENT_WORDS):
+            pair = merged.pop() + words
+            merged.extend([pair] if len(pair) <= limit else _even(pair, limit))
+        else:
+            merged.append(words)
+    for words in merged:
+        if words:
+            yield ' '.join(words)
 
 
 class MingNarrator:
@@ -52,16 +90,23 @@ class MingNarrator:
             # context on first use; do not encode it here with gradients enabled.
             self.ready = True
         for fragment in fragments:
-            waveform = self.model.synthesize(
-                # IP selects the reference voice once. Continuations use
-                # acoustic cloning without a competing IP instruction:
-                # combining both can make Ming stop before speaking.
-                task='TTS', text=fragment, language_id='English',
-                prompt_wav_path=self.reference_path, prompt_text=REFERENCE_TEXT + ' ',
-                use_spk_emb=True, use_zero_spk_emb=False, raw_text=True,
-            )
-            if not waveform.numel() or not waveform.isfinite().all():
-                raise ValueError('Ming returned empty or invalid audio')
-            if waveform.abs().max().item() < 1e-4:
-                raise ValueError('Ming returned silent audio for a spoken fragment')
+            # Sampling is stochastic: a silent or invalid sample is drawn again with the
+            # same reference (never unconditioned) before the fragment counts as failed.
+            for attempt in range(FRAGMENT_ATTEMPTS):
+                waveform = self.model.synthesize(
+                    # IP selects the reference voice once. Continuations use
+                    # acoustic cloning without a competing IP instruction:
+                    # combining both can make Ming stop before speaking.
+                    task='TTS', text=fragment, language_id='English',
+                    prompt_wav_path=self.reference_path, prompt_text=REFERENCE_TEXT + ' ',
+                    use_spk_emb=True, use_zero_spk_emb=False, raw_text=True,
+                )
+                if not waveform.numel() or not waveform.isfinite().all():
+                    problem = 'Ming returned empty or invalid audio'
+                elif waveform.abs().max().item() < 1e-4:
+                    problem = 'Ming returned silent audio for a spoken fragment'
+                else:
+                    break
+                if attempt == FRAGMENT_ATTEMPTS - 1:
+                    raise ValueError(problem)
             yield waveform

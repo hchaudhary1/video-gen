@@ -123,6 +123,33 @@ class ContinuityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'invalid audio'):
             list(MingNarrator(model, '.cache/test-reference.wav').synthesize('Speech.'))
 
+    def test_long_sentence_splits_at_clauses_without_tiny_fragments(self):
+        text = ('I am the one who knows the stops, and I know them better than the voice does, '
+                'because I am the one who says them back. Please disregard that.')
+        chunks = list(speech_fragments(text))
+        self.assertEqual(' '.join(chunks), text)
+        self.assertTrue(all(5 <= len(chunk.split()) <= 24 for chunk in chunks), chunks)
+        self.assertTrue(chunks[0].endswith('voice does,'), chunks)
+        lone = list(speech_fragments(' '.join(f'w{i}' for i in range(26))))
+        self.assertEqual([len(c.split()) for c in lone], [13, 13])
+        self.assertEqual(list(speech_fragments('Hi.')), ['Hi.'])
+
+    def test_silent_sample_is_drawn_again_before_failing(self):
+        model = Model()
+        class Silent(Waveform):
+            def item(self):
+                return 1e-6
+        draws = []
+        def synthesize(**kwargs):
+            if 'output_path' in kwargs:
+                return Waveform()
+            draws.append(kwargs['text'])
+            return Silent() if len(draws) == 1 else Waveform(kwargs['text'])
+        model.synthesize = synthesize
+        chunks = [w.text for w in MingNarrator(model, '.cache/test-reference.wav').synthesize('Opening words here.')]
+        self.assertEqual(chunks, ['Opening words here.'])
+        self.assertEqual(len(draws), 2)
+
     def test_silent_fragment_is_failure_not_successful_narration(self):
         model = Model()
         class Silent(Waveform):

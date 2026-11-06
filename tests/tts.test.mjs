@@ -119,3 +119,45 @@ test('failed automatic speech verification preserves the existing take and marks
   assert.equal(await readFile(files.output,'utf8'),'approved old take');
   assert.equal((await readTtsStatus(files.statusFile)).status,'failed');
 });
+
+test('Without a sidecar, long narration is split into Ming thought groups of at most 150 words', () => {
+  const paragraph = Array.from({ length: 40 }, (_, i) => `Sentence number ${i} is short.`).join(' ');
+  const runOn = Array.from({ length: 200 }, () => 'word').join(' ');
+  const text = `Title line here\n\n${paragraph}\n\n${runOn}`;
+  const plan = mingPlan(text);
+  assert.ok(plan.segments.length > 3);
+  for (const segment of plan.segments) assert.ok(segment.text.split(/\s+/).length <= 150);
+  assert.equal(plan.segments.map((s) => s.text).join(' '), text.replace(/\s+/g, ' ').trim());
+  assert.equal(plan.segments.at(-1).pauseAfter, 0);
+  assert.equal(plan.segments[0].pauseAfter, 0.6);
+  assert.deepEqual(mingPlan('Short words.').segments, [{ text: 'Short words.', speed: 1, pauseAfter: 0 }]);
+});
+
+test('The rules-story adapter uses a valid sidecar and discloses an invalid one', async () => {
+  const { loadPerformance } = await import('../scripts/archon/rules-story.mjs');
+  const dir = await mkdtemp(path.join(path.dirname(fileURLToPath(import.meta.url)), '.perf-'));
+  try {
+    assert.deepEqual(await loadPerformance(dir, 'Words here.'), { performance: undefined, performanceFallback: null });
+    const valid = { segments: [{ text: 'Words here.', pauseAfter: 0.5 }] };
+    await writeFile(path.join(dir, 'ming-performance.json'), JSON.stringify(valid));
+    assert.deepEqual(await loadPerformance(dir, 'Words here.'), { performance: valid, performanceFallback: null });
+    const stale = await loadPerformance(dir, 'Different reviewed words.');
+    assert.equal(stale.performance, undefined);
+    assert.match(stale.performanceFallback, /exact reviewed narration/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('Routed rules-story stages report one repair instead of failing; others and final attempts still throw', async () => {
+  const { runRouted } = await import('../scripts/archon/rules-story.mjs');
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const slug = `zz-routed-${process.pid}`, dir = path.join(root, 'jobs/scripts', slug);
+  try {
+    const result = await runRouted('identity', slug, {});
+    assert.equal(result.status, 'repair');
+    const repair = JSON.parse(await readFile(path.join(dir, 'archon/identity-repair.json'), 'utf8'));
+    assert.equal(repair.stage, 'identity');
+    assert.equal(repair.error, result.artifacts.error);
+    await assert.rejects(runRouted('identity', slug, { final: true }));
+    await assert.rejects(runRouted('render', slug, {}));
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
