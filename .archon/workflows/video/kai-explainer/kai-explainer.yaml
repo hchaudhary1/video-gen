@@ -121,46 +121,10 @@ nodes:
       project: "$INPUTS.project"
       options: "$INPUTS.options"
   -
-    id: "script-cycle-state-3"
+    id: "script-cycle"
     depends_on:
       - "script-cycle-state-2"
       - "script-cycle-round-2"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "script-cycle-round-3"
-    depends_on:
-      - "script-cycle-state-3"
-    when: "$script-cycle-state-3.output.artifacts.done == false"
-    workflow: "kai-explainer-script-cycle-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
-    id: "script-cycle-state-4"
-    depends_on:
-      - "script-cycle-state-3"
-      - "script-cycle-round-3"
-    always_run: true
-    bash: "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
-    trigger_rule: "none_failed_min_one_success"
-  -
-    id: "script-cycle-round-4"
-    depends_on:
-      - "script-cycle-state-4"
-    when: "$script-cycle-state-4.output.artifacts.done == false"
-    workflow: "kai-explainer-script-cycle-round"
-    isolation: "inherit"
-    with:
-      project: "$INPUTS.project"
-      options: "$INPUTS.options"
-  -
-    id: "script-cycle"
-    depends_on:
-      - "script-cycle-state-4"
-      - "script-cycle-round-4"
     always_run: true
     bash: "node scripts/archon/kai-explainer.mjs script-loop-check \"$INPUTS_PROJECT\""
     trigger_rule: "none_failed_min_one_success"

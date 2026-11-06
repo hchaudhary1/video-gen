@@ -18,3 +18,4 @@ library/*
 !library/rules-series-kit/
 .cache/
 archive/
+briefs/

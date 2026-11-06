@@ -21,6 +21,7 @@ nodes:
     depends_on:
       - "script-state"
     context: "fresh"
+    model: "claude-opus-5-5"
     prompt: |-
       Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
       Read skills/script-writing/SKILL.md. The Archon invocation and this node assignment authorize creation of this project’s outputs; missing SCRIPT.md, VISUALS.md, review.md, or archon/script-decision.json is expected on a new project and is never a reason to stop or self-discover whether this is the active author node. jobs/scripts/$INPUTS.project/SOURCES.md and local evidence must already exist from the upstream research node; use those cited sources before writing factual claims. Create SCRIPT.md, research.md, and VISUALS.md in the project directory (jobs/scripts/$INPUTS.project) and ensure they are substantive. Read review.md and archon/script-decision.json only when present. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work; do not report success unless required files were actually written.
@@ -43,6 +44,7 @@ nodes:
     depends_on:
       - "script-binding"
     context: "fresh"
+    model: "claude-opus-5-5"
     prompt: |-
       This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, without blocking on packaging. A legitimately unreadable or missing source needed for a material factual claim still requires an incomplete verdict naming that claim and source.
       You are the independent script reviewer for project $INPUTS.project. This Archon node explicitly commissions file inspection and writing the review. Work from the repository root; tools are available for reading files and writing your report.
