@@ -9,231 +9,295 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 40,
-        "y": 40
+        "x": 0,
+        "y": 92
       },
       "data": {
         "label": "start"
       }
     },
     {
+      "id": "group-1",
+      "type": "group",
+      "name": "1 \u00b7 Build & preview",
+      "position": {
+        "x": 190,
+        "y": 0
+      },
+      "style": {
+        "width": 688,
+        "height": 376
+      },
+      "data": {
+        "label": "1 \u00b7 Build & preview"
+      }
+    },
+    {
+      "id": "group-2",
+      "type": "group",
+      "name": "2 \u00b7 Independent visual review",
+      "position": {
+        "x": 948,
+        "y": 0
+      },
+      "style": {
+        "width": 1708,
+        "height": 376
+      },
+      "data": {
+        "label": "2 \u00b7 Independent visual review"
+      }
+    },
+    {
+      "id": "group-3",
+      "type": "group",
+      "name": "3 \u00b7 One revision",
+      "position": {
+        "x": 190,
+        "y": 446
+      },
+      "style": {
+        "width": 1708,
+        "height": 208
+      },
+      "data": {
+        "label": "3 \u00b7 One revision"
+      }
+    },
+    {
       "id": "n-build",
       "name": "build",
-      "position": {
-        "x": 296,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-build-cycle",
+        "label": "build \u25b8 rules-story-build-cycle",
         "prompt": "Run Archon sub-workflow `rules-story-build-cycle` (see rules-story-build-cycle.json). Inputs: {\"project\": \"$INPUTS.project\", \"phase\": \"pre-review\"}"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-freeze",
       "name": "freeze",
-      "position": {
-        "x": 552,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs freeze \"$INPUTS_PROJECT\" [when: $build.output.status == 'complete']",
+        "label": "freeze \u00b7 if status complete",
         "prompt": "node scripts/archon/rules-story.mjs freeze \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-visual-evidence",
       "name": "visual-evidence",
-      "position": {
-        "x": 808,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs visual-evidence \"$INPUTS_PROJECT\"",
+        "label": "visual-evidence",
         "prompt": "node scripts/archon/rules-story.mjs visual-evidence \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-visual-review-state",
       "name": "visual-review-state",
-      "position": {
-        "x": 1064,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\"",
+        "label": "visual-review-state",
         "prompt": "node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-visual-review",
       "name": "visual-review",
-      "position": {
-        "x": 1320,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node visual-review [when: $visual-review-state.output.artifacts.done == false]",
+        "description": "visual-review \u00b7 if not done",
         "agentDefinition": "Archon node `visual-review` in rules-story-creative-review-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role \"visual-review\", reviewer identity \"$WORKFLOW_ID:visual-review\". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.\nUse the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-visual-review-state-1",
       "name": "visual-review-state-1",
-      "position": {
-        "x": 1576,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\"",
+        "label": "visual-review-state-1",
         "prompt": "node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-visual-review-completion-2",
       "name": "visual-review-completion-2",
-      "position": {
-        "x": 1832,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node visual-review-completion-2 [when: $visual-review-state-1.output.artifacts.done == false]",
+        "description": "visual-review-completion-2 \u00b7 if not done",
         "agentDefinition": "Archon node `visual-review-completion-2` in rules-story-creative-review-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role \"visual-review\", reviewer identity \"$WORKFLOW_ID:visual-review\". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.\nUse the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-visual-review-state-2",
       "name": "visual-review-state-2",
-      "position": {
-        "x": 1832,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\"",
+        "label": "visual-review-state-2",
         "prompt": "node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-visual-review-completion-3",
       "name": "visual-review-completion-3",
-      "position": {
-        "x": 1576,
-        "y": 202
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node visual-review-completion-3 [when: $visual-review-state-2.output.artifacts.done == false]",
+        "description": "visual-review-completion-3 \u00b7 if not done",
         "agentDefinition": "Archon node `visual-review-completion-3` in rules-story-creative-review-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role \"visual-review\", reviewer identity \"$WORKFLOW_ID:visual-review\". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.\nUse the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-visual-review-state-3",
       "name": "visual-review-state-3",
-      "position": {
-        "x": 1320,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\"",
+        "label": "visual-review-state-3",
         "prompt": "node scripts/archon/rules-story.mjs visual-review-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-review-join",
       "name": "review-join",
-      "position": {
-        "x": 1064,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs review-round \"$INPUTS_PROJECT\"",
+        "label": "review-join",
         "prompt": "node scripts/archon/rules-story.mjs review-round \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-register-revision",
       "name": "register-revision",
-      "position": {
-        "x": 808,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "label": "register-revision",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"producer\", {role:\"scene-author\",runId:process.env.INPUTS_RUN});"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-revision",
       "name": "revision",
-      "position": {
-        "x": 552,
-        "y": 202
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node revision",
+        "description": "revision",
         "agentDefinition": "Archon node `revision` in rules-story-creative-review-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). Address all demonstrated findings in the project's scene files and visual settings. Preserve approved script, recording and measured timing. This invocation authorizes you to save changes. Create jobs/$INPUTS.project/review/revision-notes.md describing actual changes and any unresolved findings; if no change is warranted, explain that. Do not write reviewer reports or claim your revision was independently approved. The workflow proceeds after this revision and technical checks, without another creative review. Producer identity: $WORKFLOW_ID:scene-author.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-revision-build",
       "name": "revision-build",
-      "position": {
-        "x": 296,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-build-cycle",
+        "label": "revision-build \u25b8 rules-story-build-cycle",
         "prompt": "Run Archon sub-workflow `rules-story-build-cycle` (see rules-story-build-cycle.json). Inputs: {\"project\": \"$INPUTS.project\", \"phase\": \"post-revision\"}"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-revision-complete",
       "name": "revision-complete",
-      "position": {
-        "x": 40,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs revision-complete \"$INPUTS_PROJECT\"",
+        "label": "revision-complete",
         "prompt": "node scripts/archon/rules-story.mjs revision-complete \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-round-result",
       "name": "round-result",
-      "position": {
-        "x": 40,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs film-loop-check \"$INPUTS_PROJECT\"",
+        "label": "round-result",
         "prompt": "node scripts/archon/rules-story.mjs film-loop-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
@@ -241,8 +305,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 296,
-        "y": 364
+        "x": 1948,
+        "y": 538
       },
       "data": {
         "label": "end"

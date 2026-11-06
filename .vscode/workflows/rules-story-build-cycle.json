@@ -9,137 +9,162 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 40,
-        "y": 40
+        "x": 0,
+        "y": 92
       },
       "data": {
         "label": "start"
       }
     },
     {
+      "id": "group-1",
+      "type": "group",
+      "name": "Build & repair (up to 3 repairs)",
+      "position": {
+        "x": 190,
+        "y": 0
+      },
+      "style": {
+        "width": 2048,
+        "height": 376
+      },
+      "data": {
+        "label": "Build & repair (up to 3 repairs)"
+      }
+    },
+    {
       "id": "n-register-repair",
       "name": "register-repair",
-      "position": {
-        "x": 296,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "label": "register-repair",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"producer\", {role:\"technical-repair\",runId:process.env.INPUTS_RUN});"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-build-1",
       "name": "build-1",
-      "position": {
-        "x": 552,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route",
+        "label": "build-1",
         "prompt": "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-repair-1",
       "name": "repair-1",
-      "position": {
-        "x": 808,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node repair-1 [when: $build-1.output.status == 'repair']",
+        "description": "repair-1 \u00b7 if status repair",
         "agentDefinition": "Archon node `repair-1` in rules-story-build-cycle. Completes only its assigned work.",
         "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-1.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-build-2",
       "name": "build-2",
-      "position": {
-        "x": 1064,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route",
+        "label": "build-2",
         "prompt": "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-repair-2",
       "name": "repair-2",
-      "position": {
-        "x": 1320,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node repair-2 [when: $build-2.output.status == 'repair']",
+        "description": "repair-2 \u00b7 if status repair",
         "agentDefinition": "Archon node `repair-2` in rules-story-build-cycle. Completes only its assigned work.",
         "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-2.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-build-3",
       "name": "build-3",
-      "position": {
-        "x": 1576,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route",
+        "label": "build-3",
         "prompt": "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-repair-3",
       "name": "repair-3",
-      "position": {
-        "x": 1832,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node repair-3 [when: $build-3.output.status == 'repair']",
+        "description": "repair-3 \u00b7 if status repair",
         "agentDefinition": "Archon node `repair-3` in rules-story-build-cycle. Completes only its assigned work.",
         "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-3.md. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-build-4",
       "name": "build-4",
-      "position": {
-        "x": 1832,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route",
+        "label": "build-4",
         "prompt": "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" --route"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-result",
       "name": "result",
-      "position": {
-        "x": 1576,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs build-check \"$INPUTS_PROJECT\"",
+        "label": "result",
         "prompt": "node scripts/archon/rules-story.mjs build-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
@@ -147,8 +172,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 1320,
-        "y": 202
+        "x": 2288,
+        "y": 92
       },
       "data": {
         "label": "end"

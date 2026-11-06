@@ -9,254 +9,304 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 40,
-        "y": 40
+        "x": 0,
+        "y": 92
       },
       "data": {
         "label": "start"
       }
     },
     {
+      "id": "group-1",
+      "type": "group",
+      "name": "1 \u00b7 Research",
+      "position": {
+        "x": 190,
+        "y": 0
+      },
+      "style": {
+        "width": 2048,
+        "height": 376
+      },
+      "data": {
+        "label": "1 \u00b7 Research"
+      }
+    },
+    {
+      "id": "group-2",
+      "type": "group",
+      "name": "2 \u00b7 Script",
+      "position": {
+        "x": 190,
+        "y": 446
+      },
+      "style": {
+        "width": 1708,
+        "height": 376
+      },
+      "data": {
+        "label": "2 \u00b7 Script"
+      }
+    },
+    {
       "id": "n-recover",
       "name": "recover",
-      "position": {
-        "x": 296,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "label": "recover",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"init\", JSON.parse(process.env.INPUTS_OPTIONS || \"{}\"));"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-research-state",
       "name": "research-state",
-      "position": {
-        "x": 552,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state",
         "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-research",
       "name": "research",
-      "position": {
-        "x": 808,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node research [when: $research-state.output.artifacts.done == false]",
+        "description": "research \u00b7 if not done",
         "agentDefinition": "Archon node `research` in kai-explainer-script. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-research-state-1",
       "name": "research-state-1",
-      "position": {
-        "x": 1064,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state-1",
         "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-research-completion-1",
       "name": "research-completion-1",
-      "position": {
-        "x": 1320,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node research-completion-1 [when: $research-state-1.output.artifacts.done == false]",
+        "description": "research-completion-1 \u00b7 if not done",
         "agentDefinition": "Archon node `research-completion-1` in kai-explainer-script. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-research-state-2",
       "name": "research-state-2",
-      "position": {
-        "x": 1576,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state-2",
         "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-research-completion-2",
       "name": "research-completion-2",
-      "position": {
-        "x": 1832,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node research-completion-2 [when: $research-state-2.output.artifacts.done == false]",
+        "description": "research-completion-2 \u00b7 if not done",
         "agentDefinition": "Archon node `research-completion-2` in kai-explainer-script. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-research-state-3",
       "name": "research-state-3",
-      "position": {
-        "x": 1832,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state-3",
         "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-research-ready",
       "name": "research-ready",
-      "position": {
-        "x": 1576,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs research-check \"$INPUTS_PROJECT\"",
+        "label": "research-ready",
         "prompt": "node scripts/archon/kai-explainer.mjs research-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-state-1",
       "name": "script-cycle-state-1",
-      "position": {
-        "x": 1320,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-1",
         "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-1",
       "name": "script-cycle-round-1",
-      "position": {
-        "x": 1064,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: kai-explainer-script-cycle-round [when: $script-cycle-state-1.output.artifacts.done == false]",
+        "label": "script-cycle-round-1 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle-state-2",
       "name": "script-cycle-state-2",
-      "position": {
-        "x": 808,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-2",
         "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-2",
       "name": "script-cycle-round-2",
-      "position": {
-        "x": 552,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: kai-explainer-script-cycle-round [when: $script-cycle-state-2.output.artifacts.done == false]",
+        "label": "script-cycle-round-2 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle-state-3",
       "name": "script-cycle-state-3",
-      "position": {
-        "x": 296,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-3",
         "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-3",
       "name": "script-cycle-round-3",
-      "position": {
-        "x": 40,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: kai-explainer-script-cycle-round [when: $script-cycle-state-3.output.artifacts.done == false]",
+        "label": "script-cycle-round-3 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle-state-4",
       "name": "script-cycle-state-4",
-      "position": {
-        "x": 40,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-4",
         "prompt": "node scripts/archon/kai-explainer.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-4",
       "name": "script-cycle-round-4",
-      "position": {
-        "x": 296,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: kai-explainer-script-cycle-round [when: $script-cycle-state-4.output.artifacts.done == false]",
+        "label": "script-cycle-round-4 \u25b8 kai-explainer-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `kai-explainer-script-cycle-round` (see kai-explainer-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle",
       "name": "script-cycle",
-      "position": {
-        "x": 552,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs script-loop-check \"$INPUTS_PROJECT\"",
+        "label": "script-cycle",
         "prompt": "node scripts/archon/kai-explainer.mjs script-loop-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
@@ -264,8 +314,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 808,
-        "y": 364
+        "x": 1948,
+        "y": 538
       },
       "data": {
         "label": "end"

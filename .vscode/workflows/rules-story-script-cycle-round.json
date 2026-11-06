@@ -9,120 +9,171 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 40,
-        "y": 95
+        "x": 0,
+        "y": 92
       },
       "data": {
         "label": "start"
       }
     },
     {
+      "id": "group-1",
+      "type": "group",
+      "name": "1 \u00b7 Write",
+      "position": {
+        "x": 190,
+        "y": 0
+      },
+      "style": {
+        "width": 518,
+        "height": 376
+      },
+      "data": {
+        "label": "1 \u00b7 Write"
+      }
+    },
+    {
+      "id": "group-2",
+      "type": "group",
+      "name": "2 \u00b7 Independent review",
+      "position": {
+        "x": 778,
+        "y": 0
+      },
+      "style": {
+        "width": 1028,
+        "height": 376
+      },
+      "data": {
+        "label": "2 \u00b7 Independent review"
+      }
+    },
+    {
+      "id": "group-3",
+      "type": "group",
+      "name": "3 \u00b7 Operator decision",
+      "position": {
+        "x": 190,
+        "y": 446
+      },
+      "style": {
+        "width": 1708,
+        "height": 458
+      },
+      "data": {
+        "label": "3 \u00b7 Operator decision"
+      }
+    },
+    {
       "id": "n-script-state",
       "name": "script-state",
-      "position": {
-        "x": 296,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-status \"$INPUTS_PROJECT\"",
+        "label": "script-state",
         "prompt": "node scripts/archon/rules-story.mjs script-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-write",
       "name": "write",
-      "position": {
-        "x": 552,
-        "y": 95
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node write [when: $script-state.output.artifacts.needsWrite == true]",
+        "description": "write \u00b7 if needsWrite",
         "agentDefinition": "Archon node `write` in rules-story-script-cycle-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Write or revise SCRIPT.md, research.md and VISUALS.md; read review.md and archon/script-decision.json for feedback. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Before finishing, run the documented script-status adapter and fix its reported syntax/output errors. Kai narration must start after a ## scene-id heading, including the opening hook. Do not review your own work.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-script-binding",
       "name": "script-binding",
-      "position": {
-        "x": 808,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-review-request \"$INPUTS_PROJECT\"",
+        "label": "script-binding",
         "prompt": "node scripts/archon/rules-story.mjs script-review-request \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-script-review",
       "name": "script-review",
-      "position": {
-        "x": 1064,
-        "y": 95
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node script-review [when: $script-binding.output.artifacts.ready == false && $script-binding.output.artifacts.valid == true]",
+        "description": "script-review \u00b7 if not ready & valid",
         "agentDefinition": "Archon node `script-review` in rules-story-script-cycle-round. Completes only its assigned work.",
         "prompt": "This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, without blocking on packaging. A legitimately unreadable or missing source needed for a material factual claim still requires an incomplete verdict naming that claim and source.\nYou are the independent script reviewer for project $INPUTS.project. This Archon node explicitly commissions file inspection and writing the review. Work from the repository root; tools are available for reading files and writing your report.\nRead jobs/scripts/$INPUTS.project/production-profile.json, BRIEF.md, SCRIPT.md, VISUALS.md, SOURCES.md and retained source evidence in that project. Follow skills/script-writing/references/review.md. Do not change author files, sources, script or visual intent.\nThe exact review binding is $script-binding.output.artifacts.binding. Write substantive findings to jobs/scripts/$INPUTS.project/review-draft.md using file tools. Include concrete findings supported by the files you actually inspected, and a final line \"Disposition: pass\", \"Disposition: revise\" or \"Disposition: incomplete\". A missing previous report is expected; you are responsible for creating it. If evidence is genuinely missing, still write a binding-tagged incomplete report naming what is missing. Do not claim inspection you did not perform.\nAfter writing the draft, run `node scripts/archon/script-review-report.mjs $INPUTS.project`. It reads the explicit project slug and the deterministic archon/script-review-request.json assignment and writes review.md with the exact verified binding. Do not transcribe the hash by hand. Complete this command before finishing. Finish with a short plain-language confirmation of the report path. Do not return JSON; the next deterministic node reads your report and produces the machine result.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-script-report",
       "name": "script-report",
-      "position": {
-        "x": 1320,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $script-binding.output.artifacts.ready == false && $script-binding.output.artifacts.valid == true]",
+        "label": "script-report \u00b7 if not ready & valid",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"script-reviewed\", {expected: process.env.INPUTS_BINDING});"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-script-reviewed-state",
       "name": "script-reviewed-state",
-      "position": {
-        "x": 1576,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-status \"$INPUTS_PROJECT\"",
+        "label": "script-reviewed-state",
         "prompt": "node scripts/archon/rules-story.mjs script-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-script-gate",
       "name": "script-gate",
-      "position": {
-        "x": 1832,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "label": "script-gate",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"gate\", {kind:\"script\"});"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-script-attention",
       "name": "script-attention",
-      "position": {
-        "x": 1832,
-        "y": 367
-      },
       "type": "askUserQuestion",
       "data": {
-        "questionText": "Review $script-gate.output.artifacts.artifact for $INPUTS.project. Binding: $script-gate.output.artifacts.binding. Choose approve, revise or reject. Approval needs no comment; revisions require your actual feedback. [when: $script-reviewed-state.output.artifacts.ready == true && $script-gate.output.artifacts.needsAnswer == true]",
+        "questionText": "script-attention \u00b7 operator decision \u00b7 if ready & needsAnswer: Review $script-gate.output.artifacts.artifact for $INPUTS.project.",
         "options": [
           {
             "id": "opt-0",
@@ -141,58 +192,67 @@
           }
         ],
         "outputPorts": 3
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-script-answer",
       "name": "script-answer",
-      "position": {
-        "x": 1576,
-        "y": 367
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $script-reviewed-state.output.artifacts.ready == true && $script-gate.output.artifacts.needsAnswer == true]",
+        "label": "script-answer \u00b7 if ready & needsAnswer",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"checkpoint\", {kind:\"script\", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-script-stop",
       "name": "script-stop",
-      "position": {
-        "x": 1064,
-        "y": 312
-      },
       "type": "prompt",
       "data": {
-        "label": "cancel [when: $script-answer.output.artifacts.rejected == true]",
+        "label": "script-stop \u00b7 stop run \u00b7 if rejected",
         "prompt": "Operator stopped this production; retained artifacts remain available."
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-script-accepted",
       "name": "script-accepted",
-      "position": {
-        "x": 1320,
-        "y": 367
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "label": "script-accepted",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"gate\", {kind:\"script\"});"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-round-result",
       "name": "round-result",
-      "position": {
-        "x": 1064,
-        "y": 422
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "round-result",
         "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
@@ -200,8 +260,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 808,
-        "y": 367
+        "x": 1948,
+        "y": 538
       },
       "data": {
         "label": "end"
@@ -301,6 +361,13 @@
       "toPort": "input"
     },
     {
+      "id": "c-end-n-script-stop",
+      "from": "n-script-stop",
+      "to": "end_1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-script-gate-n-script-accepted",
       "from": "n-script-gate",
       "to": "n-script-accepted",
@@ -318,13 +385,6 @@
       "id": "c-n-script-accepted-n-round-result",
       "from": "n-script-accepted",
       "to": "n-round-result",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-end-n-script-stop",
-      "from": "n-script-stop",
-      "to": "end_1",
       "fromPort": "output",
       "toPort": "input"
     },

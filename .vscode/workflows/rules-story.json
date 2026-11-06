@@ -9,699 +9,847 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 40,
-        "y": 40
+        "x": 0,
+        "y": 92
       },
       "data": {
         "label": "start"
       }
     },
     {
+      "id": "group-1",
+      "type": "group",
+      "name": "1 \u00b7 Research",
+      "position": {
+        "x": 190,
+        "y": 0
+      },
+      "style": {
+        "width": 2048,
+        "height": 376
+      },
+      "data": {
+        "label": "1 \u00b7 Research"
+      }
+    },
+    {
+      "id": "group-2",
+      "type": "group",
+      "name": "2 \u00b7 Identity & script",
+      "position": {
+        "x": 190,
+        "y": 446
+      },
+      "style": {
+        "width": 2048,
+        "height": 376
+      },
+      "data": {
+        "label": "2 \u00b7 Identity & script"
+      }
+    },
+    {
+      "id": "group-3",
+      "type": "group",
+      "name": "3 \u00b7 Narration & audio",
+      "position": {
+        "x": 190,
+        "y": 892
+      },
+      "style": {
+        "width": 2388,
+        "height": 208
+      },
+      "data": {
+        "label": "3 \u00b7 Narration & audio"
+      }
+    },
+    {
+      "id": "group-4",
+      "type": "group",
+      "name": "4 \u00b7 Production",
+      "position": {
+        "x": 190,
+        "y": 1170
+      },
+      "style": {
+        "width": 2048,
+        "height": 376
+      },
+      "data": {
+        "label": "4 \u00b7 Production"
+      }
+    },
+    {
+      "id": "group-5",
+      "type": "group",
+      "name": "5 \u00b7 Thumbnails",
+      "position": {
+        "x": 190,
+        "y": 1616
+      },
+      "style": {
+        "width": 1708,
+        "height": 376
+      },
+      "data": {
+        "label": "5 \u00b7 Thumbnails"
+      }
+    },
+    {
+      "id": "group-6",
+      "type": "group",
+      "name": "6 \u00b7 Publishing",
+      "position": {
+        "x": 190,
+        "y": 2062
+      },
+      "style": {
+        "width": 2048,
+        "height": 376
+      },
+      "data": {
+        "label": "6 \u00b7 Publishing"
+      }
+    },
+    {
       "id": "n-recover",
       "name": "recover",
-      "position": {
-        "x": 296,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");",
+        "label": "recover",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"init\", JSON.parse(process.env.INPUTS_OPTIONS || \"{}\"));"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-research-state",
       "name": "research-state",
-      "position": {
-        "x": 552,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state",
         "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-research",
       "name": "research",
-      "position": {
-        "x": 808,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node research [when: $research-state.output.artifacts.done == false]",
+        "description": "research \u00b7 if not done",
         "agentDefinition": "Archon node `research` in rules-story. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-research-state-1",
       "name": "research-state-1",
-      "position": {
-        "x": 1064,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state-1",
         "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-research-completion-1",
       "name": "research-completion-1",
-      "position": {
-        "x": 1320,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node research-completion-1 [when: $research-state-1.output.artifacts.done == false]",
+        "description": "research-completion-1 \u00b7 if not done",
         "agentDefinition": "Archon node `research-completion-1` in rules-story. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-research-state-2",
       "name": "research-state-2",
-      "position": {
-        "x": 1576,
-        "y": 40
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state-2",
         "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-research-completion-2",
       "name": "research-completion-2",
-      "position": {
-        "x": 1832,
-        "y": 40
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node research-completion-2 [when: $research-state-2.output.artifacts.done == false]",
+        "description": "research-completion-2 \u00b7 if not done",
         "agentDefinition": "Archon node `research-completion-2` in rules-story. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/script-writing/SKILL.md. Research the agreed BRIEF.md or supplied script. Retain evidence and SOURCES.md; distinguish invented lore from real claims. Save identity.json naming an existing suitable series identity (and optional parent for a Short); create a new identity with lib/identities.mjs only if needed.\nRead the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-research-state-3",
       "name": "research-state-3",
-      "position": {
-        "x": 1832,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\"",
+        "label": "research-state-3",
         "prompt": "node scripts/archon/rules-story.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-research-ready",
       "name": "research-ready",
-      "position": {
-        "x": 1576,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs research-check \"$INPUTS_PROJECT\"",
+        "label": "research-ready",
         "prompt": "node scripts/archon/rules-story.mjs research-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
       "id": "n-identity",
       "name": "identity",
-      "position": {
-        "x": 1320,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\"",
+        "label": "identity",
         "prompt": "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-state-1",
       "name": "script-cycle-state-1",
-      "position": {
-        "x": 1064,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-1",
         "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-1",
       "name": "script-cycle-round-1",
-      "position": {
-        "x": 808,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-1.output.artifacts.done == false]",
+        "label": "script-cycle-round-1 \u25b8 rules-story-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle-state-2",
       "name": "script-cycle-state-2",
-      "position": {
-        "x": 552,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-2",
         "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-2",
       "name": "script-cycle-round-2",
-      "position": {
-        "x": 296,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-2.output.artifacts.done == false]",
+        "label": "script-cycle-round-2 \u25b8 rules-story-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle-state-3",
       "name": "script-cycle-state-3",
-      "position": {
-        "x": 40,
-        "y": 202
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-3",
         "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-3",
       "name": "script-cycle-round-3",
-      "position": {
-        "x": 40,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-3.output.artifacts.done == false]",
+        "label": "script-cycle-round-3 \u25b8 rules-story-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle-state-4",
       "name": "script-cycle-state-4",
-      "position": {
-        "x": 296,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\"",
+        "label": "script-cycle-state-4",
         "prompt": "node scripts/archon/rules-story.mjs script-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-script-cycle-round-4",
       "name": "script-cycle-round-4",
-      "position": {
-        "x": 552,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-script-cycle-round [when: $script-cycle-state-4.output.artifacts.done == false]",
+        "label": "script-cycle-round-4 \u25b8 rules-story-script-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-script-cycle-round` (see rules-story-script-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1554,
+        "y": 220
       }
     },
     {
       "id": "n-script-cycle",
       "name": "script-cycle",
-      "position": {
-        "x": 808,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs script-loop-check \"$INPUTS_PROJECT\"",
+        "label": "script-cycle",
         "prompt": "node scripts/archon/rules-story.mjs script-loop-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
       "id": "n-narration",
       "name": "narration",
-      "position": {
-        "x": 1064,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs narration \"$INPUTS_PROJECT\"",
+        "label": "narration",
         "prompt": "node scripts/archon/rules-story.mjs narration \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-prepare",
       "name": "prepare",
-      "position": {
-        "x": 1320,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\"",
+        "label": "prepare",
         "prompt": "node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-timing",
       "name": "timing",
-      "position": {
-        "x": 1576,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\"",
+        "label": "timing",
         "prompt": "node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-audio-evidence",
       "name": "audio-evidence",
-      "position": {
-        "x": 1832,
-        "y": 364
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs audio-evidence \"$INPUTS_PROJECT\"",
+        "label": "audio-evidence",
         "prompt": "node scripts/archon/rules-story.mjs audio-evidence \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-audio-review",
       "name": "audio-review",
-      "position": {
-        "x": 1832,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs audio-review \"$INPUTS_PROJECT\"",
+        "label": "audio-review",
         "prompt": "node scripts/archon/rules-story.mjs audio-review \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-audio-reviewed",
       "name": "audio-reviewed",
-      "position": {
-        "x": 1576,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs audio-reviewed \"$INPUTS_PROJECT\"",
+        "label": "audio-reviewed",
         "prompt": "node scripts/archon/rules-story.mjs audio-reviewed \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
       "id": "n-sound",
       "name": "sound",
-      "position": {
-        "x": 1320,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\"",
+        "label": "sound",
         "prompt": "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 2064,
+        "y": 52
       }
     },
     {
       "id": "n-production-state",
       "name": "production-state",
-      "position": {
-        "x": 1064,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs production-result \"$INPUTS_PROJECT\"",
+        "label": "production-state",
         "prompt": "node scripts/archon/rules-story.mjs production-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-register-director",
       "name": "register-director",
-      "position": {
-        "x": 808,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $production-state.output.artifacts.done == false]",
+        "label": "register-director \u00b7 if not done",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"producer\", {role:\"director\",runId:process.env.INPUTS_RUN});"
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-direction",
       "name": "direction",
-      "position": {
-        "x": 552,
-        "y": 526
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node direction [when: $production-state.output.artifacts.done == false]",
+        "description": "direction \u00b7 if not done",
         "agentDefinition": "Archon node `direction` in rules-story. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead skills/hyperframes/SKILL.md, docs/motion-explainer.md and docs/composition.md. Author film.json and series.json: series identity, rules and measured cue phrases. Use saved canvas and measured narration. Incorporate generated sound kit from review/archon-sound.json, series overlay, captions and -15 LUFS target. Your registered production identity is $WORKFLOW_ID:director. Recover existing valid direction; do not overwrite a completed film without findings.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-series",
       "name": "series",
-      "position": {
-        "x": 296,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs series \"$INPUTS_PROJECT\" [when: $production-state.output.artifacts.done == false]",
+        "label": "series \u00b7 if not done",
         "prompt": "node scripts/archon/rules-story.mjs series \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-register-scenes",
       "name": "register-scenes",
-      "position": {
-        "x": 40,
-        "y": 526
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\"); [when: $production-state.output.artifacts.done == false]",
+        "label": "register-scenes \u00b7 if not done",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"producer\", {role:\"scene-author\",runId:process.env.INPUTS_RUN});"
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-production",
       "name": "production",
-      "position": {
-        "x": 40,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-production-round [when: $production-state.output.artifacts.done == false]",
+        "label": "production \u25b8 rules-story-production-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-production-round` (see rules-story-production-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 1554,
+        "y": 220
       }
     },
     {
       "id": "n-delivery",
       "name": "delivery",
-      "position": {
-        "x": 296,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\"",
+        "label": "delivery",
         "prompt": "node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-4",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-cycle-state-1",
       "name": "thumbnail-cycle-state-1",
-      "position": {
-        "x": 552,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "label": "thumbnail-cycle-state-1",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-cycle-round-1",
       "name": "thumbnail-cycle-round-1",
-      "position": {
-        "x": 808,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-1.output.artifacts.done == false]",
+        "label": "thumbnail-cycle-round-1 \u25b8 rules-story-thumbnail-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-cycle-state-2",
       "name": "thumbnail-cycle-state-2",
-      "position": {
-        "x": 1064,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "label": "thumbnail-cycle-state-2",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-cycle-round-2",
       "name": "thumbnail-cycle-round-2",
-      "position": {
-        "x": 1320,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-2.output.artifacts.done == false]",
+        "label": "thumbnail-cycle-round-2 \u25b8 rules-story-thumbnail-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-cycle-state-3",
       "name": "thumbnail-cycle-state-3",
-      "position": {
-        "x": 1576,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "label": "thumbnail-cycle-state-3",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-cycle-round-3",
       "name": "thumbnail-cycle-round-3",
-      "position": {
-        "x": 1832,
-        "y": 688
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-3.output.artifacts.done == false]",
+        "label": "thumbnail-cycle-round-3 \u25b8 rules-story-thumbnail-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-cycle-state-4",
       "name": "thumbnail-cycle-state-4",
-      "position": {
-        "x": 1832,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "label": "thumbnail-cycle-state-4",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-cycle-round-4",
       "name": "thumbnail-cycle-round-4",
-      "position": {
-        "x": 1576,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-thumbnail-cycle-round [when: $thumbnail-cycle-state-4.output.artifacts.done == false]",
+        "label": "thumbnail-cycle-round-4 \u25b8 rules-story-thumbnail-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-thumbnail-cycle-round` (see rules-story-thumbnail-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-cycle",
       "name": "thumbnail-cycle",
-      "position": {
-        "x": 1320,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs thumbnail-loop-check \"$INPUTS_PROJECT\"",
+        "label": "thumbnail-cycle",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-publishing-cycle-state-1",
       "name": "publishing-cycle-state-1",
-      "position": {
-        "x": 1064,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "label": "publishing-cycle-state-1",
         "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-publishing-cycle-round-1",
       "name": "publishing-cycle-round-1",
-      "position": {
-        "x": 808,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-1.output.artifacts.done == false]",
+        "label": "publishing-cycle-round-1 \u25b8 rules-story-publishing-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-publishing-cycle-state-2",
       "name": "publishing-cycle-state-2",
-      "position": {
-        "x": 552,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "label": "publishing-cycle-state-2",
         "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-publishing-cycle-round-2",
       "name": "publishing-cycle-round-2",
-      "position": {
-        "x": 296,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-2.output.artifacts.done == false]",
+        "label": "publishing-cycle-round-2 \u25b8 rules-story-publishing-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-publishing-cycle-state-3",
       "name": "publishing-cycle-state-3",
-      "position": {
-        "x": 40,
-        "y": 850
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "label": "publishing-cycle-state-3",
         "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-publishing-cycle-round-3",
       "name": "publishing-cycle-round-3",
-      "position": {
-        "x": 40,
-        "y": 1012
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-3.output.artifacts.done == false]",
+        "label": "publishing-cycle-round-3 \u25b8 rules-story-publishing-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-publishing-cycle-state-4",
       "name": "publishing-cycle-state-4",
-      "position": {
-        "x": 296,
-        "y": 1012
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\"",
+        "label": "publishing-cycle-state-4",
         "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-publishing-cycle-round-4",
       "name": "publishing-cycle-round-4",
-      "position": {
-        "x": 552,
-        "y": 1012
-      },
       "type": "prompt",
       "data": {
-        "label": "sub-workflow: rules-story-publishing-cycle-round [when: $publishing-cycle-state-4.output.artifacts.done == false]",
+        "label": "publishing-cycle-round-4 \u25b8 rules-story-publishing-cycle-round \u00b7 if not done",
         "prompt": "Run Archon sub-workflow `rules-story-publishing-cycle-round` (see rules-story-publishing-cycle-round.json). Inputs: {\"project\": \"$INPUTS.project\", \"options\": \"$INPUTS.options\"}"
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 1214,
+        "y": 220
       }
     },
     {
       "id": "n-publishing-cycle",
       "name": "publishing-cycle",
-      "position": {
-        "x": 808,
-        "y": 1012
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs publishing-loop-check \"$INPUTS_PROJECT\"",
+        "label": "publishing-cycle",
         "prompt": "node scripts/archon/rules-story.mjs publishing-loop-check \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 1384,
+        "y": 52
       }
     },
     {
       "id": "n-publish",
       "name": "publish",
-      "position": {
-        "x": 1064,
-        "y": 1012
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/rules-story.mjs publish \"$INPUTS_PROJECT\"",
+        "label": "publish",
         "prompt": "node scripts/archon/rules-story.mjs publish \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-6",
+      "position": {
+        "x": 1724,
+        "y": 52
       }
     },
     {
@@ -709,8 +857,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 1320,
-        "y": 1012
+        "x": 2288,
+        "y": 2154
       },
       "data": {
         "label": "end"

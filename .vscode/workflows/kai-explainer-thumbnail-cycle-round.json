@@ -9,81 +9,129 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 40,
-        "y": 95
+        "x": 0,
+        "y": 92
       },
       "data": {
         "label": "start"
       }
     },
     {
+      "id": "group-1",
+      "type": "group",
+      "name": "1 \u00b7 Generate & review",
+      "position": {
+        "x": 190,
+        "y": 0
+      },
+      "style": {
+        "width": 1028,
+        "height": 208
+      },
+      "data": {
+        "label": "1 \u00b7 Generate & review"
+      }
+    },
+    {
+      "id": "group-2",
+      "type": "group",
+      "name": "2 \u00b7 Operator decision",
+      "position": {
+        "x": 1288,
+        "y": 0
+      },
+      "style": {
+        "width": 1368,
+        "height": 430
+      },
+      "data": {
+        "label": "2 \u00b7 Operator decision"
+      }
+    },
+    {
+      "id": "group-3",
+      "type": "group",
+      "name": "3 \u00b7 Select",
+      "position": {
+        "x": 2726,
+        "y": 0
+      },
+      "style": {
+        "width": 688,
+        "height": 208
+      },
+      "data": {
+        "label": "3 \u00b7 Select"
+      }
+    },
+    {
       "id": "n-thumbnail-generate",
       "name": "thumbnail-generate",
-      "position": {
-        "x": 296,
-        "y": 95
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node thumbnail-generate",
+        "description": "thumbnail-generate",
         "agentDefinition": "Archon node `thumbnail-generate` in kai-explainer-thumbnail-cycle-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nRead docs/publishing.md. Make or repair variants at the saved canvas dimensions. Use lib/thumbnails.mjs exportThumbnail for full PNG and feed preview. Read thumbnailStatus for requested count and per-variant feedback; preserve unchanged passing variants. Write BRIEF.md with Title, Headline, Description and original editable SVG with actual heavy fonts. Use the pinned local node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2 for heavy type; embed the actual font in the editable SVG. Do not search the web for a font. Inspect and export actual files, not a plan. Do not review your own variants.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-review",
       "name": "thumbnail-review",
-      "position": {
-        "x": 552,
-        "y": 95
-      },
       "type": "subAgent",
       "data": {
-        "description": "Archon agent node thumbnail-review",
+        "description": "thumbnail-review",
         "agentDefinition": "Archon node `thumbnail-review` in kai-explainer-thumbnail-cycle-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.\nYour actual assignment is thumbnail review, not workflow discovery. Call thumbnailStatus(job) from lib/thumbnails.mjs, where job is jobs/$INPUTS.project. Open each returned thumbnail.png and preview file using the native view_image tool; these are local files. Read personalities/kai-explainer/PROFILE.md, not a nonexistent project PROFILE.md. Independently view every made thumbnail PNG and feed preview. Use recordVerdict and recordRanking from lib/thumbnails.mjs with reviewer $WORKFLOW_ID:thumbnail-reviewer. Add actionable blocked findings as reviewer feedback with addThumbnailFeedback. Preserve all findings and rank only current passing variants. No claimed CTR measurements. Read the actual function signatures and finish the verdict/ranking library calls before returning. A summary of what you still need to read is not completion. Missing viewing capability must be recorded honestly as a blocked verdict, never an invented pass.",
         "agentType": "other",
         "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-join",
       "name": "thumbnail-join",
-      "position": {
-        "x": 808,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs thumbnail-status \"$INPUTS_PROJECT\"",
+        "label": "thumbnail-join",
         "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 704,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-gate",
       "name": "thumbnail-gate",
-      "position": {
-        "x": 1064,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "label": "thumbnail-gate",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"thumbnail\"});"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-thumbnail-attention",
       "name": "thumbnail-attention",
-      "position": {
-        "x": 1320,
-        "y": 95
-      },
       "type": "askUserQuestion",
       "data": {
-        "questionText": "Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbnail-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback. [when: $thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true]",
+        "questionText": "thumbnail-attention \u00b7 operator decision \u00b7 if done & needsAnswer: Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project.",
         "options": [
           {
             "id": "opt-0",
@@ -97,71 +145,81 @@
           }
         ],
         "outputPorts": 2
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 194,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-answer",
       "name": "thumbnail-answer",
-      "position": {
-        "x": 1576,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\"); [when: $thumbnail-join.output.artifacts.done == true && $thumbnail-gate.output.artifacts.needsAnswer == true]",
+        "label": "thumbnail-answer \u00b7 if done & needsAnswer",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"checkpoint\", {kind:\"thumbnail\", expected: process.env.INPUTS_BINDING, answer: JSON.parse(process.env.INPUTS_ANSWER)});"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 534,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-stop",
       "name": "thumbnail-stop",
-      "position": {
-        "x": 1576,
-        "y": 312
-      },
       "type": "prompt",
       "data": {
-        "label": "cancel [when: $thumbnail-answer.output.artifacts.rejected == true]",
+        "label": "thumbnail-stop \u00b7 stop run \u00b7 if rejected",
         "prompt": "Operator stopped this production; retained artifacts remain available."
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 874,
+        "y": 220
       }
     },
     {
       "id": "n-thumbnail-accepted",
       "name": "thumbnail-accepted",
-      "position": {
-        "x": 1832,
-        "y": 95
-      },
       "type": "prompt",
       "data": {
-        "label": "script: const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");",
+        "label": "thumbnail-accepted",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"gate\", {kind:\"thumbnail\"});"
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
       "id": "n-selection",
       "name": "selection",
-      "position": {
-        "x": 1832,
-        "y": 367
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs thumbnail-select \"$INPUTS_PROJECT\"",
+        "label": "selection",
         "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-select \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 24,
+        "y": 52
       }
     },
     {
       "id": "n-round-result",
       "name": "round-result",
-      "position": {
-        "x": 1576,
-        "y": 422
-      },
       "type": "prompt",
       "data": {
-        "label": "deterministic: node scripts/archon/kai-explainer.mjs thumbnail-loop-result \"$INPUTS_PROJECT\"",
+        "label": "round-result",
         "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 364,
+        "y": 52
       }
     },
     {
@@ -169,8 +227,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 1320,
-        "y": 367
+        "x": 3464,
+        "y": 92
       },
       "data": {
         "label": "end"
@@ -235,6 +293,13 @@
       "toPort": "input"
     },
     {
+      "id": "c-end-n-thumbnail-stop",
+      "from": "n-thumbnail-stop",
+      "to": "end_1",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-thumbnail-gate-n-thumbnail-accepted",
       "from": "n-thumbnail-gate",
       "to": "n-thumbnail-accepted",
@@ -259,13 +324,6 @@
       "id": "c-n-selection-n-round-result",
       "from": "n-selection",
       "to": "n-round-result",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-end-n-thumbnail-stop",
-      "from": "n-thumbnail-stop",
-      "to": "end_1",
       "fromPort": "output",
       "toPort": "input"
     },
