@@ -9,7 +9,7 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 110,
+        "x": 40,
         "y": 40
       },
       "data": {
@@ -20,8 +20,8 @@
       "id": "n-register-repair",
       "name": "register-repair",
       "position": {
-        "x": 40,
-        "y": 170
+        "x": 296,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -33,8 +33,8 @@
       "id": "n-build-1",
       "name": "build-1",
       "position": {
-        "x": 40,
-        "y": 336
+        "x": 552,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -46,8 +46,8 @@
       "id": "n-repair-1",
       "name": "repair-1",
       "position": {
-        "x": 125,
-        "y": 502
+        "x": 808,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -62,8 +62,8 @@
       "id": "n-build-2",
       "name": "build-2",
       "position": {
-        "x": 40,
-        "y": 668
+        "x": 1064,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -75,8 +75,8 @@
       "id": "n-repair-2",
       "name": "repair-2",
       "position": {
-        "x": 125,
-        "y": 834
+        "x": 1320,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -91,8 +91,8 @@
       "id": "n-build-3",
       "name": "build-3",
       "position": {
-        "x": 40,
-        "y": 1000
+        "x": 1576,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -104,8 +104,8 @@
       "id": "n-repair-3",
       "name": "repair-3",
       "position": {
-        "x": 125,
-        "y": 1166
+        "x": 1832,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -120,8 +120,8 @@
       "id": "n-build-4",
       "name": "build-4",
       "position": {
-        "x": 40,
-        "y": 1332
+        "x": 1832,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -133,8 +133,8 @@
       "id": "n-result",
       "name": "result",
       "position": {
-        "x": 40,
-        "y": 1498
+        "x": 1576,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -147,8 +147,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 110,
-        "y": 1664
+        "x": 1320,
+        "y": 202
       },
       "data": {
         "label": "end"

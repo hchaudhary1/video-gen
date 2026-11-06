@@ -9,7 +9,7 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 140,
+        "x": 40,
         "y": 40
       },
       "data": {
@@ -20,8 +20,8 @@
       "id": "n-recover",
       "name": "recover",
       "position": {
-        "x": 70,
-        "y": 170
+        "x": 296,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -33,8 +33,8 @@
       "id": "n-research-state",
       "name": "research-state",
       "position": {
-        "x": 70,
-        "y": 336
+        "x": 552,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -46,8 +46,8 @@
       "id": "n-research",
       "name": "research",
       "position": {
-        "x": 125,
-        "y": 502
+        "x": 808,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -62,8 +62,8 @@
       "id": "n-research-state-1",
       "name": "research-state-1",
       "position": {
-        "x": 70,
-        "y": 668
+        "x": 1064,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -75,8 +75,8 @@
       "id": "n-research-completion-1",
       "name": "research-completion-1",
       "position": {
-        "x": 125,
-        "y": 834
+        "x": 1320,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -91,8 +91,8 @@
       "id": "n-research-state-2",
       "name": "research-state-2",
       "position": {
-        "x": 70,
-        "y": 1000
+        "x": 1576,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -104,8 +104,8 @@
       "id": "n-research-completion-2",
       "name": "research-completion-2",
       "position": {
-        "x": 125,
-        "y": 1166
+        "x": 1832,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -120,8 +120,8 @@
       "id": "n-research-state-3",
       "name": "research-state-3",
       "position": {
-        "x": 70,
-        "y": 1332
+        "x": 1832,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -133,8 +133,8 @@
       "id": "n-research-ready",
       "name": "research-ready",
       "position": {
-        "x": 70,
-        "y": 1498
+        "x": 1576,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -146,8 +146,8 @@
       "id": "n-identity",
       "name": "identity",
       "position": {
-        "x": 70,
-        "y": 1664
+        "x": 1320,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -159,8 +159,8 @@
       "id": "n-script-cycle-state-1",
       "name": "script-cycle-state-1",
       "position": {
-        "x": 70,
-        "y": 1830
+        "x": 1064,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -172,8 +172,8 @@
       "id": "n-script-cycle-round-1",
       "name": "script-cycle-round-1",
       "position": {
-        "x": 125,
-        "y": 1996
+        "x": 808,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -185,8 +185,8 @@
       "id": "n-script-cycle-state-2",
       "name": "script-cycle-state-2",
       "position": {
-        "x": 70,
-        "y": 2162
+        "x": 552,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -198,8 +198,8 @@
       "id": "n-script-cycle-round-2",
       "name": "script-cycle-round-2",
       "position": {
-        "x": 125,
-        "y": 2328
+        "x": 296,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -211,8 +211,8 @@
       "id": "n-script-cycle-state-3",
       "name": "script-cycle-state-3",
       "position": {
-        "x": 70,
-        "y": 2494
+        "x": 40,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -224,8 +224,8 @@
       "id": "n-script-cycle-round-3",
       "name": "script-cycle-round-3",
       "position": {
-        "x": 125,
-        "y": 2660
+        "x": 40,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -237,8 +237,8 @@
       "id": "n-script-cycle-state-4",
       "name": "script-cycle-state-4",
       "position": {
-        "x": 70,
-        "y": 2826
+        "x": 296,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -250,8 +250,8 @@
       "id": "n-script-cycle-round-4",
       "name": "script-cycle-round-4",
       "position": {
-        "x": 125,
-        "y": 2992
+        "x": 552,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -263,8 +263,8 @@
       "id": "n-script-cycle",
       "name": "script-cycle",
       "position": {
-        "x": 70,
-        "y": 3158
+        "x": 808,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -276,8 +276,8 @@
       "id": "n-narration",
       "name": "narration",
       "position": {
-        "x": 70,
-        "y": 3324
+        "x": 1064,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -289,8 +289,8 @@
       "id": "n-prepare",
       "name": "prepare",
       "position": {
-        "x": 70,
-        "y": 3490
+        "x": 1320,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -302,8 +302,8 @@
       "id": "n-timing",
       "name": "timing",
       "position": {
-        "x": 70,
-        "y": 3656
+        "x": 1576,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -315,8 +315,8 @@
       "id": "n-audio-evidence",
       "name": "audio-evidence",
       "position": {
-        "x": 70,
-        "y": 3822
+        "x": 1832,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -328,8 +328,8 @@
       "id": "n-audio-review",
       "name": "audio-review",
       "position": {
-        "x": 70,
-        "y": 3988
+        "x": 1832,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -341,8 +341,8 @@
       "id": "n-audio-reviewed",
       "name": "audio-reviewed",
       "position": {
-        "x": 70,
-        "y": 4154
+        "x": 1576,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -354,8 +354,8 @@
       "id": "n-sound",
       "name": "sound",
       "position": {
-        "x": 70,
-        "y": 4320
+        "x": 1320,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -367,8 +367,8 @@
       "id": "n-production-state",
       "name": "production-state",
       "position": {
-        "x": 70,
-        "y": 4486
+        "x": 1064,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -380,8 +380,8 @@
       "id": "n-register-director",
       "name": "register-director",
       "position": {
-        "x": 465,
-        "y": 4652
+        "x": 808,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -393,8 +393,8 @@
       "id": "n-direction",
       "name": "direction",
       "position": {
-        "x": 380,
-        "y": 4818
+        "x": 552,
+        "y": 526
       },
       "type": "subAgent",
       "data": {
@@ -409,8 +409,8 @@
       "id": "n-series",
       "name": "series",
       "position": {
-        "x": 295,
-        "y": 4984
+        "x": 296,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -422,8 +422,8 @@
       "id": "n-register-scenes",
       "name": "register-scenes",
       "position": {
-        "x": 210,
-        "y": 5150
+        "x": 40,
+        "y": 526
       },
       "type": "prompt",
       "data": {
@@ -435,8 +435,8 @@
       "id": "n-production",
       "name": "production",
       "position": {
-        "x": 125,
-        "y": 5316
+        "x": 40,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -448,8 +448,8 @@
       "id": "n-delivery",
       "name": "delivery",
       "position": {
-        "x": 40,
-        "y": 5482
+        "x": 296,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -461,8 +461,8 @@
       "id": "n-thumbnail-cycle-state-1",
       "name": "thumbnail-cycle-state-1",
       "position": {
-        "x": 40,
-        "y": 5648
+        "x": 552,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -474,8 +474,8 @@
       "id": "n-thumbnail-cycle-round-1",
       "name": "thumbnail-cycle-round-1",
       "position": {
-        "x": 125,
-        "y": 5814
+        "x": 808,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -487,8 +487,8 @@
       "id": "n-thumbnail-cycle-state-2",
       "name": "thumbnail-cycle-state-2",
       "position": {
-        "x": 40,
-        "y": 5980
+        "x": 1064,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -500,8 +500,8 @@
       "id": "n-thumbnail-cycle-round-2",
       "name": "thumbnail-cycle-round-2",
       "position": {
-        "x": 125,
-        "y": 6146
+        "x": 1320,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -513,8 +513,8 @@
       "id": "n-thumbnail-cycle-state-3",
       "name": "thumbnail-cycle-state-3",
       "position": {
-        "x": 40,
-        "y": 6312
+        "x": 1576,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -526,8 +526,8 @@
       "id": "n-thumbnail-cycle-round-3",
       "name": "thumbnail-cycle-round-3",
       "position": {
-        "x": 125,
-        "y": 6478
+        "x": 1832,
+        "y": 688
       },
       "type": "prompt",
       "data": {
@@ -539,8 +539,8 @@
       "id": "n-thumbnail-cycle-state-4",
       "name": "thumbnail-cycle-state-4",
       "position": {
-        "x": 40,
-        "y": 6644
+        "x": 1832,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -552,8 +552,8 @@
       "id": "n-thumbnail-cycle-round-4",
       "name": "thumbnail-cycle-round-4",
       "position": {
-        "x": 125,
-        "y": 6810
+        "x": 1576,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -565,8 +565,8 @@
       "id": "n-thumbnail-cycle",
       "name": "thumbnail-cycle",
       "position": {
-        "x": 40,
-        "y": 6976
+        "x": 1320,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -578,8 +578,8 @@
       "id": "n-publishing-cycle-state-1",
       "name": "publishing-cycle-state-1",
       "position": {
-        "x": 40,
-        "y": 7142
+        "x": 1064,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -591,8 +591,8 @@
       "id": "n-publishing-cycle-round-1",
       "name": "publishing-cycle-round-1",
       "position": {
-        "x": 125,
-        "y": 7308
+        "x": 808,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -604,8 +604,8 @@
       "id": "n-publishing-cycle-state-2",
       "name": "publishing-cycle-state-2",
       "position": {
-        "x": 40,
-        "y": 7474
+        "x": 552,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -617,8 +617,8 @@
       "id": "n-publishing-cycle-round-2",
       "name": "publishing-cycle-round-2",
       "position": {
-        "x": 125,
-        "y": 7640
+        "x": 296,
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -631,7 +631,7 @@
       "name": "publishing-cycle-state-3",
       "position": {
         "x": 40,
-        "y": 7806
+        "y": 850
       },
       "type": "prompt",
       "data": {
@@ -643,8 +643,8 @@
       "id": "n-publishing-cycle-round-3",
       "name": "publishing-cycle-round-3",
       "position": {
-        "x": 125,
-        "y": 7972
+        "x": 40,
+        "y": 1012
       },
       "type": "prompt",
       "data": {
@@ -656,8 +656,8 @@
       "id": "n-publishing-cycle-state-4",
       "name": "publishing-cycle-state-4",
       "position": {
-        "x": 40,
-        "y": 8138
+        "x": 296,
+        "y": 1012
       },
       "type": "prompt",
       "data": {
@@ -669,8 +669,8 @@
       "id": "n-publishing-cycle-round-4",
       "name": "publishing-cycle-round-4",
       "position": {
-        "x": 125,
-        "y": 8304
+        "x": 552,
+        "y": 1012
       },
       "type": "prompt",
       "data": {
@@ -682,8 +682,8 @@
       "id": "n-publishing-cycle",
       "name": "publishing-cycle",
       "position": {
-        "x": 40,
-        "y": 8470
+        "x": 808,
+        "y": 1012
       },
       "type": "prompt",
       "data": {
@@ -695,8 +695,8 @@
       "id": "n-publish",
       "name": "publish",
       "position": {
-        "x": 40,
-        "y": 8636
+        "x": 1064,
+        "y": 1012
       },
       "type": "prompt",
       "data": {
@@ -709,8 +709,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 110,
-        "y": 8802
+        "x": 1320,
+        "y": 1012
       },
       "data": {
         "label": "end"

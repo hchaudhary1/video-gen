@@ -9,7 +9,7 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 110,
+        "x": 40,
         "y": 40
       },
       "data": {
@@ -20,8 +20,8 @@
       "id": "n-build",
       "name": "build",
       "position": {
-        "x": 40,
-        "y": 170
+        "x": 296,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -33,8 +33,8 @@
       "id": "n-preview",
       "name": "preview",
       "position": {
-        "x": 40,
-        "y": 336
+        "x": 552,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -46,8 +46,8 @@
       "id": "n-freeze",
       "name": "freeze",
       "position": {
-        "x": 40,
-        "y": 502
+        "x": 808,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -59,8 +59,8 @@
       "id": "n-visual-evidence",
       "name": "visual-evidence",
       "position": {
-        "x": 40,
-        "y": 668
+        "x": 1064,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -72,8 +72,8 @@
       "id": "n-visual-review-state",
       "name": "visual-review-state",
       "position": {
-        "x": 40,
-        "y": 834
+        "x": 1320,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -85,8 +85,8 @@
       "id": "n-visual-review",
       "name": "visual-review",
       "position": {
-        "x": 125,
-        "y": 1000
+        "x": 1576,
+        "y": 40
       },
       "type": "subAgent",
       "data": {
@@ -101,8 +101,8 @@
       "id": "n-visual-review-state-1",
       "name": "visual-review-state-1",
       "position": {
-        "x": 40,
-        "y": 1166
+        "x": 1832,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -114,8 +114,8 @@
       "id": "n-visual-review-completion-2",
       "name": "visual-review-completion-2",
       "position": {
-        "x": 125,
-        "y": 1332
+        "x": 1832,
+        "y": 202
       },
       "type": "subAgent",
       "data": {
@@ -130,8 +130,8 @@
       "id": "n-visual-review-state-2",
       "name": "visual-review-state-2",
       "position": {
-        "x": 40,
-        "y": 1498
+        "x": 1576,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -143,8 +143,8 @@
       "id": "n-visual-review-completion-3",
       "name": "visual-review-completion-3",
       "position": {
-        "x": 125,
-        "y": 1664
+        "x": 1320,
+        "y": 202
       },
       "type": "subAgent",
       "data": {
@@ -159,8 +159,8 @@
       "id": "n-visual-review-state-3",
       "name": "visual-review-state-3",
       "position": {
-        "x": 40,
-        "y": 1830
+        "x": 1064,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -172,8 +172,8 @@
       "id": "n-review-join",
       "name": "review-join",
       "position": {
-        "x": 40,
-        "y": 1996
+        "x": 808,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -185,8 +185,8 @@
       "id": "n-register-revision",
       "name": "register-revision",
       "position": {
-        "x": 40,
-        "y": 2162
+        "x": 552,
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -198,8 +198,8 @@
       "id": "n-revision",
       "name": "revision",
       "position": {
-        "x": 40,
-        "y": 2328
+        "x": 296,
+        "y": 202
       },
       "type": "subAgent",
       "data": {
@@ -215,7 +215,7 @@
       "name": "revision-build",
       "position": {
         "x": 40,
-        "y": 2494
+        "y": 202
       },
       "type": "prompt",
       "data": {
@@ -228,7 +228,7 @@
       "name": "revision-complete",
       "position": {
         "x": 40,
-        "y": 2660
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -240,8 +240,8 @@
       "id": "n-revised-preview",
       "name": "revised-preview",
       "position": {
-        "x": 40,
-        "y": 2826
+        "x": 296,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -253,8 +253,8 @@
       "id": "n-round-result",
       "name": "round-result",
       "position": {
-        "x": 40,
-        "y": 2992
+        "x": 552,
+        "y": 364
       },
       "type": "prompt",
       "data": {
@@ -267,8 +267,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 110,
-        "y": 3158
+        "x": 808,
+        "y": 364
       },
       "data": {
         "label": "end"

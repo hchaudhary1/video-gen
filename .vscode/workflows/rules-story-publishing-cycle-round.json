@@ -9,8 +9,8 @@
       "type": "start",
       "name": "start",
       "position": {
-        "x": 355,
-        "y": 40
+        "x": 40,
+        "y": 95
       },
       "data": {
         "label": "start"
@@ -20,8 +20,8 @@
       "id": "n-publishing-copy",
       "name": "publishing-copy",
       "position": {
-        "x": 285,
-        "y": 170
+        "x": 296,
+        "y": 95
       },
       "type": "subAgent",
       "data": {
@@ -36,8 +36,8 @@
       "id": "n-publishing-gate",
       "name": "publishing-gate",
       "position": {
-        "x": 285,
-        "y": 336
+        "x": 552,
+        "y": 95
       },
       "type": "prompt",
       "data": {
@@ -49,8 +49,8 @@
       "id": "n-publishing-attention",
       "name": "publishing-attention",
       "position": {
-        "x": 40,
-        "y": 502
+        "x": 808,
+        "y": 95
       },
       "type": "askUserQuestion",
       "data": {
@@ -84,8 +84,8 @@
       "id": "n-publishing-answer",
       "name": "publishing-answer",
       "position": {
-        "x": 125,
-        "y": 668
+        "x": 1064,
+        "y": 95
       },
       "type": "prompt",
       "data": {
@@ -97,8 +97,8 @@
       "id": "n-publishing-stop",
       "name": "publishing-stop",
       "position": {
-        "x": 50,
-        "y": 1000
+        "x": 1576,
+        "y": 40
       },
       "type": "prompt",
       "data": {
@@ -110,8 +110,8 @@
       "id": "n-publishing-accepted",
       "name": "publishing-accepted",
       "position": {
-        "x": 370,
-        "y": 834
+        "x": 1320,
+        "y": 95
       },
       "type": "prompt",
       "data": {
@@ -123,8 +123,8 @@
       "id": "n-round-result",
       "name": "round-result",
       "position": {
-        "x": 370,
-        "y": 1000
+        "x": 1576,
+        "y": 150
       },
       "type": "prompt",
       "data": {
@@ -137,8 +137,8 @@
       "type": "end",
       "name": "end",
       "position": {
-        "x": 280,
-        "y": 1166
+        "x": 1832,
+        "y": 95
       },
       "data": {
         "label": "end"
