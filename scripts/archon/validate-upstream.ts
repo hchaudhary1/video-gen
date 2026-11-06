@@ -159,7 +159,7 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         if (ran(id)) await fail(`invalid script unexpectedly reached ${id}`);
     }
     if (stubs['production-state'] && route === 'cached') {
-      for (const id of ['register-director', 'direction', 'production', 'series', 'register-scenes'])
+      for (const id of ['register-director', 'direction', 'production', 'series', 'register-scenes', 'scenes'])
         if (ran(id)) await fail(`verified film unexpectedly reran ${id}`);
       if (ran('delivery') !== 1) await fail('cached production must still revalidate delivery');
     }
