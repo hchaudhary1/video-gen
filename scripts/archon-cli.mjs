@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
@@ -16,12 +16,21 @@ const env = {
   BUN_INSTALL_CACHE_DIR: path.join(cache, 'bun-cache'),
   PATH: [path.dirname(bun), path.join(root, 'bin'), process.env.PATH].join(path.delimiter),
 };
-if (existsSync(path.join(cache, 'environment.json'))) {
+// Every run (detached and resumed included) gets one verified browser binary for all engines.
+// The saved setup value is used only when it is a regular file; otherwise resolve the installed binary.
+const isFile = (p) => { try { return statSync(p).isFile(); } catch { return false; } };
+let chrome = [env.EXPLAINROO_CHROME, env.CHROME_PATH].find((p) => p && isFile(p));
+if (!chrome && existsSync(path.join(cache, 'environment.json'))) {
   const local = JSON.parse(readFileSync(path.join(cache, 'environment.json'), 'utf8'));
-  if (local.chrome) {
-    env.CHROME_PATH ??= local.chrome;
-    env.HYPERFRAMES_BROWSER_PATH ??= local.chrome;
-  }
+  if (local.chrome && isFile(local.chrome)) chrome = local.chrome;
+}
+if (!chrome) {
+  const { chromePath } = await import('../lib/native.mjs');
+  chrome = await chromePath().catch(() => undefined);
+}
+if (chrome) {
+  for (const key of ['CHROME_PATH', 'EXPLAINROO_CHROME', 'HYPERFRAMES_BROWSER_PATH'])
+    if (!env[key] || !isFile(env[key])) env[key] = chrome;
 }
 if (!env.CODEX_BIN_PATH) {
   const located = spawnSync('sh', ['-c', 'command -v codex'], { encoding: 'utf8' });

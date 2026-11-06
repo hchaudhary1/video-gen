@@ -8,4 +8,5 @@ for _video_gen_chrome in "$HOME"/.cache/hyperframes/chrome/chrome-headless-shell
   if [ -x "$_video_gen_chrome" ]; then export EXPLAINROO_CHROME="$_video_gen_chrome"; fi
 done
 unset _video_gen_chrome
+if [ -z "${CHROME_PATH:-}" ] && [ -n "${EXPLAINROO_CHROME:-}" ]; then export CHROME_PATH="$EXPLAINROO_CHROME"; fi
 unset _video_gen_root

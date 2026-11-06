@@ -26,6 +26,40 @@ test('finds the headless shell that Playwright installs on Windows', () => {
   }
 });
 
+test('a browser cache directory in CHROME_PATH falls back to the HyperFrames binary inside it', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'explainroo-home-'));
+  const pw = fs.mkdtempSync(path.join(os.tmpdir(), 'explainroo-pw-empty-'));
+  const dir = path.join(home, '.cache', 'hyperframes', 'chrome', 'chrome-headless-shell');
+  const older = path.join(dir, 'linux-9.0.0.1', 'chrome-headless-shell-linux64', 'chrome-headless-shell');
+  const newer = path.join(dir, 'linux-152.0.7977.30', 'chrome-headless-shell-linux64', 'chrome-headless-shell');
+  for (const exe of [older, newer]) {
+    fs.mkdirSync(path.dirname(exe), { recursive: true });
+    fs.writeFileSync(exe, '');
+  }
+  const saved = { home: process.env.HOME, pw: process.env.PLAYWRIGHT_BROWSERS_PATH, ex: process.env.EXPLAINROO_CHROME, cp: process.env.CHROME_PATH };
+  const warn = console.warn;
+  try {
+    console.warn = () => {};
+    process.env.HOME = home;
+    process.env.PLAYWRIGHT_BROWSERS_PATH = pw;
+    delete process.env.EXPLAINROO_CHROME;
+    process.env.CHROME_PATH = dir; // the directory a setup step once recorded instead of the binary
+    const found = findChrome();
+    // A system Chrome may legitimately win on some machines; it must never be the directory.
+    assert.notEqual(found, dir);
+    assert.ok(fs.statSync(found).isFile());
+    if (found.startsWith(home)) assert.equal(found, newer);
+  } finally {
+    console.warn = warn;
+    for (const [k, v] of [['HOME', saved.home], ['PLAYWRIGHT_BROWSERS_PATH', saved.pw], ['EXPLAINROO_CHROME', saved.ex], ['CHROME_PATH', saved.cp]]) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(pw, { recursive: true, force: true });
+  }
+});
+
 let chrome;
 try { chrome = findChrome(); } catch {}
 

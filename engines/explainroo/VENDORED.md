@@ -14,9 +14,11 @@ kept inside video-gen with no submodule or second remote. It is the engine for t
 - `init --template <name>` and the Kai template (`templates/kai/`: look, narration rules in `TEMPLATE.md`, defaults, starter files)
 - `verify` judges black frames against the look's background, so dark looks do not fail (`src/export.js`)
 - Templates section in `AGENTS.md`; tests in `test/kai-kit.test.js`, `test/verify-black.test.js`, `test/cli.test.js`
+- Chrome lookup accepts only regular files, so a browser cache directory in `EXPLAINROO_CHROME`/`CHROME_PATH` falls back to discovery instead of failing with EACCES, and it also searches the HyperFrames headless-shell cache (`src/browser.js`, tested in `test/browser.test.js`)
 
 Changed files relative to the base: AGENTS.md, engine/kai.js, engine/runtime.js, engine/stage.js, engine/text.js,
-src/cli.js, src/export.js, src/qa.js, templates/kai/*, test/cli.test.js, test/kai-kit.test.js, test/verify-black.test.js.
+src/browser.js, src/cli.js, src/export.js, src/qa.js, templates/kai/*, test/browser.test.js, test/cli.test.js,
+test/kai-kit.test.js, test/verify-black.test.js.
 
 ## Also used by horror
 

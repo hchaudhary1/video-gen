@@ -1,13 +1,4 @@
 #!/bin/sh
 # Use this checkout's pinned runtime, source and state.
 archon_repo=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-# explainroo's default Chrome lookup can resolve to a directory on this host; always point it at the
-# installed headless shell binary so every run (including detached and resumed ones) gets a real executable.
-if [ -z "${EXPLAINROO_CHROME:-}" ]; then
-  for _chrome in "$HOME"/.cache/hyperframes/chrome/chrome-headless-shell/*/chrome-headless-shell-linux64/chrome-headless-shell; do
-    if [ -x "$_chrome" ]; then EXPLAINROO_CHROME="$_chrome"; fi
-  done
-  if [ -n "${EXPLAINROO_CHROME:-}" ]; then export EXPLAINROO_CHROME; fi
-  unset _chrome
-fi
 exec node "$archon_repo/scripts/archon-cli.mjs" "$@"

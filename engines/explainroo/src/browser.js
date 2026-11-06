@@ -30,11 +30,34 @@ function playwrightCandidates() {
   return out;
 }
 
+// A browser candidate must be a regular file. A directory "exists" too, but launching it fails with EACCES.
+function isFile(p) {
+  try { return fs.statSync(p).isFile(); } catch { return false; }
+}
+
+function readdir(dir) {
+  try { return fs.readdirSync(dir); } catch { return []; }
+}
+
+// Where "npx hyperframes browser ensure" puts its headless shell: <base>/<version>/<platform dir>/<binary>.
+function hyperframesCandidates() {
+  const base = path.join(os.homedir(), '.cache', 'hyperframes', 'chrome', 'chrome-headless-shell');
+  const out = [];
+  for (const version of readdir(base).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))) {
+    for (const sub of readdir(path.join(base, version))) {
+      for (const bin of ['chrome-headless-shell', 'chrome-headless-shell.exe']) out.push(path.join(base, version, sub, bin));
+    }
+  }
+  return out;
+}
+
 export function findChrome() {
   const env = process.env.EXPLAINROO_CHROME || process.env.CHROME_PATH;
   if (env) {
     if (!fs.existsSync(env)) throw new Error(`EXPLAINROO_CHROME points to ${env}, which does not exist`);
-    return env;
+    if (isFile(env)) return env;
+    // Commonly a browser cache folder rather than the binary inside it; look for a real binary instead.
+    console.warn(`explainroo: ${env} is not a browser executable (a directory?); searching installed browsers instead.`);
   }
   const system = process.platform === 'darwin'
     ? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Chromium.app/Contents/MacOS/Chromium']
@@ -47,8 +70,8 @@ export function findChrome() {
           path.join(process.env.PROGRAMFILES || 'C:\\Program Files', 'Microsoft/Edge/Application/msedge.exe'),
         ]
       : ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/snap/bin/chromium'];
-  for (const p of [...playwrightCandidates(), ...system]) {
-    if (fs.existsSync(p)) return p;
+  for (const p of [...playwrightCandidates(), ...hyperframesCandidates(), ...system]) {
+    if (isFile(p)) return p;
   }
   throw new Error('no Chrome or Chromium found. Install Google Chrome, or run "npx playwright install chromium-headless-shell", or set EXPLAINROO_CHROME.');
 }

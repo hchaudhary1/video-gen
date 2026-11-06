@@ -503,7 +503,7 @@ export async function stageOperation(stage, ctx, opts) {
       privacy: 'unlisted',
       thumbnail: path.join(job, 'thumbnail/thumbnail.png'),
       expectedChannelId: copy.channelId,
-      expectedChannelHandle: 'abdupdates',
+      expectedChannelHandle: 'abdupdatesyt',
       journal: path.join(dir, 'archon/upload-session.json'),
     });
     const receipt = { id, url: `https://youtu.be/${id}`, binding: g.binding };
