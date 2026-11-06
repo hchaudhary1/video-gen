@@ -91,17 +91,17 @@
     {
       "id": "group-2",
       "type": "group",
-      "name": "2 · visual-review · loop ≤3 passes until visual-review-check",
+      "name": "2 · Independent visual review",
       "position": {
         "x": 190,
         "y": 310
       },
       "style": {
-        "width": 688,
+        "width": 1708,
         "height": 240
       },
       "data": {
-        "label": "2 · visual-review · loop ≤3 passes until visual-review-check"
+        "label": "2 · Independent visual review"
       }
     },
     {
@@ -119,12 +119,12 @@
       }
     },
     {
-      "id": "n-visual-review-pass",
-      "name": "visual-review-pass",
+      "id": "n-visual-review",
+      "name": "visual-review",
       "type": "subAgent",
       "data": {
-        "description": "visual-review-pass · if visual-review-state.done == false",
-        "agentDefinition": "Archon node `visual-review-pass` in kai-explainer-creative-review-round. Completes only its assigned work.",
+        "description": "visual-review · if visual-review-state.done == false",
+        "agentDefinition": "Archon node `visual-review` in kai-explainer-creative-review-round. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit O…",
         "agentType": "other",
         "outputPorts": 1
@@ -136,19 +136,34 @@
       }
     },
     {
-      "id": "group-3",
-      "type": "group",
-      "name": "3 · Independent visual review",
-      "position": {
-        "x": 190,
-        "y": 620
-      },
-      "style": {
-        "width": 348,
-        "height": 240
-      },
+      "id": "n-visual-review-recheck",
+      "name": "visual-review-recheck",
+      "type": "prompt",
       "data": {
-        "label": "3 · Independent visual review"
+        "label": "visual-review-recheck",
+        "prompt": "node scripts/archon/kai-explainer.mjs visual-review-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 704,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-visual-review-retry",
+      "name": "visual-review-retry",
+      "type": "subAgent",
+      "data": {
+        "description": "visual-review-retry · if visual-review-recheck.done == false",
+        "agentDefinition": "Archon node `visual-review-retry` in kai-explainer-creative-review-round. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit O…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 1044,
+        "y": 52
       }
     },
     {
@@ -159,26 +174,26 @@
         "label": "review-join",
         "prompt": "node scripts/archon/kai-explainer.mjs review-round \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-3",
+      "parentId": "group-2",
       "position": {
-        "x": 24,
+        "x": 1384,
         "y": 52
       }
     },
     {
-      "id": "group-4",
+      "id": "group-3",
       "type": "group",
-      "name": "4 · Revision",
+      "name": "3 · Revision",
       "position": {
         "x": 190,
-        "y": 930
+        "y": 620
       },
       "style": {
         "width": 1708,
         "height": 240
       },
       "data": {
-        "label": "4 · Revision"
+        "label": "3 · Revision"
       }
     },
     {
@@ -189,7 +204,7 @@
         "label": "register-revision",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"producer\", {role:\"scene-author\",runId:process.env.INPUTS_RUN});"
       },
-      "parentId": "group-4",
+      "parentId": "group-3",
       "position": {
         "x": 24,
         "y": 52
@@ -202,11 +217,11 @@
       "data": {
         "description": "revision",
         "agentDefinition": "Archon node `revision` in kai-explainer-creative-review-round. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). Address all demonstrated findings in the project's sc…",
+        "prompt": "Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). If review/archon-findings.json shows no complete insp…",
         "agentType": "other",
         "outputPorts": 1
       },
-      "parentId": "group-4",
+      "parentId": "group-3",
       "position": {
         "x": 364,
         "y": 52
@@ -220,7 +235,7 @@
         "label": "revision-build ▸ kai-explainer-build-cycle",
         "prompt": "Run Archon sub-workflow `kai-explainer-build-cycle`"
       },
-      "parentId": "group-4",
+      "parentId": "group-3",
       "position": {
         "x": 704,
         "y": 52
@@ -234,7 +249,7 @@
         "label": "revision-complete",
         "prompt": "node scripts/archon/kai-explainer.mjs revision-complete \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-4",
+      "parentId": "group-3",
       "position": {
         "x": 1044,
         "y": 52
@@ -248,26 +263,26 @@
         "label": "revised-preview",
         "prompt": "node scripts/archon/kai-explainer.mjs preview \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-4",
+      "parentId": "group-3",
       "position": {
         "x": 1384,
         "y": 52
       }
     },
     {
-      "id": "group-5",
+      "id": "group-4",
       "type": "group",
-      "name": "5 · Steps",
+      "name": "4 · Steps",
       "position": {
         "x": 190,
-        "y": 1240
+        "y": 930
       },
       "style": {
         "width": 348,
         "height": 240
       },
       "data": {
-        "label": "5 · Steps"
+        "label": "4 · Steps"
       }
     },
     {
@@ -276,9 +291,9 @@
       "type": "prompt",
       "data": {
         "label": "round-result",
-        "prompt": "node scripts/archon/kai-explainer.mjs film-loop-check \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/kai-explainer.mjs film-loop-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-4",
       "position": {
         "x": 24,
         "y": 52
@@ -290,7 +305,7 @@
       "name": "end",
       "position": {
         "x": 190,
-        "y": 1550
+        "y": 1240
       },
       "data": {
         "label": "end"
@@ -320,8 +335,50 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-visual-review-pass-n-review-join",
-      "from": "n-visual-review-pass",
+      "id": "c-n-visual-evidence-n-visual-review-state",
+      "from": "n-visual-evidence",
+      "to": "n-visual-review-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-visual-review-state-n-visual-review",
+      "from": "n-visual-review-state",
+      "to": "n-visual-review",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-visual-review-state-n-visual-review-recheck",
+      "from": "n-visual-review-state",
+      "to": "n-visual-review-recheck",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-visual-review-n-visual-review-recheck",
+      "from": "n-visual-review",
+      "to": "n-visual-review-recheck",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-visual-review-recheck-n-visual-review-retry",
+      "from": "n-visual-review-recheck",
+      "to": "n-visual-review-retry",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-visual-review-recheck-n-review-join",
+      "from": "n-visual-review-recheck",
+      "to": "n-review-join",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-visual-review-retry-n-review-join",
+      "from": "n-visual-review-retry",
       "to": "n-review-join",
       "fromPort": "output",
       "toPort": "input"
@@ -365,20 +422,6 @@
       "id": "c-n-revised-preview-n-round-result",
       "from": "n-revised-preview",
       "to": "n-round-result",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-visual-review-state-n-visual-review-pass",
-      "from": "n-visual-review-state",
-      "to": "n-visual-review-pass",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-visual-evidence-n-visual-review-state",
-      "from": "n-visual-evidence",
-      "to": "n-visual-review-state",
       "fromPort": "output",
       "toPort": "input"
     },

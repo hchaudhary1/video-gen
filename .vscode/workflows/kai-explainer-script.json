@@ -25,7 +25,7 @@
         "y": 0
       },
       "style": {
-        "width": 1368,
+        "width": 2048,
         "height": 240
       },
       "data": {
@@ -65,7 +65,7 @@
       "name": "research",
       "type": "subAgent",
       "data": {
-        "description": "research · loop ≤3 passes until research-check · if research-state.done == false",
+        "description": "research · if research-state.done == false",
         "agentDefinition": "Archon node `research` in kai-explainer-script. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
         "agentType": "other",
@@ -78,12 +78,12 @@
       }
     },
     {
-      "id": "n-research-ready",
-      "name": "research-ready",
+      "id": "n-research-recheck",
+      "name": "research-recheck",
       "type": "prompt",
       "data": {
-        "label": "research-ready",
-        "prompt": "node scripts/archon/kai-explainer.mjs research-check \"$INPUTS_PROJECT\""
+        "label": "research-recheck",
+        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
       },
       "parentId": "group-1",
       "position": {
@@ -92,19 +92,50 @@
       }
     },
     {
+      "id": "n-research-fix",
+      "name": "research-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "research-fix · if research-recheck.done == false",
+        "agentDefinition": "Archon node `research-fix` in kai-explainer-script. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1384,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-research-ready",
+      "name": "research-ready",
+      "type": "prompt",
+      "data": {
+        "label": "research-ready",
+        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1724,
+        "y": 52
+      }
+    },
+    {
       "id": "group-2",
       "type": "group",
-      "name": "2 · script-cycle · loop ≤4 passes until script-loop-check",
+      "name": "2 · script-cycle · loop ≤2 passes until script-loop-check",
       "position": {
         "x": 190,
         "y": 310
       },
       "style": {
-        "width": 3408,
+        "width": 4428,
         "height": 240
       },
       "data": {
-        "label": "2 · script-cycle · loop ≤4 passes until script-loop-check"
+        "label": "2 · script-cycle · loop ≤2 passes until script-loop-check"
       }
     },
     {
@@ -185,7 +216,7 @@
       "name": "script-review",
       "type": "subAgent",
       "data": {
-        "description": "script-review · if script-binding.ready == false && script-binding.valid == true",
+        "description": "script-review · if script-binding.needsReview == true",
         "agentDefinition": "Archon node `script-review` in kai-explainer-script. Completes only its assigned work.",
         "prompt": "This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, withou…",
         "agentType": "other",
@@ -202,12 +233,57 @@
       "name": "script-report",
       "type": "prompt",
       "data": {
-        "label": "script-report · if script-binding.ready == false && script-binding.valid == true",
+        "label": "script-report · if script-binding.needsReview == true",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"script-reviewed\", {expected: process.env.INPUTS_BINDING});"
       },
       "parentId": "group-2",
       "position": {
         "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-fix-state",
+      "name": "script-fix-state",
+      "type": "prompt",
+      "data": {
+        "label": "script-fix-state",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-fix",
+      "name": "script-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "script-fix · if script-fix-state.needsFix == true",
+        "agentDefinition": "Archon node `script-fix` in kai-explainer-script. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2744,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-continue",
+      "name": "script-continue",
+      "type": "prompt",
+      "data": {
+        "label": "script-continue · if script-fix-state.needsContinuation == true",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-continue \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 3084,
         "y": 52
       }
     },
@@ -221,7 +297,7 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 2404,
+        "x": 3424,
         "y": 52
       }
     },
@@ -235,7 +311,7 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 2744,
+        "x": 3764,
         "y": 52
       }
     },
@@ -266,7 +342,7 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 3084,
+        "x": 4104,
         "y": 52
       }
     },
@@ -299,15 +375,36 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-research-state-n-research-ready",
+      "id": "c-n-research-state-n-research-recheck",
       "from": "n-research-state",
+      "to": "n-research-recheck",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-n-research-recheck",
+      "from": "n-research",
+      "to": "n-research-recheck",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-recheck-n-research-fix",
+      "from": "n-research-recheck",
+      "to": "n-research-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-recheck-n-research-ready",
+      "from": "n-research-recheck",
       "to": "n-research-ready",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-research-n-research-ready",
-      "from": "n-research",
+      "id": "c-n-research-fix-n-research-ready",
+      "from": "n-research-fix",
       "to": "n-research-ready",
       "fromPort": "output",
       "toPort": "input"
@@ -369,15 +466,50 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-script-binding-n-script-reviewed-state",
+      "id": "c-n-script-binding-n-script-fix-state",
       "from": "n-script-binding",
+      "to": "n-script-fix-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-report-n-script-fix-state",
+      "from": "n-script-report",
+      "to": "n-script-fix-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-state-n-script-fix",
+      "from": "n-script-fix-state",
+      "to": "n-script-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-state-n-script-continue",
+      "from": "n-script-fix-state",
+      "to": "n-script-continue",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-n-script-continue",
+      "from": "n-script-fix",
+      "to": "n-script-continue",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-state-n-script-reviewed-state",
+      "from": "n-script-fix-state",
       "to": "n-script-reviewed-state",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-script-report-n-script-reviewed-state",
-      "from": "n-script-report",
+      "id": "c-n-script-continue-n-script-reviewed-state",
+      "from": "n-script-continue",
       "to": "n-script-reviewed-state",
       "fromPort": "output",
       "toPort": "input"

@@ -1,7 +1,7 @@
 {
   "id": "rules-story-build-cycle",
   "name": "rules-story-build-cycle",
-  "description": "Bounded technical build and repair; no independent review or creative revision.",
+  "description": "One technical build, one repair when it reports issues, one final build; no independent review or creative revision.",
   "version": "1.0.0",
   "nodes": [
     {
@@ -49,34 +49,17 @@
     {
       "id": "group-2",
       "type": "group",
-      "name": "2 · build-loop · loop ≤4 passes until until_bash passes",
+      "name": "2 · Build & evidence",
       "position": {
         "x": 190,
         "y": 310
       },
       "style": {
-        "width": 688,
+        "width": 348,
         "height": 240
       },
       "data": {
-        "label": "2 · build-loop · loop ≤4 passes until until_bash passes"
-      }
-    },
-    {
-      "id": "n-repair",
-      "name": "repair",
-      "type": "subAgent",
-      "data": {
-        "description": "repair · if previous build.status == repair",
-        "agentDefinition": "Archon node `repair` in rules-story-build-cycle. Completes only its assigned work.",
-        "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font…",
-        "agentType": "other",
-        "outputPorts": 1
-      },
-      "parentId": "group-2",
-      "position": {
-        "x": 24,
-        "y": 52
+        "label": "2 · Build & evidence"
       }
     },
     {
@@ -89,24 +72,71 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 364,
+        "x": 24,
         "y": 52
       }
     },
     {
       "id": "group-3",
       "type": "group",
-      "name": "3 · Build",
+      "name": "3 · Steps",
       "position": {
         "x": 190,
         "y": 620
+      },
+      "style": {
+        "width": 688,
+        "height": 240
+      },
+      "data": {
+        "label": "3 · Steps"
+      }
+    },
+    {
+      "id": "n-repair",
+      "name": "repair",
+      "type": "subAgent",
+      "data": {
+        "description": "repair · if build.status == repair",
+        "agentDefinition": "Archon node `repair` in rules-story-build-cycle. Completes only its assigned work.",
+        "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 24,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-build-final",
+      "name": "build-final",
+      "type": "prompt",
+      "data": {
+        "label": "build-final · if build.status == repair",
+        "prompt": "node scripts/archon/rules-story.mjs build \"$INPUTS_PROJECT\" '{\"final\":true}' --route"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 364,
+        "y": 52
+      }
+    },
+    {
+      "id": "group-4",
+      "type": "group",
+      "name": "4 · Build",
+      "position": {
+        "x": 190,
+        "y": 930
       },
       "style": {
         "width": 348,
         "height": 240
       },
       "data": {
-        "label": "3 · Build"
+        "label": "4 · Build"
       }
     },
     {
@@ -117,7 +147,7 @@
         "label": "result",
         "prompt": "node scripts/archon/rules-story.mjs build-check \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-3",
+      "parentId": "group-4",
       "position": {
         "x": 24,
         "y": 52
@@ -129,7 +159,7 @@
       "name": "end",
       "position": {
         "x": 190,
-        "y": 930
+        "y": 1240
       },
       "data": {
         "label": "end"
@@ -138,6 +168,27 @@
   ],
   "connections": [
     {
+      "id": "c-n-register-repair-n-build",
+      "from": "n-register-repair",
+      "to": "n-build",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-build-n-repair",
+      "from": "n-build",
+      "to": "n-repair",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-repair-n-build-final",
+      "from": "n-repair",
+      "to": "n-build-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-build-n-result",
       "from": "n-build",
       "to": "n-result",
@@ -145,16 +196,9 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-repair-n-build",
-      "from": "n-repair",
-      "to": "n-build",
-      "fromPort": "output",
-      "toPort": "input"
-    },
-    {
-      "id": "c-n-register-repair-n-repair",
-      "from": "n-register-repair",
-      "to": "n-repair",
+      "id": "c-n-build-final-n-result",
+      "from": "n-build-final",
+      "to": "n-result",
       "fromPort": "output",
       "toPort": "input"
     },

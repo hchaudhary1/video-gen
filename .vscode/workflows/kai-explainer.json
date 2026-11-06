@@ -25,7 +25,7 @@
         "y": 0
       },
       "style": {
-        "width": 1368,
+        "width": 2048,
         "height": 240
       },
       "data": {
@@ -65,7 +65,7 @@
       "name": "research",
       "type": "subAgent",
       "data": {
-        "description": "research · loop ≤3 passes until research-check · if research-state.done == false",
+        "description": "research · if research-state.done == false",
         "agentDefinition": "Archon node `research` in kai-explainer. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
         "agentType": "other",
@@ -78,16 +78,47 @@
       }
     },
     {
+      "id": "n-research-recheck",
+      "name": "research-recheck",
+      "type": "prompt",
+      "data": {
+        "label": "research-recheck",
+        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1044,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-research-fix",
+      "name": "research-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "research-fix · if research-recheck.done == false",
+        "agentDefinition": "Archon node `research-fix` in kai-explainer. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 1384,
+        "y": 52
+      }
+    },
+    {
       "id": "n-research-ready",
       "name": "research-ready",
       "type": "prompt",
       "data": {
         "label": "research-ready",
-        "prompt": "node scripts/archon/kai-explainer.mjs research-check \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/kai-explainer.mjs research-status \"$INPUTS_PROJECT\""
       },
       "parentId": "group-1",
       "position": {
-        "x": 1044,
+        "x": 1724,
         "y": 52
       }
     },
@@ -100,7 +131,7 @@
         "y": 310
       },
       "style": {
-        "width": 3408,
+        "width": 4428,
         "height": 240
       },
       "data": {
@@ -185,7 +216,7 @@
       "name": "script-review",
       "type": "subAgent",
       "data": {
-        "description": "script-review · if script-binding.ready == false && script-binding.valid == true",
+        "description": "script-review · if script-binding.needsReview == true",
         "agentDefinition": "Archon node `script-review` in kai-explainer. Completes only its assigned work.",
         "prompt": "This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, withou…",
         "agentType": "other",
@@ -202,12 +233,57 @@
       "name": "script-report",
       "type": "prompt",
       "data": {
-        "label": "script-report · if script-binding.ready == false && script-binding.valid == true",
+        "label": "script-report · if script-binding.needsReview == true",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/kai-explainer.mjs\");\nawait emit(\"script-reviewed\", {expected: process.env.INPUTS_BINDING});"
       },
       "parentId": "group-2",
       "position": {
         "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-fix-state",
+      "name": "script-fix-state",
+      "type": "prompt",
+      "data": {
+        "label": "script-fix-state",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-fix",
+      "name": "script-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "script-fix · if script-fix-state.needsFix == true",
+        "agentDefinition": "Archon node `script-fix` in kai-explainer. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 2744,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-script-continue",
+      "name": "script-continue",
+      "type": "prompt",
+      "data": {
+        "label": "script-continue · if script-fix-state.needsContinuation == true",
+        "prompt": "node scripts/archon/kai-explainer.mjs script-continue \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-2",
+      "position": {
+        "x": 3084,
         "y": 52
       }
     },
@@ -221,7 +297,7 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 2404,
+        "x": 3424,
         "y": 52
       }
     },
@@ -235,7 +311,7 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 2744,
+        "x": 3764,
         "y": 52
       }
     },
@@ -266,7 +342,7 @@
       },
       "parentId": "group-2",
       "position": {
-        "x": 3084,
+        "x": 4104,
         "y": 52
       }
     },
@@ -279,7 +355,7 @@
         "y": 620
       },
       "style": {
-        "width": 1368,
+        "width": 3408,
         "height": 240
       },
       "data": {
@@ -292,11 +368,42 @@
       "type": "prompt",
       "data": {
         "label": "narration",
-        "prompt": "node scripts/archon/kai-explainer.mjs narration \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/kai-explainer.mjs narration \"$INPUTS_PROJECT\" --route"
       },
       "parentId": "group-3",
       "position": {
         "x": 24,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-narration-fix",
+      "name": "narration-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "narration-fix · if narration.status == repair",
+        "agentDefinition": "Archon node `narration-fix` in kai-explainer. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, skills/script-writing/SKILL.md and jobs/$INPUTS.project/review/narration-repair.json. The measured Kai narration missed the duration target by more than 20%. This is the ONE…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 364,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-narration-final",
+      "name": "narration-final",
+      "type": "prompt",
+      "data": {
+        "label": "narration-final · if narration.status == repair",
+        "prompt": "node scripts/archon/kai-explainer.mjs narration \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 704,
         "y": 52
       }
     },
@@ -310,7 +417,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 364,
+        "x": 1044,
         "y": 52
       }
     },
@@ -320,11 +427,70 @@
       "type": "prompt",
       "data": {
         "label": "audio-review",
-        "prompt": "node scripts/archon/kai-explainer.mjs audio-review \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/kai-explainer.mjs audio-review \"$INPUTS_PROJECT\" --route"
       },
       "parentId": "group-3",
       "position": {
-        "x": 704,
+        "x": 1384,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-audio-fix",
+      "name": "audio-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "audio-fix · if audio-review.status == repair",
+        "agentDefinition": "Archon node `audio-fix` in kai-explainer. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, engines/explainroo/AGENTS.md narration syntax, jobs/$INPUTS.project/review/narration-repair.json and jobs/$INPUTS.project/review/audio-review.json. The speech check could no…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1724,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-audio-renarrate",
+      "name": "audio-renarrate",
+      "type": "prompt",
+      "data": {
+        "label": "audio-renarrate · if audio-review.status == repair",
+        "prompt": "node scripts/archon/kai-explainer.mjs narration \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-audio-evidence-final",
+      "name": "audio-evidence-final",
+      "type": "prompt",
+      "data": {
+        "label": "audio-evidence-final · if audio-review.status == repair",
+        "prompt": "node scripts/archon/kai-explainer.mjs audio-evidence \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-audio-review-final",
+      "name": "audio-review-final",
+      "type": "prompt",
+      "data": {
+        "label": "audio-review-final · if audio-review.status == repair",
+        "prompt": "node scripts/archon/kai-explainer.mjs audio-review \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 2744,
         "y": 52
       }
     },
@@ -338,7 +504,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 1044,
+        "x": 3084,
         "y": 52
       }
     },
@@ -440,7 +606,7 @@
         "y": 1240
       },
       "style": {
-        "width": 2728,
+        "width": 4428,
         "height": 240
       },
       "data": {
@@ -494,7 +660,7 @@
       "name": "thumbnail-generate",
       "type": "subAgent",
       "data": {
-        "description": "thumbnail-generate · if thumbnail-state.done == false",
+        "description": "thumbnail-generate · if thumbnail-state.needsGenerate == true",
         "agentDefinition": "Archon node `thumbnail-generate` in kai-explainer. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
         "agentType": "other",
@@ -507,11 +673,25 @@
       }
     },
     {
+      "id": "n-thumbnail-review-state",
+      "name": "thumbnail-review-state",
+      "type": "prompt",
+      "data": {
+        "label": "thumbnail-review-state",
+        "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-status \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 1384,
+        "y": 52
+      }
+    },
+    {
       "id": "n-thumbnail-review",
       "name": "thumbnail-review",
       "type": "subAgent",
       "data": {
-        "description": "thumbnail-review",
+        "description": "thumbnail-review · if thumbnail-review-state.needsReview == true",
         "agentDefinition": "Archon node `thumbnail-review` in kai-explainer. Completes only its assigned work.",
         "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
         "agentType": "other",
@@ -519,7 +699,7 @@
       },
       "parentId": "group-5",
       "position": {
-        "x": 1384,
+        "x": 1724,
         "y": 52
       }
     },
@@ -533,7 +713,66 @@
       },
       "parentId": "group-5",
       "position": {
-        "x": 1724,
+        "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-thumbnail-fix-request",
+      "name": "thumbnail-fix-request",
+      "type": "prompt",
+      "data": {
+        "label": "thumbnail-fix-request · if thumbnail-join.needsFix == true",
+        "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-fix-request \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-thumbnail-fix",
+      "name": "thumbnail-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "thumbnail-fix · if thumbnail-join.needsFix == true",
+        "agentDefinition": "Archon node `thumbnail-fix` in kai-explainer. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 2744,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-thumbnail-fixed",
+      "name": "thumbnail-fixed",
+      "type": "prompt",
+      "data": {
+        "label": "thumbnail-fixed · if thumbnail-join.needsFix == true",
+        "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-fixed \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 3084,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-thumbnail-select",
+      "name": "thumbnail-select",
+      "type": "prompt",
+      "data": {
+        "label": "thumbnail-select",
+        "prompt": "node scripts/archon/kai-explainer.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 3424,
         "y": 52
       }
     },
@@ -547,7 +786,7 @@
       },
       "parentId": "group-5",
       "position": {
-        "x": 2064,
+        "x": 3764,
         "y": 52
       }
     },
@@ -556,7 +795,7 @@
       "name": "thumbnail-attention",
       "type": "askUserQuestion",
       "data": {
-        "questionText": "thumbnail-attention · operator decision · if thumbnail-join.done == true && thumbnail-gate.needsAnswer == true: Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbna…",
+        "questionText": "thumbnail-attention · operator decision · if thumbnail-select.selectable == true && thumbnail-gate.needsAnswer == true: Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: …",
         "options": [
           {
             "id": "opt-0",
@@ -568,7 +807,7 @@
       },
       "parentId": "group-5",
       "position": {
-        "x": 2404,
+        "x": 4104,
         "y": 52
       }
     },
@@ -756,15 +995,36 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-research-state-n-research-ready",
+      "id": "c-n-research-state-n-research-recheck",
       "from": "n-research-state",
+      "to": "n-research-recheck",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-n-research-recheck",
+      "from": "n-research",
+      "to": "n-research-recheck",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-recheck-n-research-fix",
+      "from": "n-research-recheck",
+      "to": "n-research-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-research-recheck-n-research-ready",
+      "from": "n-research-recheck",
       "to": "n-research-ready",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-research-n-research-ready",
-      "from": "n-research",
+      "id": "c-n-research-fix-n-research-ready",
+      "from": "n-research-fix",
       "to": "n-research-ready",
       "fromPort": "output",
       "toPort": "input"
@@ -777,8 +1037,36 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-narration-n-narration-fix",
+      "from": "n-narration",
+      "to": "n-narration-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-narration-n-narration-final",
+      "from": "n-narration",
+      "to": "n-narration-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-narration-fix-n-narration-final",
+      "from": "n-narration-fix",
+      "to": "n-narration-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-narration-n-audio-evidence",
       "from": "n-narration",
+      "to": "n-audio-evidence",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-narration-final-n-audio-evidence",
+      "from": "n-narration-final",
       "to": "n-audio-evidence",
       "fromPort": "output",
       "toPort": "input"
@@ -791,8 +1079,43 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-audio-review-n-audio-fix",
+      "from": "n-audio-review",
+      "to": "n-audio-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-fix-n-audio-renarrate",
+      "from": "n-audio-fix",
+      "to": "n-audio-renarrate",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-renarrate-n-audio-evidence-final",
+      "from": "n-audio-renarrate",
+      "to": "n-audio-evidence-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-evidence-final-n-audio-review-final",
+      "from": "n-audio-evidence-final",
+      "to": "n-audio-review-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-audio-review-n-audio-reviewed",
       "from": "n-audio-review",
+      "to": "n-audio-reviewed",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-audio-review-final-n-audio-reviewed",
+      "from": "n-audio-review-final",
       "to": "n-audio-reviewed",
       "fromPort": "output",
       "toPort": "input"
@@ -917,15 +1240,50 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-script-binding-n-script-reviewed-state",
+      "id": "c-n-script-binding-n-script-fix-state",
       "from": "n-script-binding",
+      "to": "n-script-fix-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-report-n-script-fix-state",
+      "from": "n-script-report",
+      "to": "n-script-fix-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-state-n-script-fix",
+      "from": "n-script-fix-state",
+      "to": "n-script-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-state-n-script-continue",
+      "from": "n-script-fix-state",
+      "to": "n-script-continue",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-n-script-continue",
+      "from": "n-script-fix",
+      "to": "n-script-continue",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-script-fix-state-n-script-reviewed-state",
+      "from": "n-script-fix-state",
       "to": "n-script-reviewed-state",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-script-report-n-script-reviewed-state",
-      "from": "n-script-report",
+      "id": "c-n-script-continue-n-script-reviewed-state",
+      "from": "n-script-continue",
       "to": "n-script-reviewed-state",
       "fromPort": "output",
       "toPort": "input"
@@ -973,15 +1331,29 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-thumbnail-generate-n-thumbnail-review",
+      "id": "c-n-thumbnail-state-n-thumbnail-review-state",
+      "from": "n-thumbnail-state",
+      "to": "n-thumbnail-review-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-generate-n-thumbnail-review-state",
       "from": "n-thumbnail-generate",
+      "to": "n-thumbnail-review-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-review-state-n-thumbnail-review",
+      "from": "n-thumbnail-review-state",
       "to": "n-thumbnail-review",
       "fromPort": "output",
       "toPort": "input"
     },
     {
-      "id": "c-n-thumbnail-state-n-thumbnail-join",
-      "from": "n-thumbnail-state",
+      "id": "c-n-thumbnail-review-state-n-thumbnail-join",
+      "from": "n-thumbnail-review-state",
       "to": "n-thumbnail-join",
       "fromPort": "output",
       "toPort": "input"
@@ -994,8 +1366,43 @@
       "toPort": "input"
     },
     {
-      "id": "c-n-thumbnail-join-n-thumbnail-gate",
+      "id": "c-n-thumbnail-join-n-thumbnail-fix-request",
       "from": "n-thumbnail-join",
+      "to": "n-thumbnail-fix-request",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-fix-request-n-thumbnail-fix",
+      "from": "n-thumbnail-fix-request",
+      "to": "n-thumbnail-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-fix-n-thumbnail-fixed",
+      "from": "n-thumbnail-fix",
+      "to": "n-thumbnail-fixed",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-join-n-thumbnail-select",
+      "from": "n-thumbnail-join",
+      "to": "n-thumbnail-select",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-fixed-n-thumbnail-select",
+      "from": "n-thumbnail-fixed",
+      "to": "n-thumbnail-select",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-thumbnail-select-n-thumbnail-gate",
+      "from": "n-thumbnail-select",
       "to": "n-thumbnail-gate",
       "fromPort": "output",
       "toPort": "input"

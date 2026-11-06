@@ -180,17 +180,106 @@
     {
       "id": "group-3",
       "type": "group",
-      "name": "3 · Production",
+      "name": "3 · Steps",
       "position": {
         "x": 190,
         "y": 788
+      },
+      "style": {
+        "width": 1708,
+        "height": 240
+      },
+      "data": {
+        "label": "3 · Steps"
+      }
+    },
+    {
+      "id": "n-technical-fix",
+      "name": "technical-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "technical-fix · if verify.fixable == true",
+        "agentDefinition": "Archon node `technical-fix` in rules-story-production-round. Completes only its assigned work.",
+        "prompt": "Project: $INPUTS.project. You are the active Archon technical-fix node; this invocation authorizes the assignment. Do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/archon-technical.json. Final verification of the rendered film reported the issues listed there. This is the ONE techni…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 24,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-technical-build",
+      "name": "technical-build",
+      "type": "prompt",
+      "data": {
+        "label": "technical-build ▸ rules-story-build-cycle · if verify.fixable == true",
+        "prompt": "Run Archon sub-workflow `rules-story-build-cycle`"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 364,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-technical-revision",
+      "name": "technical-revision",
+      "type": "prompt",
+      "data": {
+        "label": "technical-revision · if verify.fixable == true",
+        "prompt": "node scripts/archon/rules-story.mjs technical-revision-complete \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 704,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-technical-render",
+      "name": "technical-render",
+      "type": "prompt",
+      "data": {
+        "label": "technical-render · if verify.fixable == true",
+        "prompt": "node scripts/archon/rules-story.mjs render \"$INPUTS_PROJECT\""
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1044,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-technical-verify",
+      "name": "technical-verify",
+      "type": "prompt",
+      "data": {
+        "label": "technical-verify · if verify.status == repair",
+        "prompt": "node scripts/archon/rules-story.mjs verify \"$INPUTS_PROJECT\" '{\"final\":true}' --route"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1384,
+        "y": 52
+      }
+    },
+    {
+      "id": "group-4",
+      "type": "group",
+      "name": "4 · Production",
+      "position": {
+        "x": 190,
+        "y": 1098
       },
       "style": {
         "width": 348,
         "height": 240
       },
       "data": {
-        "label": "3 · Production"
+        "label": "4 · Production"
       }
     },
     {
@@ -201,26 +290,26 @@
         "label": "production-result",
         "prompt": "node scripts/archon/rules-story.mjs production-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-3",
+      "parentId": "group-4",
       "position": {
         "x": 24,
         "y": 52
       }
     },
     {
-      "id": "group-4",
+      "id": "group-5",
       "type": "group",
-      "name": "4 · Steps",
+      "name": "5 · Steps",
       "position": {
         "x": 190,
-        "y": 1098
+        "y": 1408
       },
       "style": {
         "width": 348,
         "height": 240
       },
       "data": {
-        "label": "4 · Steps"
+        "label": "5 · Steps"
       }
     },
     {
@@ -231,7 +320,7 @@
         "label": "round-result",
         "prompt": "node scripts/archon/rules-story.mjs production-loop-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-4",
+      "parentId": "group-5",
       "position": {
         "x": 24,
         "y": 52
@@ -243,7 +332,7 @@
       "name": "end",
       "position": {
         "x": 190,
-        "y": 1408
+        "y": 1718
       },
       "data": {
         "label": "end"
@@ -315,6 +404,48 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-verify-n-technical-fix",
+      "from": "n-verify",
+      "to": "n-technical-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-technical-fix-n-technical-build",
+      "from": "n-technical-fix",
+      "to": "n-technical-build",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-technical-build-n-technical-revision",
+      "from": "n-technical-build",
+      "to": "n-technical-revision",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-technical-revision-n-technical-render",
+      "from": "n-technical-revision",
+      "to": "n-technical-render",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-verify-n-technical-verify",
+      "from": "n-verify",
+      "to": "n-technical-verify",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-technical-render-n-technical-verify",
+      "from": "n-technical-render",
+      "to": "n-technical-verify",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-film-accepted-n-production-result",
       "from": "n-film-accepted",
       "to": "n-production-result",
@@ -324,6 +455,13 @@
     {
       "id": "c-n-verify-n-production-result",
       "from": "n-verify",
+      "to": "n-production-result",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-technical-verify-n-production-result",
+      "from": "n-technical-verify",
       "to": "n-production-result",
       "fromPort": "output",
       "toPort": "input"
