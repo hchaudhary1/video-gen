@@ -237,7 +237,7 @@
       }
     },
     {
-      "id": "end",
+      "id": "end_1",
       "type": "end",
       "name": "end",
       "position": {
@@ -386,7 +386,7 @@
     {
       "id": "c-end-n-round-result",
       "from": "n-round-result",
-      "to": "end",
+      "to": "end_1",
       "fromPort": "output",
       "toPort": "input"
     }

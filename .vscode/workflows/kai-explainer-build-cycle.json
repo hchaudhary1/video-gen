@@ -143,7 +143,7 @@
       }
     },
     {
-      "id": "end",
+      "id": "end_1",
       "type": "end",
       "name": "end",
       "position": {
@@ -243,7 +243,7 @@
     {
       "id": "c-end-n-result",
       "from": "n-result",
-      "to": "end",
+      "to": "end_1",
       "fromPort": "output",
       "toPort": "input"
     }
