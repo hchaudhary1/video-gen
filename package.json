@@ -5,7 +5,8 @@
   "description": "Narration-synchronized motion design with HyperFrames",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "tools": "node scripts/tools.mjs"
+    "tools": "node scripts/tools.mjs",
+    "archon:viz": ".cache/archon/bun/bin/bun scripts/archon/visualize.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.3.0",

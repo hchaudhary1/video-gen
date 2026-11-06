@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archon Workflow Graph</title>
+<style>
+:root {
+  --bg: #f4f4f7; --dot: #d3d3dc; --panel: #ffffff; --panel-2: #f7f7fa; --line: #e2e2ea;
+  --text: #1e1f26; --muted: #6b6d7c; --edge: #9a9cad; --edge-hi: #ff6d5a;
+  --card: #ffffff; --card-border: #d8d9e2; --shadow: 0 1px 2px rgba(20,20,40,.06), 0 4px 14px rgba(20,20,40,.06);
+  --frame: rgba(120,120,160,.06); --frame-border: #c9cad6; --sel: #ff6d5a;
+  --bash: #0f9d8a; --script: #c98a00; --agent: #7c5cff; --flow: #2f80ed; --wait: #f2711c; --stop: #e5484d; --loop: #8e6bd8;
+  --code-bg: #f1f1f5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1f26; --dot: #34343f; --panel: #26262e; --panel-2: #2c2c35; --line: #383843;
+    --text: #ececf1; --muted: #9a9bab; --edge: #6d6e80; --edge-hi: #ff8a7a;
+    --card: #2d2d36; --card-border: #464655; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+    --frame: rgba(160,160,220,.05); --frame-border: #4a4a5a; --sel: #ff8a7a;
+    --code-bg: #1c1c22;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f1f26; --dot: #34343f; --panel: #26262e; --panel-2: #2c2c35; --line: #383843;
+  --text: #ececf1; --muted: #9a9bab; --edge: #6d6e80; --edge-hi: #ff8a7a;
+  --card: #2d2d36; --card-border: #464655; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  --frame: rgba(160,160,220,.05); --frame-border: #4a4a5a; --sel: #ff8a7a;
+  --code-bg: #1c1c22;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--text); font: 13px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+button { font: inherit; color: inherit; }
+.app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
+.app.with-panel { grid-template-columns: 260px 1fr 420px; }
+
+/* sidebar */
+.side { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; }
+.brand { padding: 14px 16px 10px; font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.brand .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #ff6d5a, #7c5cff); display: grid; place-items: center; color: #fff; font-size: 12px; }
+.search { margin: 0 12px 10px; }
+.search input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); outline: none; }
+.search input:focus { border-color: var(--sel); }
+.wf-list { overflow: auto; flex: 1; padding: 0 8px 12px; }
+.wf-list h4 { margin: 12px 8px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.wf-item { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; background: none; border: 0; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.wf-item:hover { background: var(--panel-2); }
+.wf-item.active { background: color-mix(in srgb, var(--sel) 14%, transparent); color: var(--sel); font-weight: 600; }
+.wf-item .count { margin-left: auto; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.wf-item .branch { color: var(--muted); }
+.legend { border-top: 1px solid var(--line); padding: 10px 14px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; font-size: 12px; color: var(--muted); }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legend .ln { grid-column: span 2; }
+.legend svg { flex: none; }
+
+/* canvas */
+.main { position: relative; min-width: 0; overflow: hidden; }
+.topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 5; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; pointer-events: none; }
+.title-card { pointer-events: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; box-shadow: var(--shadow); max-width: 720px; }
+.crumbs { font-size: 12px; color: var(--muted); display: flex; gap: 4px; flex-wrap: wrap; }
+.crumbs a { color: var(--muted); cursor: pointer; text-decoration: none; }
+.crumbs a:hover { color: var(--sel); }
+.title-card h1 { margin: 2px 0 2px; font-size: 16px; font-weight: 800; }
+.title-card p { margin: 0; color: var(--muted); font-size: 12px; }
+.title-card .chips { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+.tools { pointer-events: auto; margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.tb { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; box-shadow: var(--shadow); white-space: nowrap; }
+.tb:hover { border-color: var(--sel); }
+.tb.on { background: color-mix(in srgb, var(--sel) 16%, var(--panel)); border-color: var(--sel); color: var(--sel); }
+.viewport { position: absolute; inset: 0; cursor: grab; background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); background-size: 20px 20px; }
+.viewport.panning { cursor: grabbing; }
+.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+svg.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.edge { fill: none; stroke: var(--edge); stroke-width: 2; transition: opacity .15s; }
+.edge.cond { stroke-dasharray: 6 5; }
+.edge.loopback { stroke: var(--loop); stroke-dasharray: 2 5; stroke-linecap: round; stroke-width: 2.2; }
+.edge.hi { stroke: var(--edge-hi); stroke-width: 3; opacity: 1 !important; }
+.dim .edge:not(.hi) { opacity: .18; }
+.dim .node:not(.hi), .dim .frame:not(.hi) > .frame-head { opacity: .32; }
+
+.node { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 10px; background: var(--card);
+  border: 1.5px solid var(--card-border); border-radius: 12px; box-shadow: var(--shadow); cursor: pointer; transition: opacity .15s, border-color .15s; }
+.node:hover { border-color: var(--k); }
+.node.sel { border-color: var(--sel); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sel) 30%, transparent), var(--shadow); }
+.node.match { box-shadow: 0 0 0 4px color-mix(in srgb, #f5c400 55%, transparent), var(--shadow); }
+.node .ic { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--k) 16%, transparent); color: var(--k); }
+.node .ic svg { width: 22px; height: 22px; }
+.node .tx { min-width: 0; flex: 1; }
+.node .nm { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node .sub { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+.node .badges { position: absolute; top: -9px; right: 8px; display: flex; gap: 3px; }
+.port { position: absolute; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--card); border: 2px solid var(--edge); }
+.port.in { left: -6px; } .port.out { right: -6px; }
+.chip { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; line-height: 15px; }
+.chip.if { color: var(--flow); border-color: color-mix(in srgb, var(--flow) 45%, transparent); background: color-mix(in srgb, var(--flow) 10%, var(--card)); }
+.chip.rule { color: var(--script); border-color: color-mix(in srgb, var(--script) 45%, transparent); background: color-mix(in srgb, var(--script) 10%, var(--card)); }
+.chip.ret { color: #fff; background: var(--bash); border-color: var(--bash); }
+.chip.retry { color: var(--muted); }
+
+.frame { position: absolute; border: 1.5px dashed var(--frame-border); border-radius: 16px; background: var(--frame); }
+.frame.loop { border-color: color-mix(in srgb, var(--loop) 55%, transparent); background: color-mix(in srgb, var(--loop) 5%, transparent); }
+.frame.flow { border-color: color-mix(in srgb, var(--flow) 55%, transparent); background: color-mix(in srgb, var(--flow) 5%, transparent); border-style: solid; }
+.frame.sel { border-color: var(--sel); }
+.frame-head { position: absolute; left: 0; right: 0; top: 0; height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 14px; cursor: pointer; }
+.frame-head .ic { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; color: #fff; background: var(--k); }
+.frame-head .ic svg { width: 16px; height: 16px; }
+.frame-head b { font-size: 13px; }
+.frame-head .meta { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.frame-head .tog { margin-left: auto; font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; background: var(--panel); }
+.frame-head .tog:hover { color: var(--sel); border-color: var(--sel); }
+
+/* minimap + zoom */
+.minimap { position: absolute; right: 14px; bottom: 14px; width: 220px; height: 140px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); z-index: 5; cursor: pointer; }
+.zoom { position: absolute; left: 14px; bottom: 14px; z-index: 5; display: flex; gap: 6px; }
+.zoom .tb { min-width: 34px; text-align: center; }
+.zoom .pct { pointer-events: none; min-width: 52px; text-align: center; }
+
+/* detail panel */
+.panel { background: var(--panel); border-left: 1px solid var(--line); overflow: auto; display: none; min-width: 0; }
+.with-panel .panel { display: block; }
+.panel header { position: sticky; top: 0; background: var(--panel); padding: 14px 16px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: center; z-index: 1; }
+.panel header .ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: var(--k); background: color-mix(in srgb, var(--k) 16%, transparent); flex: none; }
+.panel header .ic svg { width: 20px; height: 20px; }
+.panel header h2 { margin: 0; font-size: 15px; font-weight: 800; word-break: break-all; }
+.panel header small { color: var(--muted); }
+.panel header .x { margin-left: auto; background: none; border: 0; font-size: 20px; cursor: pointer; color: var(--muted); }
+.panel section { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.panel h3 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.panel dl { margin: 0; display: grid; grid-template-columns: 110px 1fr; gap: 4px 10px; }
+.panel dt { color: var(--muted); }
+.panel dd { margin: 0; word-break: break-word; }
+.panel pre { margin: 0; padding: 10px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; word-break: break-word; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; max-height: 420px; overflow: auto; }
+.panel .links { display: flex; flex-wrap: wrap; gap: 4px; }
+.panel .links a { cursor: pointer; }
+.panel .links .chip:hover { color: var(--sel); border-color: var(--sel); }
+.panel .open { margin-top: 8px; }
+.ref { color: var(--flow); font-weight: 600; }
+
+@media (max-width: 760px) {
+  .app, .app.with-panel { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .with-panel .panel { position: fixed; inset: 40% 0 0 0; z-index: 10; border-top: 1px solid var(--line); }
+  .minimap { display: none; }
+  .topbar { padding: 8px 16px; flex-direction: column; }
+  .tools { margin-left: 0; justify-content: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="brand"><span class="logo">A</span> Archon workflows</div>
+    <div class="search"><input id="q" placeholder="Search nodes, commands, prompts…  (/)" autocomplete="off"></div>
+    <div class="wf-list" id="wfList"></div>
+    <div class="legend" id="legend"></div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="title-card" id="titleCard"></div>
+      <div class="tools">
+        <button class="tb" id="expandAll" title="Inline every sub-workflow as a nested frame">Expand sub-workflows</button>
+        <button class="tb" id="collapseLoops" title="Collapse loop groups to single nodes">Collapse loops</button>
+        <button class="tb" id="theme" title="Toggle theme">◐</button>
+      </div>
+    </div>
+    <div class="viewport" id="vp">
+      <div class="world" id="world">
+        <svg class="edges" id="edges"><defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--edge)"/></marker>
+          <marker id="arrHi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--edge-hi)"/></marker>
+          <marker id="arrLoop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--loop)"/></marker>
+        </defs><g id="edgeG"></g></svg>
+        <div id="nodes"></div>
+      </div>
+    </div>
+    <div class="zoom">
+      <button class="tb" id="zOut" title="Zoom out">−</button>
+      <span class="tb pct" id="zPct">100%</span>
+      <button class="tb" id="zIn" title="Zoom in">+</button>
+      <button class="tb" id="zFit" title="Fit to screen (F)">Fit</button>
+    </div>
+    <canvas class="minimap" id="mini" width="440" height="280"></canvas>
+  </main>
+  <aside class="panel" id="panel"></aside>
+</div>
+<script>
+const DATA = /*__ARCHON_DATA__*/null;
+const WF = DATA.workflows;
+
+// ---------- node kinds ----------
+const ICON = {
+  bash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-5-6-5"/><path d="M12 19h8"/></svg>',
+  script: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4c-2 0-3 1-3 3v2c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v2c0 2 1 3 3 3"/><path d="M16 4c2 0 3 1 3 3v2c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v2c0 2-1 3-3 3"/></svg>',
+  agent: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/><path d="M19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z" opacity=".7"/></svg>',
+  flow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><path d="M10 6.5h4a3 3 0 013 3V14"/></svg>',
+  wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg>',
+  loop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 013-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 01-3 3H3"/></svg>',
+  node: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="7"/></svg>',
+};
+const KIND = {
+  bash: { label: 'Bash', color: 'var(--bash)' },
+  script: { label: 'Script', color: 'var(--script)' },
+  agent: { label: 'Agent prompt', color: 'var(--agent)' },
+  flow: { label: 'Sub-workflow', color: 'var(--flow)' },
+  wait: { label: 'Human wait', color: 'var(--wait)' },
+  stop: { label: 'Cancel', color: 'var(--stop)' },
+  loop: { label: 'Loop group', color: 'var(--loop)' },
+  node: { label: 'Node', color: 'var(--muted)' },
+};
+function kindOf(n) {
+  if (n.loop_group || n.loop) return 'loop';
+  if (n.workflow) return 'flow';
+  if (n.wait) return 'wait';
+  if (n.cancel) return 'stop';
+  if (n.prompt) return 'agent';
+  if (n.bash) return 'bash';
+  if (n.script) return 'script';
+  return 'node';
+}
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const clip = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+function subtitle(n, k) {
+  if (k === 'bash') {
+    const m = n.bash.match(/scripts\/archon\/([\w-]+)\.(?:mjs|ts|js)\s+([\w-]+)/);
+    return m ? `${m[1]} ${m[2]}${/\{"final":true\}/.test(n.bash) ? ' · final' : ''}${/--route/.test(n.bash) ? ' · route' : ''}` : n.bash.split('\n')[0];
+  }
+  if (k === 'script') { const m = n.script.match(/emit\(\s*"([\w-]+)"/); return m ? `emit("${m[1]}")` : (n.runtime || 'script'); }
+  if (k === 'agent') return `${n.context || 'shared'} context · ${clip(n.prompt.replace(/\s+/g, ' '), 60)}`;
+  if (k === 'flow') return `↳ ${n.workflow}`;
+  if (k === 'wait') return `${n.wait.form || 'wait'} · ${Array.isArray(n.wait.options) ? n.wait.options.map(o => o.id).join(' / ') : shortCond(n.wait.options || '')}`;
+  if (k === 'stop') return clip(String(n.cancel), 60);
+  return '';
+}
+const shortCond = w => String(w).replace(/\$LOOP_PREV\.([\w-]+)\.output(\.artifacts)?\.?/g, 'prev:$1.').replace(/\$([\w-]+)\.output(\.artifacts)?\.?/g, '$1.').replace(/\s+/g, ' ');
+
+// ---------- state ----------
+const S = {
+  wf: null, stack: [], expandAll: false, expanded: new Set(), collapsed: new Set(), collapseLoops: false,
+  sel: null, q: '', scale: 1, tx: 0, ty: 0, items: new Map(), edges: [], bounds: { w: 0, h: 0 },
+};
+
+// ---------- layout ----------
+const NW = 250, NH = 66, GX = 90, GY = 34, PAD = 26, HEAD = 48;
+
+function buildItem(n, prefix, stack) {
+  const k = kindOf(n);
+  const key = prefix + n.id;
+  const it = { key, id: n.id, node: n, kind: k, w: NW, h: NH, inner: null };
+  if (k === 'loop' && !(S.collapseLoops ? !S.expanded.has(key) : S.collapsed.has(key))) {
+    const lg = n.loop_group || n.loop;
+    it.inner = layoutGraph(lg.nodes || [], key + '/', stack, true);
+  } else if (k === 'flow' && WF[n.workflow] && !stack.includes(n.workflow) &&
+             (S.expandAll ? !S.collapsed.has(key) : S.expanded.has(key))) {
+    it.inner = layoutGraph(WF[n.workflow].nodes, key + '/', [...stack, n.workflow], false);
+    it.inlineWf = n.workflow;
+  }
+  if (it.inner) { it.w = Math.max(it.inner.w + PAD * 2, 300); it.h = it.inner.h + HEAD + PAD; }
+  return it;
+}
+
+function layoutGraph(nodes, prefix, stack, isLoop) {
+  const items = nodes.map(n => buildItem(n, prefix, stack));
+  const byId = new Map(items.map(i => [i.id, i]));
+  const preds = i => (i.node.depends_on || []).filter(d => byId.has(d) && d !== i.id).map(d => byId.get(d));
+  const succ = new Map(items.map(i => [i, []]));
+  items.forEach(i => preds(i).forEach(p => succ.get(p).push(i)));
+
+  // longest-path layering
+  const layerOf = new Map();
+  const visiting = new Set();
+  const L = i => {
+    if (layerOf.has(i)) return layerOf.get(i);
+    if (visiting.has(i)) return 0;
+    visiting.add(i);
+    const v = preds(i).reduce((m, p) => Math.max(m, L(p) + 1), 0);
+    visiting.delete(i); layerOf.set(i, v); return v;
+  };
+  items.forEach(L);
+  // pull sinks/side-branches right next to their successors where possible
+  for (let pass = 0; pass < 2; pass++)
+    [...items].sort((a, b) => layerOf.get(b) - layerOf.get(a)).forEach(i => {
+      const s = succ.get(i); if (!s.length) return;
+      const lim = Math.min(...s.map(x => layerOf.get(x))) - 1;
+      if (lim > layerOf.get(i) && preds(i).length === 0) layerOf.set(i, lim);
+    });
+  const nL = Math.max(0, ...layerOf.values()) + 1;
+  const layers = Array.from({ length: nL }, () => []);
+  items.forEach((i, idx) => { i.idx = idx; layers[layerOf.get(i)].push(i); });
+
+  // crossing reduction (barycenter sweeps)
+  const pos = new Map();
+  const index = () => layers.forEach(l => l.forEach((i, k) => pos.set(i, k)));
+  index();
+  const bary = (i, nb) => { const a = nb(i); return a.length ? a.reduce((s, x) => s + pos.get(x), 0) / a.length : pos.get(i); };
+  for (let it = 0; it < 6; it++) {
+    for (let l = 1; l < nL; l++) { layers[l].sort((a, b) => bary(a, preds) - bary(b, preds) || a.idx - b.idx); index(); }
+    for (let l = nL - 2; l >= 0; l--) { layers[l].sort((a, b) => bary(a, x => succ.get(x)) - bary(b, x => succ.get(x)) || a.idx - b.idx); index(); }
+  }
+
+  // x by layer
+  let x = 0;
+  layers.forEach(l => { const w = Math.max(...l.map(i => i.w)); l.forEach(i => { i.x = x + (w - i.w) / 2; }); x += w + GX; });
+
+  // y: stack, then relax toward neighbours
+  layers.forEach(l => { let y = 0; const tot = l.reduce((s, i) => s + i.h, 0) + GY * (l.length - 1); y = -tot / 2; l.forEach(i => { i.y = y; y += i.h + GY; }); });
+  const cy = i => i.y + i.h / 2;
+  // Conditional (when:) nodes ride a branch lane above the main line, like an IF branch.
+  const lane = i => (i.node.when ? -1 : 0);
+  const LANE = NH + GY + 24;
+  const place = (l, desired) => {
+    let bottom = -Infinity;
+    l.forEach((i, k) => { i.y = Math.max(desired[k] - i.h / 2, bottom + GY); bottom = i.y + i.h; });
+    const shift = l.reduce((s, i, k) => s + (desired[k] - cy(i)), 0) / l.length;
+    l.forEach(i => { i.y += shift; });
+  };
+  for (let it = 0; it < 10; it++) {
+    const fwd = it % 2 === 0;
+    const order = fwd ? layers.map((_, k) => k) : layers.map((_, k) => nL - 1 - k);
+    order.forEach(l => {
+      const desired = layers[l].map(i => {
+        const nb = [...preds(i), ...succ.get(i)];
+        const main = fwd ? preds(i) : succ.get(i);
+        const use = main.length ? main : nb;
+        return use.length ? use.reduce((s, x) => s + cy(x) - lane(x) * LANE, 0) / use.length + lane(i) * LANE : cy(i);
+      });
+      place(layers[l], desired);
+    });
+  }
+
+  // normalise
+  const minY = Math.min(...items.map(i => i.y), 0), maxY = Math.max(...items.map(i => i.y + i.h), NH);
+  items.forEach(i => { i.y -= minY; });
+  const edges = [];
+  items.forEach(i => preds(i).forEach(p => edges.push({ from: p, to: i, cond: !!i.node.when, kind: 'dep' })));
+  if (isLoop) {
+    const seen = new Set();
+    items.forEach(i => {
+      const txt = JSON.stringify(i.node);
+      for (const m of txt.matchAll(/\$LOOP_PREV\.([\w-]+)/g)) {
+        const src = byId.get(m[1]); const k = m[1] + '>' + i.id;
+        if (src && !seen.has(k)) { seen.add(k); edges.push({ from: src, to: i, kind: 'loop' }); }
+      }
+    });
+  }
+  return { items, edges, w: Math.max(x - GX, NW), h: maxY - minY + (isLoop && edges.some(e => e.kind === 'loop') ? 46 : 0) };
+}
+
+// flatten nested layout to absolute coordinates
+function flatten(g, ox, oy, out, depth, parent) {
+  g.items.forEach(i => {
+    i.ax = ox + i.x; i.ay = oy + i.y; i.depth = depth; i.parent = parent;
+    out.items.set(i.key, i);
+    if (i.inner) flatten(i.inner, i.ax + PAD, i.ay + HEAD, out, depth + 1, i);
+  });
+  g.edges.forEach(e => out.edges.push({ ...e, bottom: oy + g.h }));
+}
+
+// ---------- render ----------
+const $ = id => document.getElementById(id);
+function render(keepView) {
+  const wf = WF[S.wf];
+  const g = layoutGraph(wf.nodes, '', [S.wf], false);
+  const out = { items: new Map(), edges: [] };
+  flatten(g, 0, 0, out, 0, null);
+  S.items = out.items; S.edges = out.edges; S.bounds = { w: g.w, h: g.h };
+
+  const parts = [];
+  const sorted = [...out.items.values()].sort((a, b) => (a.inner ? 0 : 1) - (b.inner ? 0 : 1) || a.depth - b.depth);
+  for (const i of sorted) {
+    const n = i.node, k = i.kind, K = KIND[k];
+    const badges = [];
+    if (n.when) badges.push(`<span class="chip if" title="${esc(n.when)}">if</span>`);
+    if (n.trigger_rule) badges.push(`<span class="chip rule" title="trigger_rule: ${esc(n.trigger_rule)}">${esc(n.trigger_rule === 'none_failed_min_one_success' ? 'join' : n.trigger_rule)}</span>`);
+    if (n.retry) badges.push(`<span class="chip retry" title="retry ${esc(JSON.stringify(n.retry))}">↻${esc(n.retry.max_attempts ?? '')}</span>`);
+    const owner = i.parent?.inlineWf ? WF[i.parent.inlineWf] : (i.depth === 0 ? wf : null);
+    if (owner && owner.returns === n.id) badges.push('<span class="chip ret">returns</span>');
+    if (i.inner) {
+      const lg = n.loop_group || n.loop;
+      const meta = k === 'loop'
+        ? `max ${lg.max_iterations ?? '∞'} iterations · until ${esc(clip(shortCond(lg.until_bash || lg.until || ''), 70))}`
+        : esc(WF[n.workflow]?.description || '');
+      const title = k === 'loop' ? `${esc(n.id)}` : `${esc(n.id)} <span class="meta">↳ ${esc(n.workflow)}</span>`;
+      parts.push(`<div class="frame ${k} ${S.sel === i.key ? 'sel' : ''}" data-key="${esc(i.key)}" style="left:${i.ax}px;top:${i.ay}px;width:${i.w}px;height:${i.h}px;--k:${K.color}">
+        <div class="frame-head" data-key="${esc(i.key)}"><span class="ic">${ICON[k]}</span><b>${title}</b><span class="meta">${meta}</span>
+        <span class="badges" style="display:flex;gap:3px">${badges.join('')}</span><span class="tog" data-tog="${esc(i.key)}">collapse</span></div></div>`);
+    } else {
+      const expandable = (k === 'loop') || (k === 'flow' && WF[n.workflow]);
+      parts.push(`<div class="node ${S.sel === i.key ? 'sel' : ''}" data-key="${esc(i.key)}" style="left:${i.ax}px;top:${i.ay}px;width:${i.w}px;height:${i.h}px;--k:${K.color}" title="${esc(n.id)}${expandable ? ' — double-click to expand' : ''}">
+        <span class="port in"></span><span class="ic">${ICON[k]}</span>
+        <span class="tx"><div class="nm">${esc(n.id)}</div><div class="sub">${esc(k === 'loop' ? `loop · ${(n.loop_group || n.loop).nodes?.length || 0} nodes` : subtitle(n, k))}</div></span>
+        <span class="badges">${badges.join('')}${expandable ? '<span class="chip">⤢</span>' : ''}</span><span class="port out"></span></div>`);
+    }
+  }
+  $('nodes').innerHTML = parts.join('');
+  drawEdges();
+  renderChrome();
+  applySearch();
+  if (!keepView) home();
+  else applyTransform();
+}
+
+function edgePath(e) {
+  const a = e.from, b = e.to;
+  if (e.kind === 'loop') {
+    const x1 = a.ax + a.w / 2, y1 = a.ay + a.h, x2 = b.ax + b.w / 2, y2 = b.ay + b.h, yb = e.bottom + 30;
+    return `M${x1},${y1} C${x1},${yb} ${x2},${yb} ${x2},${y2 + 2}`;
+  }
+  const x1 = a.ax + a.w, y1 = a.ay + a.h / 2, x2 = b.ax - 2, y2 = b.ay + b.h / 2;
+  if (x2 > x1) { const c = Math.max(36, (x2 - x1) * 0.5); return `M${x1},${y1} C${x1 + c},${y1} ${x2 - c},${y2} ${x2},${y2}`; }
+  const c = 80; return `M${x1},${y1} C${x1 + c},${y1} ${x2 - c},${y2} ${x2},${y2}`;
+}
+function drawEdges() {
+  const g = $('edgeG');
+  const hi = [S.hover, S.sel].find(k => k && S.items.has(k)) || null;
+  g.innerHTML = S.edges.map((e, k) => {
+    const on = hi && (e.from.key === hi || e.to.key === hi);
+    const cls = `edge ${e.cond ? 'cond' : ''} ${e.kind === 'loop' ? 'loopback' : ''} ${on ? 'hi' : ''}`;
+    const mk = on ? 'arrHi' : e.kind === 'loop' ? 'arrLoop' : 'arr';
+    return `<path class="${cls}" d="${edgePath(e)}" marker-end="url(#${mk})"><title>${esc(e.from.id)} → ${esc(e.to.id)}${e.kind === 'loop' ? ' (next iteration via $LOOP_PREV)' : ''}${e.cond ? '\nif ' + esc(e.to.node.when) : ''}</title></path>`;
+  }).join('');
+  const world = $('world');
+  world.classList.toggle('dim', !!hi);
+  document.querySelectorAll('.node.hi, .frame.hi').forEach(el => el.classList.remove('hi'));
+  if (hi) {
+    const keys = new Set([hi]);
+    S.edges.forEach(e => { if (e.from.key === hi) keys.add(e.to.key); if (e.to.key === hi) keys.add(e.from.key); });
+    let p = S.items.get(hi)?.parent; while (p) { keys.add(p.key); p = p.parent; }
+    keys.forEach(k => document.querySelector(`[data-key="${CSS.escape(k)}"]`)?.classList.add('hi'));
+  }
+  const svg = $('edges'); svg.setAttribute('width', S.bounds.w + 200); svg.setAttribute('height', S.bounds.h + 200);
+  drawMini();
+}
+
+// ---------- chrome ----------
+function workflowTree() {
+  const children = {}; const referenced = new Set();
+  const scan = (nodes, wf) => nodes.forEach(n => {
+    if (n.workflow && WF[n.workflow]) { (children[wf] ||= []).includes(n.workflow) || children[wf].push(n.workflow); referenced.add(n.workflow); }
+    const lg = n.loop_group || n.loop; if (lg?.nodes) scan(lg.nodes, wf);
+  });
+  Object.values(WF).forEach(w => scan(w.nodes, w.name));
+  const roots = Object.keys(WF).filter(n => !referenced.has(n)).sort();
+  return { children, roots };
+}
+const countNodes = (nodes) => nodes.reduce((s, n) => s + 1 + (((n.loop_group || n.loop)?.nodes) ? countNodes((n.loop_group || n.loop).nodes) : 0), 0);
+function renderChrome() {
+  const { children, roots } = workflowTree();
+  const rows = [];
+  const walk = (name, depth, seen) => {
+    rows.push(`<button class="wf-item ${name === S.wf ? 'active' : ''}" data-wf="${esc(name)}" style="padding-left:${8 + depth * 14}px">${depth ? '<span class="branch">↳</span>' : ''}<span>${esc(name)}</span><span class="count">${countNodes(WF[name].nodes)}</span></button>`);
+    (children[name] || []).forEach(c => !seen.includes(c) && walk(c, depth + 1, [...seen, c]));
+  };
+  roots.forEach(r => walk(r, 0, [r]));
+  $('wfList').innerHTML = `<h4>Workflows · ${Object.keys(WF).length}</h4>` + rows.join('');
+
+  const wf = WF[S.wf];
+  const counts = {}; S.items.forEach(i => { counts[i.kind] = (counts[i.kind] || 0) + 1; });
+  const inputs = Object.entries(wf.inputs || {}).map(([k, v]) => `<span class="chip" title="${esc(v?.description || '')}">in: ${esc(k)}${v?.required ? '*' : ''}</span>`).join('');
+  const crumbs = [...S.stack, S.wf].map((n, k, a) => k < a.length - 1 ? `<a data-crumb="${k}">${esc(n)}</a> ›` : `<span>${esc(n)}</span>`).join(' ');
+  $('titleCard').innerHTML = `<div class="crumbs">${crumbs}</div><h1>${esc(wf.name)}</h1><p>${esc(wf.description || '')}</p>
+    <div class="chips">${inputs}${wf.returns ? `<span class="chip">returns: ${esc(wf.returns)}</span>` : ''}
+    ${Object.entries(counts).map(([k, v]) => `<span class="chip" style="color:${KIND[k].color}">${v} ${esc(KIND[k].label.toLowerCase())}</span>`).join('')}
+    <span class="chip" title="${esc(wf.file)}">${esc(wf.file)}</span></div>`;
+  $('expandAll').classList.toggle('on', S.expandAll);
+  $('collapseLoops').classList.toggle('on', S.collapseLoops);
+}
+$('legend').innerHTML = ['bash', 'script', 'agent', 'flow', 'wait', 'stop', 'loop'].map(k => `<span><i style="background:${KIND[k].color}"></i>${KIND[k].label}</span>`).join('') +
+  `<span class="ln"><svg width="34" height="8"><path d="M1 4H33" stroke="var(--edge)" stroke-width="2"/></svg>depends on</span>
+   <span class="ln"><svg width="34" height="8"><path d="M1 4H33" stroke="var(--edge)" stroke-width="2" stroke-dasharray="6 5"/></svg>conditional target (if)</span>
+   <span class="ln"><svg width="34" height="8"><path d="M1 4H33" stroke="var(--loop)" stroke-width="2.2" stroke-dasharray="2 5" stroke-linecap="round"/></svg>feeds next loop iteration</span>`;
+
+// ---------- detail panel ----------
+const refLinks = txt => esc(txt).replace(/\$(LOOP_PREV\.)?([\w-]+)\.output/g, (m, lp, id) => `<span class="ref">${m}</span>`);
+function showPanel(key) {
+  const i = S.items.get(key);
+  if (!i) { $('app').classList.remove('with-panel'); return; }
+  const n = i.node, K = KIND[i.kind];
+  const deps = (n.depends_on || []);
+  const downstream = S.edges.filter(e => e.from.key === key && e.kind === 'dep').map(e => e.to);
+  const sib = k => { const p = i.key.lastIndexOf('/'); return (p >= 0 ? i.key.slice(0, p + 1) : '') + k; };
+  const link = (k, label) => `<a class="chip" data-goto="${esc(k)}">${esc(label)}</a>`;
+  const rows = [];
+  const kv = (k, v) => v !== undefined && v !== null && v !== '' && rows.push(`<dt>${esc(k)}</dt><dd>${v}</dd>`);
+  kv('type', esc(K.label) + (n.runtime ? ` · ${esc(n.runtime)}` : ''));
+  kv('context', n.context && esc(n.context));
+  kv('always_run', n.always_run !== undefined ? esc(String(n.always_run)) : undefined);
+  kv('trigger_rule', n.trigger_rule && esc(n.trigger_rule));
+  kv('retry', n.retry && esc(Object.entries(n.retry).map(([a, b]) => `${a}: ${b}`).join(', ')));
+  kv('isolation', n.isolation && esc(n.isolation));
+  const known = new Set(['id', 'depends_on', 'when', 'prompt', 'bash', 'script', 'runtime', 'context', 'always_run', 'trigger_rule', 'retry', 'with', 'loop_group', 'loop', 'workflow', 'wait', 'cancel', 'isolation']);
+  Object.keys(n).filter(k => !known.has(k)).forEach(k => kv(k, `<code>${esc(JSON.stringify(n[k]))}</code>`));
+  const code = (title, body) => `<section><h3>${esc(title)}</h3><pre>${refLinks(body)}</pre></section>`;
+  const lg = n.loop_group || n.loop;
+  let html = `<header style="--k:${K.color}"><span class="ic">${ICON[i.kind]}</span><div><h2>${esc(n.id)}</h2><small>${esc(K.label)}${i.parent ? ' · in ' + esc(i.parent.id) : ''}</small></div><button class="x" id="closeP" title="Close (Esc)">×</button></header>`;
+  html += `<section><dl>${rows.join('')}</dl></section>`;
+  if (n.when) html += code('Runs when', n.when);
+  html += `<section><h3>Depends on</h3><div class="links">${deps.length ? deps.map(d => link(sib(d), d)).join('') : '<span class="chip">— entry node</span>'}</div>
+    <h3 style="margin-top:10px">Feeds into</h3><div class="links">${downstream.length ? downstream.map(d => link(d.key, d.id)).join('') : '<span class="chip">— terminal</span>'}</div></section>`;
+  if (n.with) html += code('with', Object.entries(n.with).map(([a, b]) => `${a}: ${typeof b === 'string' ? b : JSON.stringify(b)}`).join('\n'));
+  if (n.bash) html += code('bash', n.bash);
+  if (n.script) html += code('script', n.script);
+  if (n.prompt) html += code('prompt', n.prompt);
+  if (n.cancel) html += code('cancel', String(n.cancel));
+  if (n.wait) {
+    html += code('attention', n.wait.attention || '');
+    html += `<section><h3>Options (${esc(n.wait.form || '')})</h3><div class="links">${Array.isArray(n.wait.options) ? n.wait.options.map(o => `<span class="chip">${esc(o.id)} · ${esc(o.label)}</span>`).join('') : `<span class="chip ref">dynamic: ${esc(n.wait.options || '')}</span>`}</div></section>`;
+  }
+  if (lg) html += code('loop', `max_iterations: ${lg.max_iterations ?? '∞'}\nuntil: ${lg.until_bash || lg.until || ''}\nnodes: ${(lg.nodes || []).map(x => x.id).join(', ')}`);
+  if (n.workflow) {
+    const t = WF[n.workflow];
+    html += `<section><h3>Sub-workflow</h3><p style="margin:0 0 6px">${esc(n.workflow)}${t ? ' — ' + esc(t.description || '') : ' (not found)'}</p>
+      ${t ? `<button class="tb open" data-open="${esc(n.workflow)}">Open workflow →</button> <button class="tb open" data-tog="${esc(i.key)}">${i.inner ? 'Collapse inline' : 'Expand inline'}</button>` : ''}</section>`;
+  }
+  $('panel').innerHTML = html;
+  $('app').classList.add('with-panel');
+}
+
+// ---------- pan / zoom ----------
+const vp = $('vp');
+function applyTransform() {
+  $('world').style.transform = `translate(${S.tx}px,${S.ty}px) scale(${S.scale})`;
+  $('zPct').textContent = Math.round(S.scale * 100) + '%';
+  drawMini();
+}
+function zoomAt(f, cx, cy) {
+  const ns = Math.min(2.5, Math.max(0.08, S.scale * f));
+  S.tx = cx - (cx - S.tx) * (ns / S.scale); S.ty = cy - (cy - S.ty) * (ns / S.scale); S.scale = ns; applyTransform();
+}
+function fit() {
+  const r = vp.getBoundingClientRect(); const top = 120;
+  const s = Math.min(1, (r.width - 80) / S.bounds.w, (r.height - top - 60) / S.bounds.h);
+  S.scale = Math.max(0.08, s); S.tx = (r.width - S.bounds.w * S.scale) / 2; S.ty = top + (r.height - top - S.bounds.h * S.scale) / 2;
+  applyTransform();
+}
+// Start readable: fit when the whole graph stays legible, otherwise open at the entry nodes.
+function home() {
+  const r = vp.getBoundingClientRect(); const top = 120;
+  const s = Math.min(1, (r.width - 80) / S.bounds.w, (r.height - top - 60) / S.bounds.h);
+  if (s >= 0.4) return fit();
+  S.scale = Math.max(0.4, Math.min(0.8, (r.height - top - 60) / S.bounds.h));
+  S.tx = 40; S.ty = top + Math.max(0, (r.height - top - S.bounds.h * S.scale) / 2);
+  applyTransform();
+}
+function flyTo(key) {
+  const i = S.items.get(key); if (!i) return;
+  const r = vp.getBoundingClientRect(); const s = Math.max(S.scale, 0.75);
+  S.scale = s; S.tx = r.width / 2 - (i.ax + i.w / 2) * s; S.ty = r.height / 2 - (i.ay + Math.min(i.h, 200) / 2) * s; applyTransform();
+}
+vp.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = vp.getBoundingClientRect();
+  // Pinch / ctrl+wheel and mouse-wheel notches zoom; trackpad two-finger scrolling pans.
+  const mouseWheel = !e.shiftKey && e.deltaX === 0 && (e.deltaMode === 1 || Math.abs(e.deltaY) >= 50);
+  if (e.ctrlKey || e.metaKey || mouseWheel) zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018)), e.clientX - r.left, e.clientY - r.top);
+  else { S.tx -= e.deltaX + (e.shiftKey ? e.deltaY : 0); S.ty -= e.shiftKey ? 0 : e.deltaY; applyTransform(); }
+}, { passive: false });
+let drag = null;
+vp.addEventListener('pointerdown', e => {
+  if (e.target.closest('.node, .frame-head')) return;
+  drag = { x: e.clientX, y: e.clientY, tx: S.tx, ty: S.ty, moved: false }; vp.classList.add('panning'); vp.setPointerCapture(e.pointerId);
+});
+vp.addEventListener('pointermove', e => {
+  if (drag) { S.tx = drag.tx + e.clientX - drag.x; S.ty = drag.ty + e.clientY - drag.y; drag.moved ||= Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 3; applyTransform(); return; }
+  const el = e.target.closest('.node, .frame-head'); const k = el?.dataset.key || null;
+  if (k !== S.hover) { S.hover = k; drawEdges(); }
+});
+vp.addEventListener('pointerup', e => {
+  if (drag && !drag.moved && !e.target.closest('.node, .frame-head')) { select(null); }
+  drag = null; vp.classList.remove('panning');
+});
+vp.addEventListener('pointerleave', () => { if (S.hover) { S.hover = null; drawEdges(); } });
+
+function toggle(key) {
+  const i = S.items.get(key); if (!i) return;
+  const open = !!i.inner;
+  const defaultOpen = i.kind === 'loop' ? !S.collapseLoops : S.expandAll;
+  const set = defaultOpen ? S.collapsed : S.expanded;
+  if (open === defaultOpen) set.add(key); else set.delete(key);
+  if (!open && i.kind === 'flow' && !WF[i.node.workflow]) return;
+  render(true);
+  if (S.sel) showPanel(S.sel);
+}
+function select(key) { S.sel = key; document.querySelectorAll('.sel').forEach(el => el.classList.remove('sel')); if (key) document.querySelector(`[data-key="${CSS.escape(key)}"]`)?.classList.add('sel'); showPanel(key); drawEdges(); }
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-tog]')) { e.stopPropagation(); toggle(t.closest('[data-tog]').dataset.tog); return; }
+  if (t.closest('[data-open]')) { openWf(t.closest('[data-open]').dataset.open, true); return; }
+  if (t.closest('[data-goto]')) { const k = t.closest('[data-goto]').dataset.goto; select(k); flyTo(k); return; }
+  if (t.closest('[data-wf]')) { openWf(t.closest('[data-wf]').dataset.wf, false); return; }
+  if (t.closest('[data-crumb]')) { const k = +t.closest('[data-crumb]').dataset.crumb; const name = S.stack[k]; S.stack = S.stack.slice(0, k); openWf(name, false, true); return; }
+  if (t.id === 'closeP') { select(null); return; }
+  const n = t.closest('.node, .frame-head'); if (n) select(n.dataset.key);
+});
+document.addEventListener('dblclick', e => { const n = e.target.closest('.node, .frame-head'); if (n) toggle(n.dataset.key); });
+$('zIn').onclick = () => { const r = vp.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); };
+$('zOut').onclick = () => { const r = vp.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); };
+$('zFit').onclick = fit;
+$('expandAll').onclick = () => { S.expandAll = !S.expandAll; S.expanded.clear(); S.collapsed.clear(); render(); };
+$('collapseLoops').onclick = () => { S.collapseLoops = !S.collapseLoops; S.expanded.clear(); S.collapsed.clear(); render(); };
+$('theme').onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = cur === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('archon-viz-theme', document.documentElement.dataset.theme); } catch {}
+  drawMini();
+};
+try { const t = localStorage.getItem('archon-viz-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') { e.target.value = ''; S.q = ''; applySearch(); e.target.blur(); } return; }
+  if (e.key === '/') { e.preventDefault(); $('q').focus(); }
+  else if (e.key === 'Escape') select(null);
+  else if (e.key === 'f' || e.key === 'F') fit();
+  else if (e.key === '+' || e.key === '=') $('zIn').click();
+  else if (e.key === '-') $('zOut').click();
+});
+window.addEventListener('resize', () => drawMini());
+
+// ---------- search ----------
+function applySearch() {
+  const q = S.q.trim().toLowerCase();
+  const hits = [];
+  document.querySelectorAll('.node, .frame').forEach(el => {
+    const i = S.items.get(el.dataset.key);
+    const m = q && i && (i.id.toLowerCase().includes(q) || JSON.stringify(i.inner ? { ...i.node, loop_group: undefined } : i.node).toLowerCase().includes(q));
+    el.classList.toggle('match', !!m); if (m) hits.push(i.key);
+  });
+  S.hits = hits; drawMini();
+  return hits;
+}
+$('q').addEventListener('input', e => { S.q = e.target.value; applySearch(); });
+$('q').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !S.hits?.length) return;
+  S.hitIdx = ((S.hitIdx ?? -1) + (e.shiftKey ? -1 : 1) + S.hits.length) % S.hits.length;
+  const k = S.hits[S.hitIdx]; select(k); flyTo(k);
+});
+
+// ---------- minimap ----------
+function drawMini() {
+  const c = $('mini'); if (!c || !S.items.size) return;
+  const ctx = c.getContext('2d'); const W = c.width, H = c.height; const st = getComputedStyle(document.documentElement);
+  ctx.clearRect(0, 0, W, H);
+  const pad = 16, s = Math.min((W - pad * 2) / S.bounds.w, (H - pad * 2) / S.bounds.h);
+  const ox = (W - S.bounds.w * s) / 2, oy = (H - S.bounds.h * s) / 2;
+  S.mini = { s, ox, oy };
+  const hits = new Set(S.hits || []);
+  S.items.forEach(i => {
+    const col = st.getPropertyValue('--' + ({ agent: 'agent', flow: 'flow', bash: 'bash', script: 'script', wait: 'wait', stop: 'stop', loop: 'loop' }[i.kind] || 'edge')).trim();
+    if (i.inner) { ctx.strokeStyle = col; ctx.globalAlpha = .6; ctx.lineWidth = 1; ctx.strokeRect(ox + i.ax * s, oy + i.ay * s, i.w * s, i.h * s); }
+    else { ctx.fillStyle = hits.has(i.key) ? '#f5c400' : col; ctx.globalAlpha = hits.size && !hits.has(i.key) ? .35 : .9; ctx.fillRect(ox + i.ax * s, oy + i.ay * s, Math.max(2, i.w * s), Math.max(2, i.h * s)); }
+  });
+  ctx.globalAlpha = 1;
+  const r = vp.getBoundingClientRect();
+  const vx = -S.tx / S.scale, vy = -S.ty / S.scale, vw = r.width / S.scale, vh = r.height / S.scale;
+  ctx.strokeStyle = st.getPropertyValue('--sel').trim(); ctx.lineWidth = 2;
+  ctx.strokeRect(ox + vx * s, oy + vy * s, vw * s, vh * s);
+}
+function miniNav(e) {
+  const c = $('mini'), b = c.getBoundingClientRect(), m = S.mini; if (!m) return;
+  const px = (e.clientX - b.left) * (c.width / b.width), py = (e.clientY - b.top) * (c.height / b.height);
+  const wx = (px - m.ox) / m.s, wy = (py - m.oy) / m.s; const r = vp.getBoundingClientRect();
+  S.tx = r.width / 2 - wx * S.scale; S.ty = r.height / 2 - wy * S.scale; applyTransform();
+}
+$('mini').addEventListener('pointerdown', e => { miniNav(e); const mv = ev => miniNav(ev); const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); }; addEventListener('pointermove', mv); addEventListener('pointerup', up); });
+
+// ---------- navigation ----------
+function openWf(name, push, fromCrumb) {
+  if (!WF[name]) return;
+  if (push && S.wf && S.wf !== name) S.stack.push(S.wf);
+  else if (!push && !fromCrumb) S.stack = [];
+  S.wf = name; S.sel = null; S.expanded.clear(); S.collapsed.clear();
+  $('app').classList.remove('with-panel');
+  history.replaceState(null, '', '#' + encodeURIComponent(name));
+  render();
+}
+const fromHash = decodeURIComponent(location.hash.slice(1));
+const { roots } = workflowTree();
+openWf(WF[fromHash] ? fromHash : (roots.find(r => r === 'rules-story') || roots[0] || Object.keys(WF)[0]), false);
+</script>
+</body>
+</html>
