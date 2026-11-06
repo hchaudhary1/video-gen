@@ -383,8 +383,15 @@ export async function run(stage, slug, options = {}, { media } = {}) {
         artifacts = (await loadReviewPack(job, 'final')).pack;
       } catch {
         const timeline = await readJSON(path.join(job, 'build/timeline.json'));
-        const frames = await e.stills(p, []),
-          sheet = await e.sheet(p, { every: 1 });
+        const frames = await e.stills(p, []);
+        // One temporal sheet per scene, about twelve tiles each, so a reviewer can
+        // inspect and record every scene's full span rather than one unreadable film-wide sheet.
+        const sheets = [];
+        for (const sc of timeline.scenes)
+          sheets.push({
+            scene: sc,
+            file: (await e.sheet(p, { scene: sc.id, every: Math.max(1, Math.ceil(sc.dur / 12)) })).file,
+          });
         const evidence = [];
         const add = async (file, kind, start, end) =>
           evidence.push({
@@ -401,7 +408,13 @@ export async function run(stage, slug, options = {}, { media } = {}) {
             Math.min(frame.time, timeline.duration),
             Math.min(frame.time, timeline.duration),
           );
-        await add(sheet.file, 'contact-sheet', 0, timeline.duration);
+        for (const { scene, file } of sheets)
+          await add(
+            file,
+            'contact-sheet',
+            scene.start,
+            Math.min(scene.start + scene.dur, timeline.duration),
+          );
         const preview = await readJSON(path.join(job, 'review/kai-preview.json'));
         if (
           preview.sourceHash !== (await sourceFingerprint(job)) ||
