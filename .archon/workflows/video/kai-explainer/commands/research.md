@@ -12,6 +12,11 @@ and `references/sourcing.md`:
 
 Do not retrieve YouTube or other video transcripts.
 
+Keep research proportionate to the video: retain about two sources per minute of the target
+`duration` in `project.json` (seconds), community threads included, at least 8 and never more
+than 25. Choose the ones that decide the take (the primary sources, the independent checks, the
+community threads you may quote), then stop searching and write.
+
 Write `SOURCES.md` (the source index, primary sources marked apart from reporting, community
 posts) and the take dossier `sources/ANALYSIS.md` with the four sections that
 reference names. Keep retained evidence for every factual claim, including any first-person

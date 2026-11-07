@@ -32,6 +32,10 @@ Primary sources are necessary, not sufficient. Go beyond what the subject says a
   corrections, hands-on reports and disagreement, not just applause. Save each thread you
   may quote under `sources/community/`.
 
+**Budget.** About two retained sources per minute of the target duration, community threads
+included: at least 8, never more than 25 (about 10 for a 5-minute video, 20 for 10 minutes, 25
+for anything longer). Pick the ones that decide the take, then stop searching.
+
 A blocked platform is a limitation: record what you tried and what remains unknown, under an
 `Unavailable:` line in the relevant dossier section. Do not substitute a confident paraphrase.
 
