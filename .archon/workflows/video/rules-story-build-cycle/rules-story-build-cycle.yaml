@@ -10,54 +10,54 @@ inputs:
     description: pre-review or post-revision; repairs must remain technical
     default: pre-review
 nodes:
-- id: register-repair
-  description: Register the technical repairer as a producer.
-  depends_on: []
-  always_run: true
-  runtime: bun
-  script: |-
-    const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
-    await emit("producer", {role:"technical-repair",runId:process.env.INPUTS_RUN});
-  with:
-    run: $WORKFLOW_ID
-- id: build
-  description: Build the film and run the engine checks (syntax, exports, fonts, layout); errors route to one technical repair.
-  depends_on:
-  - register-repair
-  always_run: true
-  bash: node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route
-  retry:
-    max_attempts: 1
-    on_error: all
-- id: repair
-  description: The one technical repair of build errors.
-  depends_on:
-  - build
-  when: $build.output.status == 'repair'
-  context: fresh
-  command: repair
-  skills:
-  - hyperframes
-  - typography
-  retry:
-    max_attempts: 2
-    on_error: transient
-- id: build-final
-  description: Rebuild after the repair; remaining check issues are accepted and disclosed, an unloadable scene stops the run.
-  depends_on:
-  - repair
-  when: $build.output.status == 'repair'
-  always_run: true
-  bash: node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" '{"final":true}' --route
-  retry:
-    max_attempts: 1
-    on_error: all
-- id: result
-  description: Confirm the build is usable for the current sources and return it.
-  depends_on:
-  - build
-  - build-final
-  always_run: true
-  bash: node scripts/archon/rules-story.mjs build-check "$INPUTS_PROJECT"
-  trigger_rule: none_failed_min_one_success
+  - id: register-repair
+    description: Register the technical repairer as a producer.
+    depends_on: []
+    always_run: true
+    runtime: bun
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/rules-story.mjs");
+      await emit("producer", {role:"technical-repair",runId:process.env.INPUTS_RUN});
+    with:
+      run: $WORKFLOW_ID
+  - id: build
+    description: Build the film and run the engine checks (syntax, exports, fonts, layout); errors route to one technical repair.
+    depends_on:
+      - register-repair
+    always_run: true
+    bash: node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" --route
+    retry:
+      max_attempts: 1
+      on_error: all
+  - id: repair
+    description: The one technical repair of build errors.
+    depends_on:
+      - build
+    when: $build.output.status == 'repair'
+    context: fresh
+    command: repair
+    skills:
+      - hyperframes
+      - typography
+    retry:
+      max_attempts: 2
+      on_error: transient
+  - id: build-final
+    description: Rebuild after the repair; remaining check issues are accepted and disclosed, an unloadable scene stops the run.
+    depends_on:
+      - repair
+    when: $build.output.status == 'repair'
+    always_run: true
+    bash: node scripts/archon/rules-story.mjs build "$INPUTS_PROJECT" '{"final":true}' --route
+    retry:
+      max_attempts: 1
+      on_error: all
+  - id: result
+    description: Confirm the build is usable for the current sources and return it.
+    depends_on:
+      - build
+      - build-final
+    always_run: true
+    bash: node scripts/archon/rules-story.mjs build-check "$INPUTS_PROJECT"
+    trigger_rule: none_failed_min_one_success
 returns: result
