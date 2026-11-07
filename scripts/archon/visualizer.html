@@ -139,6 +139,9 @@ svg.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-even
 .panel .links .chip:hover { color: var(--sel); border-color: var(--sel); }
 .panel .open { margin-top: 8px; }
 .ref { color: var(--flow); font-weight: 600; }
+.panel .why { background: color-mix(in srgb, var(--k, var(--sel)) 7%, var(--panel)); }
+.panel .why p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.panel .warn { color: var(--stop); font-weight: 700; }
 .app.with-panel { grid-template-columns: 260px 1fr 520px; }
 .ctx-total { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .ctx-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--panel-2); margin: 8px 0 2px; }
@@ -419,7 +422,7 @@ function render(keepView) {
         <span class="badges" style="display:flex;gap:3px">${badges.join('')}</span><span class="tog" data-tog="${esc(i.key)}">collapse</span></div></div>`);
     } else {
       const expandable = (k === 'loop') || (k === 'flow' && WF[n.workflow]);
-      parts.push(`<div class="node ${S.sel === i.key ? 'sel' : ''}" data-key="${esc(i.key)}" style="left:${i.ax}px;top:${i.ay}px;width:${i.w}px;height:${i.h}px;--k:${K.color}" title="${esc(n.id)}${expandable ? ' — double-click to expand' : ''}">
+      parts.push(`<div class="node ${S.sel === i.key ? 'sel' : ''}" data-key="${esc(i.key)}" style="left:${i.ax}px;top:${i.ay}px;width:${i.w}px;height:${i.h}px;--k:${K.color}" title="${esc(n.id)}${n.description ? ' — ' + esc(n.description) : ''}${expandable ? ' (double-click to expand)' : ''}">
         <span class="port in"></span><span class="ic">${ICON[k]}</span>
         <span class="tx"><div class="nm">${esc(n.id)}</div><div class="sub">${esc(k === 'loop' ? `loop · ${(n.loop_group || n.loop).nodes?.length || 0} nodes` : subtitle(n, k))}</div></span>
         <span class="badges">${badges.join('')}${expandable ? '<span class="chip">⤢</span>' : ''}</span><span class="port out"></span></div>`);
@@ -604,11 +607,12 @@ function showPanel(key) {
   kv('trigger_rule', n.trigger_rule && esc(n.trigger_rule));
   kv('retry', n.retry && esc(Object.entries(n.retry).map(([a, b]) => `${a}: ${b}`).join(', ')));
   kv('isolation', n.isolation && esc(n.isolation));
-  const known = new Set(['id', 'depends_on', 'when', 'prompt', 'command', 'skills', 'model', 'bash', 'script', 'runtime', 'context', 'always_run', 'trigger_rule', 'retry', 'with', 'loop_group', 'loop', 'workflow', 'wait', 'cancel', 'isolation']);
+  const known = new Set(['id', 'depends_on', 'when', 'prompt', 'command', 'skills', 'model', 'bash', 'script', 'runtime', 'context', 'always_run', 'trigger_rule', 'retry', 'with', 'loop_group', 'loop', 'workflow', 'wait', 'cancel', 'isolation', 'description']);
   Object.keys(n).filter(k => !known.has(k)).forEach(k => kv(k, `<code>${esc(JSON.stringify(n[k]))}</code>`));
   const code = (title, body) => `<section><h3>${esc(title)}</h3><pre>${refLinks(body)}</pre></section>`;
   const lg = n.loop_group || n.loop;
   let html = `<header style="--k:${K.color}"><span class="ic">${ICON[i.kind]}</span><div><h2>${esc(n.id)}</h2><small>${esc(K.label)}${i.parent ? ' · in ' + esc(i.parent.id) : ''}</small></div><button class="x" id="closeP" title="Close (Esc)">×</button></header>`;
+  html += `<section class="why"><h3>Why this node</h3><p>${n.description ? esc(n.description) : '<span class="warn">No description in the YAML.</span>'}</p></section>`;
   html += `<section><dl>${rows.join('')}</dl></section>`;
   if (n.when) html += code('Runs when', n.when);
   html += `<section><h3>Depends on</h3><div class="links">${deps.length ? deps.map(d => link(sib(d), d)).join('') : '<span class="chip">— entry node</span>'}</div>
@@ -628,6 +632,7 @@ function showPanel(key) {
     html += `<section><h3>Sub-workflow</h3><p style="margin:0 0 6px">${esc(n.workflow)}${t ? ' — ' + esc(t.description || '') : ' (not found)'}</p>
       ${t ? `<button class="tb open" data-open="${esc(n.workflow)}">Open workflow →</button> <button class="tb open" data-tog="${esc(i.key)}">${i.inner ? 'Collapse inline' : 'Expand inline'}</button>` : ''}</section>`;
   }
+  $('panel').style.setProperty('--k', K.color);
   $('panel').innerHTML = html;
   $('app').classList.add('with-panel');
 }

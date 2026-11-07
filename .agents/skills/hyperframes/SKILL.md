@@ -12,7 +12,7 @@ planning. Use the installed HyperFrames version. Narration and timing are alread
 Use `lib/film.mjs`, `lib/native.mjs` and `lib/assets.mjs`
 through their direct APIs or the internal Archon adapters. Coordinate shared `film.json`
 changes with the director's ownership. Preserve supplied audio and measured cues.
-Load the actual heavy fonts, keep their natural proportions and retain asset provenance.
+Retain asset provenance.
 Inspect real build frames and actual playback when available. Report missing viewing or
 listening capabilities explicitly. Repair demonstrated defects from all review roles.
 

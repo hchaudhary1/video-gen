@@ -11,6 +11,7 @@ inputs:
     default: '{}'
 nodes:
 - id: recover
+  description: Create the project on first run (or load the saved one) and freeze the treatment profile and options, so a resumed run continues the same production.
   depends_on: []
   always_run: true
   runtime: bun
@@ -18,12 +19,14 @@ nodes:
     const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
     await emit("init", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
 - id: research-state
+  description: Check whether research is already complete (SOURCES.md, evidence, identity.json for rules-story) so a resumed run skips it.
   depends_on:
   - recover
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"
   trigger_rule: none_failed_min_one_success
 - id: research
+  description: Research the brief and retain sources.
   depends_on:
   - research-state
   when: $research-state.output.artifacts.done == false
@@ -35,6 +38,7 @@ nodes:
     max_attempts: 2
     on_error: transient
 - id: research-recheck
+  description: Re-check the research files the author just produced; any errors trigger the one fix pass.
   depends_on:
   - research-state
   - research
@@ -42,6 +46,7 @@ nodes:
   bash: node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"
   trigger_rule: none_failed_min_one_success
 - id: research-fix
+  description: The one fix pass for research files the check still reports missing.
   depends_on:
   - research-recheck
   when: $research-recheck.output.artifacts.done == false
@@ -53,6 +58,7 @@ nodes:
     max_attempts: 2
     on_error: transient
 - id: research-ready
+  description: Final research check after the fix pass; production continues whatever it reports, and script review sees any gap.
   depends_on:
   - research-recheck
   - research-fix
@@ -60,6 +66,7 @@ nodes:
   bash: node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"
   trigger_rule: none_failed_min_one_success
 - id: script-cycle
+  description: Write → independent review → one fix → optional operator approval. Repeats only when the operator asks for revisions (max passes shown).
   depends_on:
   - research-ready
   loop_group:
@@ -67,6 +74,7 @@ nodes:
     until_bash: node scripts/archon/kai-explainer.mjs script-loop-check "$INPUTS_PROJECT"
     nodes:
     - id: script-answer
+      description: Record the operator's answer from the previous pass (bound to the exact script hash they saw) into archon/script-decision.json. No-op on the first pass.
       always_run: true
       runtime: bun
       script: |-
@@ -77,11 +85,13 @@ nodes:
         binding: $LOOP_PREV.script-gate.output.artifacts.binding
         answer: $LOOP_PREV.script-attention.output
     - id: script-stop
+      description: 'Operator chose Stop: end the run, keeping all artifacts.'
       depends_on:
       - script-answer
       when: $script-answer.output.artifacts.rejected == true
       cancel: Operator stopped this production; retained artifacts remain available.
     - id: script-state
+      description: 'Compute what the script needs now: write (missing / revision requested), review, or fix. Also gives the writer supplied/canRevise/feedback.'
       depends_on:
       - script-answer
       - script-stop
@@ -89,6 +99,7 @@ nodes:
       always_run: true
       bash: node scripts/archon/kai-explainer.mjs script-status "$INPUTS_PROJECT"
     - id: write
+      description: Write or revise SCRIPT.md, research.md and VISUALS.md.
       depends_on:
       - script-state
       context: fresh
@@ -101,6 +112,7 @@ nodes:
         max_attempts: 2
         on_error: transient
     - id: script-binding
+      description: Hash the current script files and save archon/script-review-request.json, so the review is bound to exactly this text.
       depends_on:
       - script-state
       - write
@@ -108,6 +120,7 @@ nodes:
       bash: node scripts/archon/kai-explainer.mjs script-review-request "$INPUTS_PROJECT"
       trigger_rule: none_failed_min_one_success
     - id: script-review
+      description: Independent, text-only script review.
       when: $script-binding.output.artifacts.needsReview == true
       always_run: true
       depends_on:
@@ -118,6 +131,7 @@ nodes:
       skills:
       - script-writing
     - id: script-report
+      description: Check the script did not change during review, then read review.md's binding and disposition into archon/script-review.json (a missing or unbound report counts as incomplete).
       when: $script-binding.output.artifacts.needsReview == true
       depends_on:
       - script-review
@@ -129,6 +143,7 @@ nodes:
       with:
         binding: $script-binding.output.artifacts.binding
     - id: script-fix-state
+      description: 'Re-read script state after review: decides whether the one author fix is needed and allowed (supplied scripts are never auto-edited).'
       depends_on:
       - script-binding
       - script-report
@@ -136,6 +151,7 @@ nodes:
       trigger_rule: none_failed_min_one_success
       bash: node scripts/archon/kai-explainer.mjs script-status "$INPUTS_PROJECT"
     - id: script-fix
+      description: The one author fix after the independent review.
       depends_on:
       - script-fix-state
       context: fresh
@@ -148,6 +164,7 @@ nodes:
       skills:
       - script-writing
     - id: script-continue
+      description: 'Accept the script without another review: record archon/script-revision.json saying it was revised (or retained) after the review.'
       depends_on:
       - script-fix-state
       - script-fix
@@ -156,6 +173,7 @@ nodes:
       when: $script-fix-state.output.artifacts.needsContinuation == true
       bash: node scripts/archon/kai-explainer.mjs script-continue "$INPUTS_PROJECT"
     - id: script-reviewed-state
+      description: 'Final script state: is the current text accepted (reviewed, or fixed after review)?'
       depends_on:
       - script-fix-state
       - script-continue
@@ -163,6 +181,7 @@ nodes:
       trigger_rule: none_failed_min_one_success
       bash: node scripts/archon/kai-explainer.mjs script-status "$INPUTS_PROJECT"
     - id: script-gate
+      description: Hash the accepted script and check whether operator approval is required and already given for this exact text.
       depends_on:
       - script-reviewed-state
       always_run: true
@@ -171,6 +190,7 @@ nodes:
         const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
         await emit("gate", {kind:"script"});
     - id: script-attention
+      description: Ask the operator to approve, revise or stop the script.
       depends_on:
       - script-gate
       when: $script-reviewed-state.output.artifacts.ready == true && $script-gate.output.artifacts.needsAnswer == true
@@ -185,6 +205,7 @@ nodes:
         - id: reject
           label: Stop
 - id: narration
+  description: Generate the Kai narration with the explainroo voice after checking the script is reviewed and approved; measures the timeline. A duration miss >20% routes to narration-fix.
   depends_on:
   - script-cycle
   always_run: true
@@ -193,6 +214,7 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: narration-fix
+  description: The one script edit to fix narration length or text.
   depends_on:
   - narration
   when: $narration.output.status == 'repair'
@@ -205,6 +227,7 @@ nodes:
     max_attempts: 2
     on_error: transient
 - id: narration-final
+  description: Regenerate the narration once after the fix; keeps whatever length it measures and discloses any miss.
   depends_on:
   - narration
   - narration-fix
@@ -216,6 +239,7 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: audio-evidence
+  description: Record script/recording hashes and per-scene speech match rates (ASR vs script) as review evidence.
   depends_on:
   - narration
   - narration-final
@@ -223,11 +247,13 @@ nodes:
   bash: node scripts/archon/kai-explainer.mjs audio-evidence "$INPUTS_PROJECT"
   trigger_rule: none_failed_min_one_success
 - id: audio-review
+  description: 'Deterministic speech check: every narrated scene must reach 90% coverage. Weak scenes route to audio-fix (respelling).'
   depends_on:
   - audio-evidence
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs audio-review "$INPUTS_PROJECT" --route
 - id: audio-fix
+  description: The one script edit for scenes the voice did not say clearly.
   depends_on:
   - audio-review
   when: $audio-review.output.status == 'repair'
@@ -240,6 +266,7 @@ nodes:
     max_attempts: 2
     on_error: transient
 - id: audio-renarrate
+  description: Regenerate the narration for the respelled scenes.
   depends_on:
   - audio-fix
   when: $audio-review.output.status == 'repair'
@@ -249,18 +276,21 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: audio-evidence-final
+  description: Re-measure speech coverage for the new take.
   depends_on:
   - audio-renarrate
   when: $audio-review.output.status == 'repair'
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs audio-evidence "$INPUTS_PROJECT"
 - id: audio-review-final
+  description: 'Final speech check: scenes ≥50% are accepted with the gap disclosed; below 50% stops the run.'
   depends_on:
   - audio-evidence-final
   when: $audio-review.output.status == 'repair'
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs audio-review "$INPUTS_PROJECT" '{"final":true}'
 - id: audio-reviewed
+  description: Validate the audio-review receipt matches the current script and recording before any visual work.
   depends_on:
   - audio-review
   - audio-review-final
@@ -268,11 +298,13 @@ nodes:
   bash: node scripts/archon/kai-explainer.mjs audio-reviewed "$INPUTS_PROJECT"
   trigger_rule: none_failed_min_one_success
 - id: production-state
+  description: Is a current, technically verified (and, if required, approved) render already delivered? If so, skip all production.
   depends_on:
   - audio-reviewed
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs production-result "$INPUTS_PROJECT"
 - id: register-director
+  description: Register the director as a producer of this job, so it can never act as an independent reviewer.
   depends_on:
   - production-state
   always_run: true
@@ -284,6 +316,7 @@ nodes:
     run: $WORKFLOW_ID
   when: $production-state.output.artifacts.done == false
 - id: direction
+  description: Author scenes.js for every measured scene.
   depends_on:
   - production-state
   - register-director
@@ -291,12 +324,14 @@ nodes:
   command: direction
   skills:
   - kai-scenes
+  - typography
   trigger_rule: none_failed_min_one_success
   when: $production-state.output.artifacts.done == false
   retry:
     max_attempts: 2
     on_error: transient
 - id: production
+  description: 'Run one production round: build, preview, freeze, independent visual review, one revision, optional film approval, render and verify.'
   depends_on:
   - production-state
   - direction
@@ -308,6 +343,7 @@ nodes:
   trigger_rule: none_failed_min_one_success
   when: $production-state.output.artifacts.done == false
 - id: delivery
+  description: Re-verify the rendered video against current sources and approvals, write review/delivery.json and mark job.json complete.
   depends_on:
   - production-state
   - production
@@ -318,6 +354,7 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: thumbnail-cycle
+  description: Generate → independent review → one fix → select. Repeats only when the operator asks for new thumbnails.
   depends_on:
   - delivery
   loop_group:
@@ -325,6 +362,7 @@ nodes:
     until_bash: node scripts/archon/kai-explainer.mjs thumbnail-loop-check "$INPUTS_PROJECT"
     nodes:
     - id: thumbnail-answer
+      description: Record the operator's thumbnail choice or feedback from the previous pass (bound to the variants they saw).
       always_run: true
       runtime: bun
       script: |-
@@ -335,11 +373,13 @@ nodes:
         binding: $LOOP_PREV.thumbnail-gate.output.artifacts.binding
         answer: $LOOP_PREV.thumbnail-attention.output
     - id: thumbnail-stop
+      description: 'Operator chose Stop: end the run, keeping all artifacts.'
       depends_on:
       - thumbnail-answer
       when: $thumbnail-answer.output.artifacts.rejected == true
       cancel: Operator stopped this production; retained artifacts remain available.
     - id: thumbnail-state
+      description: Which variants are missing or have operator feedback and need (re)generating?
       depends_on:
       - thumbnail-answer
       - thumbnail-stop
@@ -347,17 +387,20 @@ nodes:
       always_run: true
       bash: node scripts/archon/kai-explainer.mjs thumbnail-loop-result "$INPUTS_PROJECT"
     - id: thumbnail-generate
+      description: Make or remake thumbnail variants.
       depends_on:
       - thumbnail-state
       context: fresh
       command: thumbnail-generate
       skills:
       - thumbnails
+      - typography
       retry:
         max_attempts: 2
         on_error: transient
       when: $thumbnail-state.output.artifacts.needsGenerate == true
     - id: thumbnail-review-state
+      description: Flag PNGs over 2 MB as technical feedback and decide whether any made variant still needs review.
       depends_on:
       - thumbnail-state
       - thumbnail-generate
@@ -365,6 +408,7 @@ nodes:
       trigger_rule: none_failed_min_one_success
       bash: node scripts/archon/kai-explainer.mjs thumbnail-status "$INPUTS_PROJECT"
     - id: thumbnail-review
+      description: Independent thumbnail review and ranking.
       depends_on:
       - thumbnail-review-state
       context: fresh
@@ -376,6 +420,7 @@ nodes:
         on_error: transient
       when: $thumbnail-review-state.output.artifacts.needsReview == true
     - id: thumbnail-join
+      description: 'After review: did any variant pass? If none did, the one fix is needed.'
       depends_on:
       - thumbnail-review-state
       - thumbnail-review
@@ -383,12 +428,14 @@ nodes:
       bash: node scripts/archon/kai-explainer.mjs thumbnail-status "$INPUTS_PROJECT"
       trigger_rule: none_failed_min_one_success
     - id: thumbnail-fix-request
+      description: Save which reviewed set the fix responds to (review/thumbnail-fix-request.json).
       depends_on:
       - thumbnail-join
       always_run: true
       when: $thumbnail-join.output.artifacts.needsFix == true
       bash: node scripts/archon/kai-explainer.mjs thumbnail-fix-request "$INPUTS_PROJECT"
     - id: thumbnail-fix
+      description: The one fix for blocked variants.
       depends_on:
       - thumbnail-fix-request
       context: fresh
@@ -399,13 +446,16 @@ nodes:
       command: thumbnail-fix
       skills:
       - thumbnails
+      - typography
     - id: thumbnail-fixed
+      description: 'Record review/thumbnail-fix.json: the fix ran, so variants are not reviewed again.'
       depends_on:
       - thumbnail-fix
       always_run: true
       when: $thumbnail-join.output.artifacts.needsFix == true
       bash: node scripts/archon/kai-explainer.mjs thumbnail-fixed "$INPUTS_PROJECT"
     - id: thumbnail-select
+      description: 'Choose the thumbnail: the passing one, or (after the fix) the best-ranked finished variant with the reason recorded. Says whether the operator can pick now.'
       depends_on:
       - thumbnail-join
       - thumbnail-fixed
@@ -413,6 +463,7 @@ nodes:
       trigger_rule: none_failed_min_one_success
       bash: node scripts/archon/kai-explainer.mjs thumbnail-loop-result "$INPUTS_PROJECT"
     - id: thumbnail-gate
+      description: Build the operator's options (passing variants, revise, stop) and hash them; is a choice required and missing?
       depends_on:
       - thumbnail-select
       always_run: true
@@ -421,6 +472,7 @@ nodes:
         const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
         await emit("gate", {kind:"thumbnail"});
     - id: thumbnail-attention
+      description: Ask the operator to pick a variant, ask for revisions, or stop.
       depends_on:
       - thumbnail-gate
       when: $thumbnail-select.output.artifacts.selectable == true && $thumbnail-gate.output.artifacts.needsAnswer == true
@@ -429,6 +481,7 @@ nodes:
         attention: 'Review $thumbnail-gate.output.artifacts.artifact for $INPUTS.project. Binding: $thumbnail-gate.output.artifacts.binding. Reply with your decision and verbatim feedback. Approval needs no comment; revisions require your actual feedback.'
         options: $thumbnail-gate.output.artifacts.options
 - id: publishing-cycle
+  description: Write copy → operator approval. Repeats while the operator asks for copy revisions.
   depends_on:
   - thumbnail-cycle
   loop_group:
@@ -436,6 +489,7 @@ nodes:
     until_bash: node scripts/archon/kai-explainer.mjs publishing-loop-check "$INPUTS_PROJECT"
     nodes:
     - id: publishing-answer
+      description: Record the operator's publishing decision from the previous pass (approve, revise, keep local, stop).
       always_run: true
       runtime: bun
       script: |-
@@ -446,11 +500,13 @@ nodes:
         binding: $LOOP_PREV.publishing-gate.output.artifacts.binding
         answer: $LOOP_PREV.publishing-attention.output
     - id: publishing-stop
+      description: 'Operator chose Stop: end the run, keeping all artifacts.'
       depends_on:
       - publishing-answer
       when: $publishing-answer.output.artifacts.rejected == true
       cancel: Operator stopped this production; retained artifacts remain available.
     - id: publishing-state
+      description: Is publishing done (opted out, or current copy approved)?
       depends_on:
       - publishing-answer
       - publishing-stop
@@ -458,6 +514,7 @@ nodes:
       always_run: true
       bash: node scripts/archon/kai-explainer.mjs publishing-loop-result "$INPUTS_PROJECT"
     - id: publishing-copy
+      description: Write or revise publishing.json.
       depends_on:
       - publishing-state
       context: fresh
@@ -469,6 +526,7 @@ nodes:
         max_attempts: 2
         on_error: transient
     - id: publishing-gate
+      description: Validate publishing.json (invalid copy goes back to the author via archon/publishing-errors.json) and hash copy + video + thumbnail for approval.
       depends_on:
       - publishing-state
       - publishing-copy
@@ -479,6 +537,7 @@ nodes:
         await emit("gate", {kind:"publishing"});
       trigger_rule: none_failed_min_one_success
     - id: publishing-attention
+      description: Ask the operator to approve the unlisted upload, revise the copy, keep it local or stop.
       depends_on:
       - publishing-gate
       when: $publishing-gate.output.artifacts.needsAnswer == true
@@ -495,6 +554,7 @@ nodes:
         - id: reject
           label: Stop
 - id: publish
+  description: Upload unlisted to abdupdates after re-checking every approval, qualified delivery and the chosen thumbnail; resumable and journaled. Writes archon/published.json. No-op when opted out.
   depends_on:
   - publishing-cycle
   always_run: true

@@ -24,4 +24,3 @@ the treatment even if the titles change. Show intermediate states, not only end 
 
 Scene functions are pure functions of time: call every element on every frame and use
 `at`/`out` for timing; use only `s.rand()`, `s.noise()` or `Math.random()` for randomness.
-Load the actual heavy fonts at their natural proportions; never substitute a system font.

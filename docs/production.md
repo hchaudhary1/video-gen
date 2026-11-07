@@ -8,13 +8,9 @@ call media libraries directly. Each agent completes only its assigned node.
 
 - `rules-story`: original uncanny fiction using HyperFrames, Ming and a saved series identity.
 - `kai-explainer`: technical explanations using explainroo scenes, Kokoro or supplied recordings.
-- `kai-explainer-script`: only the researched, independently reviewed explainer script. It runs
-  the same `init`, research and script-cycle rounds as `kai-explainer` and stops before
-  narration, scenes, production, thumbnails or publishing.
 
-Choose editorial intent from [the profile index](../personalities/README.md). Follow the
-[production skill](../.agents/skills/video-production/SKILL.md) for node responsibilities and load
-only the technical references needed for the assignment.
+Choose editorial intent from [the profile index](../personalities/README.md). The
+[production skill](../.agents/skills/video-production/SKILL.md) is the operator's short guide.
 
 ## Run unattended
 
@@ -264,8 +260,8 @@ Each AI node is a `command:` whose prompt is `commands/<node>.md` in its workflo
 plus a `skills:` list. A node receives only `CLAUDE.md`/`AGENTS.md`, the skills it declares
 and its command; it gets no other skills. Role knowledge (script writing, HyperFrames or Kai
 scenes, visual review, thumbnails, publishing copy) lives in `.agents/skills/`, so commands
-state only the node's task, its inputs and when it is done. To see exactly what a node is
-given, run `.cache/archon/bun/bin/bun scripts/archon/visualize.ts --serve` and select the node.
+state only the node's task, its inputs and when it is done. Each node's `description:` says why it
+exists. To see a node's purpose and exactly what it is given, run `.cache/archon/bun/bin/bun scripts/archon/visualize.ts --serve` and select the node.
 
 ### Script review and resume
 
@@ -311,8 +307,8 @@ Its state node then skips work that is already current, so an approval is record
 that only re-checks the gate. `<kind>-loop-check` is the loop's `until_bash`.
 
 Without an operator answer every cycle finishes in its first pass, because each pass
-contains its own review and single fix. `max_iterations` (Kai script and
-`kai-explainer-script` 2, rules-story script 4, thumbnails 4, publishing 4) only bounds
+contains its own review and single fix. `max_iterations` (Kai script 2,
+rules-story script 4, thumbnails 4, publishing 4) only bounds
 operator-driven passes and the publishing-copy fixes; each accepted operator answer permits
 one more pass, so requested revisions are never cut off by the budget. Research, narration,
 audio, build, visual review and verification are straight-line nodes, not loops.

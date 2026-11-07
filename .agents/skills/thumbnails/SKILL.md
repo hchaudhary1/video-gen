@@ -25,13 +25,14 @@ Each variant folder holds `thumbnail.svg` (original, editable, the actual font e
 Compose for the video's own canvas from `thumbnailDimensions`; the SVG aspect ratio must
 match it. Give each variant a different angle so the choice is real. Use heavy type from
 `node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2` embedded in the SVG;
-do not search the web for fonts or stretch text. Claims must be supported by the film and
+do not search the web for fonts. Claims must be supported by the film and
 its sources. Keep each PNG under 2 MB. Preserve unchanged variants that passed; remake
 only those with open feedback or findings. Do not review your own variants.
 
 Kai packaging guidance: `engines/explainroo/templates/kai/TEMPLATE.md` ("Thumbnails") and
 `docs/kai-hooks-and-thumbnails.md`. Rules-story: the title shape and palette in the profile
 (`files["PROFILE.md"]` of `jobs/scripts/<slug>/production-profile.json`).
+
 
 ## Reviewing variants
 
