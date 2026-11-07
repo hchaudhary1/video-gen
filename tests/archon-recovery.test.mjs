@@ -105,13 +105,16 @@ test('syntax is rejected before partial engine files are written; existing takes
   await assert.rejects(initializeEngine(ctx, { loadProject }), /preserve takes/);
   assert.equal(await readFile(take, 'utf8'), 'SYNTHETIC TAKE, not audio');
 });
-test('no-op research cannot unlock writing; real retained evidence satisfies only the structural contract', async t => {
+test('no-op research cannot unlock writing; retained evidence and the take dossier satisfy only the structural contract', async t => {
   const ctx = await fixture(t);
   assert.equal((await validateResearch(ctx.dir, ctx.project)).done, false);
   await writeFile(path.join(ctx.dir, 'SOURCES.md'), 'Synthetic source index.');
   assert.equal((await validateResearch(ctx.dir, ctx.project)).done, false);
   await mkdir(path.join(ctx.dir, 'sources'));
   await writeFile(path.join(ctx.dir, 'sources/fixture.md'), 'Synthetic retained source, not production evidence.');
+  assert.match((await validateResearch(ctx.dir, ctx.project)).errors.join(), /ANALYSIS\.md/);
+  await writeFile(path.join(ctx.dir, 'sources/ANALYSIS.md'), ['Claims and evidence', 'Independent research',
+    'Community reactions', 'Candidate takes'].map(h => `## ${h}\n${h === 'Community reactions' ? 'Unavailable: synthetic fixture.' : 'Synthetic.'}\n`).join(''));
   assert.equal((await validateResearch(ctx.dir, ctx.project)).done, true);
 });
 test('review helper binds exact assigned artifacts, retains judgment, refuses stale inputs', async t => {

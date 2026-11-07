@@ -19,18 +19,19 @@ nodes:
       const {emit} = await import(process.cwd() + "/scripts/archon/kai-explainer.mjs");
       await emit("init", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
   - id: research-state
-    description: Check whether research is already complete (SOURCES.md, evidence, identity.json for rules-story) so a resumed run skips it.
+    description: Check whether research is already complete (SOURCES.md, evidence and the take dossier sources/ANALYSIS.md with community evidence) so a resumed run skips it.
     depends_on:
       - recover
     always_run: true
     bash: node scripts/archon/kai-explainer.mjs research-status "$INPUTS_PROJECT"
     trigger_rule: none_failed_min_one_success
   - id: research
-    description: Research the brief and retain sources.
+    description: Research the brief, independent evidence and community reactions, retain sources, and write the take dossier.
     depends_on:
       - research-state
     when: $research-state.output.artifacts.done == false
     context: fresh
+    model: claude-opus-5-5
     command: research
     skills:
       - script-writing
@@ -99,7 +100,7 @@ nodes:
           always_run: true
           bash: node scripts/archon/kai-explainer.mjs script-status "$INPUTS_PROJECT"
         - id: write
-          description: Write or revise SCRIPT.md, research.md and VISUALS.md.
+          description: Commit to a take, then write or revise SCRIPT.md, research.md and VISUALS.md.
           depends_on:
             - script-state
           context: fresh
@@ -107,6 +108,7 @@ nodes:
           command: write
           skills:
             - script-writing
+            - unslop
           when: $script-state.output.artifacts.needsWrite == true
           retry:
             max_attempts: 2
@@ -120,7 +122,7 @@ nodes:
           bash: node scripts/archon/kai-explainer.mjs script-review-request "$INPUTS_PROJECT"
           trigger_rule: none_failed_min_one_success
         - id: script-review
-          description: Independent, text-only script review.
+          description: Independent, text-only script review, including the take and voice.
           when: $script-binding.output.artifacts.needsReview == true
           always_run: true
           depends_on:
@@ -163,6 +165,7 @@ nodes:
           command: script-fix
           skills:
             - script-writing
+            - unslop
         - id: script-continue
           description: "Accept the script without another review: record archon/script-revision.json saying it was revised (or retained) after the review."
           depends_on:
