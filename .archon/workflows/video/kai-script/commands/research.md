@@ -9,11 +9,11 @@ and `references/sourcing.md`:
   arithmetic or checks, saved with their working.
 - Community reactions from Reddit, Hacker News and X, retained under `sources/community/`
   (`node .agents/skills/script-writing/scripts/social.mjs`; web search for X).
-- Similar YouTube videos: the 3–5 most relevant, transcripts and top comments retained under
-  `sources/videos/` (`node .agents/skills/script-writing/scripts/youtube.mjs`).
+
+Do not retrieve YouTube or other video transcripts.
 
 Write `SOURCES.md` (the source index, primary sources marked apart from reporting, community
-posts and videos) and the take dossier `sources/ANALYSIS.md` with the five sections that
+posts) and the take dossier `sources/ANALYSIS.md` with the four sections that
 reference names. Keep retained evidence for every factual claim, including any first-person
 research claim. Never invent personal experience. A platform you cannot reach is recorded
 under an `Unavailable:` line, not paraphrased from memory.

@@ -2,7 +2,7 @@
 // Script-only lab for Kai explainers (`kai-script` workflow). Every stage the full
 // kai-explainer workflow also runs is delegated to scripts/archon/kai-explainer.mjs, so a
 // project made here continues unchanged in `kai-explainer`. Two stages are lab-specific:
-//   research-status  the base research check plus the take dossier (analysis, community, videos)
+//   research-status  the base research check plus the take dossier (analysis, community)
 //   redo             archive earlier outputs so a re-run repeats review, writing or research
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,7 +32,6 @@ export const DOSSIER = [
   { heading: 'Claims and evidence' },
   { heading: 'Independent research' },
   { heading: 'Community reactions', folder: 'community' },
-  { heading: 'Similar videos', folder: 'videos' },
   { heading: 'Candidate takes' },
 ];
 

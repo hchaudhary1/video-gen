@@ -28,14 +28,14 @@ nodes:
     always_run: true
     bash: node scripts/archon/kai-script.mjs redo "$INPUTS_PROJECT" "$INPUTS_REDO"
   - id: research-state
-    description: Check whether research is complete, including the take dossier (sources/ANALYSIS.md, community and video evidence), so a resumed run skips it.
+    description: Check whether research is complete, including the take dossier (sources/ANALYSIS.md and community evidence), so a resumed run skips it.
     depends_on:
       - redo
     always_run: true
     bash: node scripts/archon/kai-script.mjs research-status "$INPUTS_PROJECT"
     trigger_rule: none_failed_min_one_success
   - id: research
-    description: Research the brief, independent evidence, community reactions and similar videos, and write the take dossier.
+    description: Research the brief, independent evidence, and community reactions, and write the take dossier.
     depends_on:
       - research-state
     when: $research-state.output.artifacts.done == false
@@ -91,6 +91,7 @@ nodes:
     command: write
     skills:
       - script-writing
+      - unslop
     when: $script-state.output.artifacts.needsWrite == true
     retry:
       max_attempts: 2

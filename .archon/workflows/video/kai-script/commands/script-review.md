@@ -3,15 +3,19 @@ section 4 of `references/kai-take.md` of the script-writing skill. You did not w
 
 Read `BRIEF.md`, `SCRIPT.md`, `VISUALS.md`, `research.md` (including its `## Take`), `SOURCES.md`,
 the take dossier `sources/ANALYSIS.md` and the evidence in `sources/`, including the retained
-community threads and similar-video transcripts. This review is text-only and happens before
+community threads. This review is text-only and happens before
 narration: audio, timing, scenes, thumbnails and renders do not exist yet and are not missing
 evidence. Estimate duration from the word count. `PACKAGE.md` is optional; without it, judge the
 promise against `BRIEF.md`. A source needed for a material claim that is missing or unreadable
 makes the review incomplete; name the claim and the source.
 
-Judge the take as hard as the facts: a neutral or unearned stance, a straw-man steelman, quotes
-that are altered, unretained or used as proof, an angle the similar videos already covered, and
-writing that does not sound like the reference channel are all findings. A script that explains
+Judge the take and the voice as hard as the facts, following section 4 of `kai-take.md`. Read
+at least one voice reference in `.cache/kai-reference/style/` beside the script and say, with
+quoted passages, whether ours sounds like a conversation with the viewer or a lecture. A
+lecture-like voice, an opening that does not walk in from the viewer's world, community voices
+used as a collage instead of framing and setting the agenda, a missing or fragile mechanism
+(numbers on different bases), a neutral or unearned stance, a straw-man steelman and misused
+quotes are all findings. A script that explains
 clearly but argues nothing is `revise`, not `pass`.
 
 This is the only review. A `revise` or `incomplete` result gets one author fix and no

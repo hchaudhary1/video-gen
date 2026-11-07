@@ -5,18 +5,21 @@ import os from 'node:os';
 import path from 'node:path';
 import { dossierErrors, redo } from '../scripts/archon/kai-script.mjs';
 
-const DOSSIER = (videos) => `## Claims and evidence\nclaim\n## Independent research\nchecks\n## Community reactions\nthreads\n## Similar videos\n${videos}\n## Candidate takes\ntakes\n`;
+const DOSSIER = (community) => `## Claims and evidence\nclaim\n## Independent research\nchecks\n## Community reactions\n${community}\n## Candidate takes\ntakes\n`;
 
-test('take dossier needs every section and retained community and video evidence or a stated gap', async () => {
+test('take dossier needs every section and retained community evidence or a stated gap', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'kai-script-'));
   assert.match((await dossierErrors(dir))[0], /ANALYSIS\.md/);
+  await mkdir(path.join(dir, 'sources'), { recursive: true });
+  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('camps'));
+  assert.deepEqual((await dossierErrors(dir)).map((e) => e.match(/sources\/\w+\//)?.[0]), ['sources/community/']);
+  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('Unavailable: Reddit and X blocked every request.'));
+  assert.deepEqual(await dossierErrors(dir), []);
   await mkdir(path.join(dir, 'sources/community'), { recursive: true });
   await writeFile(path.join(dir, 'sources/community/thread.md'), 'retained thread');
-  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('angles'));
-  assert.deepEqual((await dossierErrors(dir)).map((e) => e.match(/sources\/\w+\//)?.[0]), ['sources/videos/']);
-  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('Unavailable: YouTube blocked the search.'));
+  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('camps'));
   assert.deepEqual(await dossierErrors(dir), []);
-  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('angles').replace('takes\n', ''));
+  await writeFile(path.join(dir, 'sources/ANALYSIS.md'), DOSSIER('camps').replace('takes\n', ''));
   assert.match((await dossierErrors(dir)).join(), /Candidate takes/);
 });
 
