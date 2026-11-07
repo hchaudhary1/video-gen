@@ -7,7 +7,10 @@ call media libraries directly. Each agent completes only its assigned node.
 ## Choose a workflow
 
 - `rules-story`: original uncanny fiction using HyperFrames, Ming and a saved series identity.
-- `kai-explainer`: technical explanations using explainroo scenes, Kokoro or supplied recordings.
+- `kai-explainer`: technical explanations using explainroo scenes, Kokoro or supplied recordings. Its
+  research retains independent checks and community reactions (Reddit, Hacker News, X) in a take
+  dossier, and its writer argues a position rather than summarising
+  ([kai-take](../.agents/skills/script-writing/references/kai-take.md)).
 
 Choose editorial intent from [the profile index](../personalities/README.md). The
 [production skill](../.agents/skills/video-production/SKILL.md) is the operator's short guide.

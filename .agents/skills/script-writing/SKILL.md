@@ -22,17 +22,20 @@ fiction and creator experience. Sources do not become the narrator's personal ex
 evidence for material claims; disclose what could not be verified.
 
 Research assignments: `references/sourcing.md`. Independent review assignments: `references/review.md`.
-Read only the reference relevant to your role. The writer can request missing evidence in
+A node that asks for an argued Kai take also names its section of `references/kai-take.md`
+(research dossier, stance, house voice, review of the take). Read only the reference relevant to your role. The writer can request missing evidence in
 `research.md` under `## Evidence requests` and reply `NEEDS SOURCES` for the host to resolve.
 
-`node .agents/skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text. Estimate
+`node .agents/skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text.
+`scripts/social.mjs` retains Reddit and Hacker News discussion; run it without arguments for usage. Estimate
 speaking duration from word count when useful, then measure the actual generated recording.
 When the measured take misses the brief's target by more than 20% (minimum 2 s), the
 narration goes back for one resize and then continues at whatever length it measures, so
-size the script to the target, not to the brief's outer range. The default
-Kokoro voice is slower than conversational speech: the RIDAR film measured about 1,228
-spoken words at 522 s (about 141 words per minute), while reviewers had estimated 150–165.
-Plan on roughly 140 words per minute, about 2.35 words per second of target, and leave margin.
+size the script to the target, not to the brief's outer range. The Kai
+voice runs at speed 1.3 to match Kai Explains (about 173 words per minute across his latest uploads):
+the continual-learning film measured 1,448 spoken words at 512 s at that speed (about 170 words per
+minute; at the old 1.1 it measured 148). Plan on roughly 170 words per minute, about 2.8 words per
+second of target, and leave margin.
 
 Script review is done by a separate, independent reviewer. A self-check is not independent review.
 
