@@ -13,7 +13,7 @@ other agents, choose subsequent stages or answer a human attention wait. Use the
 adapters and libraries named by the workflow. Read only the technical references needed
 for your assignment. Keep sources, media and caches in the repository.
 
-For rules-story, author native scenes using `skills/hyperframes/SKILL.md` and the saved
+For rules-story, author native scenes using the `hyperframes` skill and the saved
 profile's series frame. For Kai, use the explainroo Scene API in `engines/explainroo/AGENTS.md`
 and its Kai template; read `docs/kai-hooks-and-thumbnails.md` for the hook and packaging.
 

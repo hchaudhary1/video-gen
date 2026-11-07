@@ -87,8 +87,8 @@ The title is the first line of the narration.
 
 ## Concept and staging references
 
-When inventing a new story, use [concept development](../../skills/script-writing/references/concept-development.md)
+When inventing a new story, use [concept development](../../.agents/skills/script-writing/references/concept-development.md)
 to connect the anomaly, rule, consequence and twist. During picture planning, use
-[staging and tension](../../skills/hyperframes/references/staging-and-tension.md) for threat geography,
+[staging and tension](../../.agents/skills/hyperframes/references/staging-and-tension.md) for threat geography,
 controlled reveals, concrete reactions and motivated camera moves. Apply these inside the locked
 series frame and measured narration; they do not change the identity, title formula or editing grammar.

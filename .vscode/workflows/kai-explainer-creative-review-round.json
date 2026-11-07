@@ -125,7 +125,7 @@
       "data": {
         "description": "visual-review · if visual-review-state.done == false",
         "agentDefinition": "Archon node `visual-review` in kai-explainer-creative-review-round. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit O…",
+        "prompt": "Review the built film `$INPUTS.project` (job `jobs/$INPUTS.project`). Your reviewer id is `$WORKFLOW_ID:visual-review`.\n\nInspect the frozen evidence in `jobs/$INPUTS.project/review/final/pack.json` across its full interval and\nsubmit one report.\n",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -156,7 +156,7 @@
       "data": {
         "description": "visual-review-retry · if visual-review-recheck.done == false",
         "agentDefinition": "Archon node `visual-review-retry` in kai-explainer-creative-review-round. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit O…",
+        "prompt": "The visual review of `$INPUTS.project` (job `jobs/$INPUTS.project`) did not submit a valid report. Your reviewer id is\n`$WORKFLOW_ID:visual-review`.\n\nInspect the frozen evidence in `jobs/$INPUTS.project/review/final/pack.json` and submit the report now. If\nyou genuinely cannot view the images, submit an honest `incomplete` report. Production\ncontinues to the single revision after this attempt eit…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -217,7 +217,7 @@
       "data": {
         "description": "revision",
         "agentDefinition": "Archon node `revision` in kai-explainer-creative-review-round. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). If review/archon-findings.json shows no complete insp…",
+        "prompt": "Revise the film `$INPUTS.project` (job `jobs/$INPUTS.project`) once, using the independent visual review.\n\nRead `jobs/$INPUTS.project/review/archon-findings.json` and `jobs/$INPUTS.project/review/build.json`, and fix every demonstrated\nfinding in the scene files and visual settings. If the findings show no complete inspection,\nview the frozen evidence in `jobs/$INPUTS.project/review/final/pack.js…",
         "agentType": "other",
         "outputPorts": 1
       },

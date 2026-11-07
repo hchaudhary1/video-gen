@@ -3,12 +3,13 @@ name: hyperframes
 description: Author native HTML scenes for the rules-story Archon workflow with measured narration.
 ---
 
-Own the assigned scene HTML, CSS, JavaScript and local assets. Read `docs/composition.md`
-for the native interface and the saved rules-story profile for editorial intent. Follow
-`docs/motion-explainer.md` for visual planning. Use the installed HyperFrames version.
-Archon supplies measured narration, build/evidence nodes and independent review.
+Own the assigned scene HTML, CSS, JavaScript and local assets. `docs/composition.md` is the
+native interface (job layout, `film.json`, scene integration, build and diagnosis). The
+editorial intent and locked series frame are `files["PROFILE.md"]` in
+`jobs/scripts/<slug>/production-profile.json`. Follow `docs/motion-explainer.md` for visual
+planning. Use the installed HyperFrames version. Narration and timing are already measured.
 
-Complete only the assigned node. Use `lib/film.mjs`, `lib/native.mjs` and `lib/assets.mjs`
+Use `lib/film.mjs`, `lib/native.mjs` and `lib/assets.mjs`
 through their direct APIs or the internal Archon adapters. Coordinate shared `film.json`
 changes with the director's ownership. Preserve supplied audio and measured cues.
 Load the actual heavy fonts, keep their natural proportions and retain asset provenance.

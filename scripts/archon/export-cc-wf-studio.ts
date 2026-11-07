@@ -185,6 +185,14 @@ function convert(w: Node) {
 const written = new Set<string>();
 for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
   const w = Bun.YAML.parse(await Bun.file(file).text()) as Node;
+  // A `command:` node's prompt is its commands/<name>.md file in the workflow folder.
+  const inline = async (nodes: Node[]) => {
+    for (const n of nodes) {
+      if (n.command) n.prompt = await Bun.file(path.join(path.dirname(file), 'commands', `${n.command}.md`)).text();
+      if (n.loop_group) await inline(n.loop_group.nodes);
+    }
+  };
+  await inline(w.nodes);
   await Bun.write(path.join(OUT, `${w.name}.json`), JSON.stringify(convert(w), null, 2) + '\n');
   written.add(`${w.name}.json`);
 }

@@ -90,7 +90,9 @@ nodes:
   - verify
   when: $verify.output.artifacts.fixable == true
   context: fresh
-  prompt: 'Project: $INPUTS.project. You are the active Archon technical-fix node; this invocation authorizes the assignment. Do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/archon-technical.json. Final verification of the rendered film reported the issues listed there. This is the ONE technical fix round: change only the scene sources and visual settings needed to resolve those issues. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md and docs/composition.md. Preserve script, recordings, voice configuration, measured timing and review evidence. The film is rebuilt, rendered and verified once more and then delivered with any remaining issue disclosed. Document fixes in jobs/$INPUTS.project/review/technical-fix-$WORKFLOW_ID.md. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair.'
+  command: technical-fix
+  skills:
+  - kai-scenes
   retry:
     max_attempts: 2
     on_error: transient

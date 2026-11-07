@@ -8,6 +8,7 @@ if (!upstream)
 const { parseWorkflow } = await import(`${upstream}/packages/workflows/src/loader.ts`);
 const { planGraph } = await import(`${upstream}/packages/workflows/src/graph-plan.ts`);
 const { dryRunWorkflow } = await import(`${upstream}/packages/workflows/src/dry-run.ts`);
+const { qualifyWorkflowResources } = await import(`${upstream}/packages/workflows/src/packaged-workflow.ts`);
 let count = 0;
 // Loop bodies are stubbed by their own node ids, so collect them at every depth.
 const allNodes = (nodes: any[]): any[] =>
@@ -23,6 +24,9 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
   } as any);
   if (parsed.error || parsed.warnings?.length)
     throw new Error(JSON.stringify({ file, error: parsed.error, warnings: parsed.warnings }));
+  // Discovery qualifies `command:` names to the workflow's own commands/ folder; do the same.
+  const [, pack, folder] = file.match(/\.archon\/workflows\/([^/]+)\/([^/]+)\//)!;
+  qualifyWorkflowResources(parsed.workflow, { source: 'project', pack, workflow: folder });
   const w = { ...parsed.workflow, plan: planGraph(parsed.workflow!.nodes) } as any;
   const nodes = allNodes(w.nodes);
   const has = (id: string) => nodes.some((n: any) => n.id === id);
@@ -59,6 +63,11 @@ for await (const file of glob('.archon/workflows/video/**/*.yaml')) {
         needsContinuation: false,
         needsGenerate: route !== 'cached',
         selectable: true,
+        // Values the author commands inject from script-status and research-status.
+        supplied: false,
+        canRevise: true,
+        feedback: null,
+        errors: [],
       };
       stubs[n.id] = n.id.endsWith('-attention')
         ? {

@@ -139,9 +139,37 @@ svg.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-even
 .panel .links .chip:hover { color: var(--sel); border-color: var(--sel); }
 .panel .open { margin-top: 8px; }
 .ref { color: var(--flow); font-weight: 600; }
+.app.with-panel { grid-template-columns: 260px 1fr 520px; }
+.ctx-total { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ctx-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--panel-2); margin: 8px 0 2px; }
+.ctx-bar i { display: block; height: 100%; }
+.layer { border: 1px solid var(--line); border-radius: 10px; margin-top: 8px; background: var(--panel); }
+.layer > summary { list-style: none; cursor: pointer; padding: 8px 10px; display: flex; gap: 8px; align-items: center; }
+.layer > summary::-webkit-details-marker { display: none; }
+.layer > summary::before { content: '▸'; color: var(--muted); font-size: 11px; transition: transform .15s; }
+.layer[open] > summary::before { transform: rotate(90deg); }
+.layer > summary b { font-size: 12px; }
+.layer > summary .tok { margin-left: auto; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.layer > summary .sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.layer .body { padding: 0 10px 10px; }
+.layer .note { color: var(--muted); font-size: 12px; margin: 0 0 6px; }
+.layer .warn { color: var(--stop); font-weight: 700; }
+.vars { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.vars td { border-top: 1px solid var(--line); padding: 4px 6px 4px 0; vertical-align: top; word-break: break-word; }
+.vars td:first-child { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; color: var(--flow); white-space: nowrap; }
+.var { color: var(--flow); font-weight: 700; background: color-mix(in srgb, var(--flow) 12%, transparent); border-radius: 3px; }
+.modal { position: fixed; inset: 0; z-index: 50; background: rgba(10,10,20,.55); display: none; padding: 24px; }
+.modal.on { display: block; }
+.modal .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; height: 100%; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+.modal header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: center; }
+.modal header h2 { margin: 0; font-size: 15px; font-weight: 800; }
+.modal header .x { margin-left: auto; background: none; border: 0; font-size: 22px; cursor: pointer; color: var(--muted); }
+.modal pre { margin: 0; flex: 1; overflow: auto; padding: 16px; white-space: pre-wrap; word-break: break-word; font: 12.5px/1.55 "JetBrains Mono", ui-monospace, Menlo, monospace; }
+.modal pre .sep { display: block; color: var(--sel); font-weight: 800; margin: 14px 0 6px; border-bottom: 1px dashed var(--line); }
 
 @media (max-width: 760px) {
   .app, .app.with-panel { grid-template-columns: 1fr; }
+  .modal { padding: 0; }
   .side { display: none; }
   .with-panel .panel { position: fixed; inset: 40% 0 0 0; z-index: 10; border-top: 1px solid var(--line); }
   .minimap { display: none; }
@@ -187,6 +215,7 @@ svg.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-even
   </main>
   <aside class="panel" id="panel"></aside>
 </div>
+<div class="modal" id="modal"><div class="box"><header><h2 id="modalTitle"></h2><button class="tb" id="modalCopy">Copy</button><button class="x" id="modalX" title="Close (Esc)">×</button></header><pre id="modalBody"></pre></div></div>
 <script>
 const DATA = /*__ARCHON_DATA__*/null;
 const WF = DATA.workflows;
@@ -217,7 +246,7 @@ function kindOf(n) {
   if (n.workflow) return 'flow';
   if (n.wait) return 'wait';
   if (n.cancel) return 'stop';
-  if (n.prompt) return 'agent';
+  if (n.prompt || n.command) return 'agent';
   if (n.bash) return 'bash';
   if (n.script) return 'script';
   return 'node';
@@ -230,7 +259,7 @@ function subtitle(n, k) {
     return m ? `${m[1]} ${m[2]}${/\{"final":true\}/.test(n.bash) ? ' · final' : ''}${/--route/.test(n.bash) ? ' · route' : ''}` : n.bash.split('\n')[0];
   }
   if (k === 'script') { const m = n.script.match(/emit\(\s*"([\w-]+)"/); return m ? `emit("${m[1]}")` : (n.runtime || 'script'); }
-  if (k === 'agent') return `${n.context || 'shared'} context · ${clip(n.prompt.replace(/\s+/g, ' '), 60)}`;
+  if (k === 'agent') return [modelOf(n).model, n.context || 'shared', (n.skills || []).join('+') || 'no skills'].join(' · ');
   if (k === 'flow') return `↳ ${n.workflow}`;
   if (k === 'wait') return `${n.wait.form || 'wait'} · ${Array.isArray(n.wait.options) ? n.wait.options.map(o => o.id).join(' / ') : shortCond(n.wait.options || '')}`;
   if (k === 'stop') return clip(String(n.cancel), 60);
@@ -250,7 +279,7 @@ const NW = 250, NH = 66, GX = 90, GY = 34, PAD = 26, HEAD = 48;
 function buildItem(n, prefix, stack) {
   const k = kindOf(n);
   const key = prefix + n.id;
-  const it = { key, id: n.id, node: n, kind: k, w: NW, h: NH, inner: null };
+  const it = { key, id: n.id, node: n, kind: k, w: NW, h: NH, inner: null, wf: stack[stack.length - 1] };
   if (k === 'loop' && !(S.collapseLoops ? !S.expanded.has(key) : S.collapsed.has(key))) {
     const lg = n.loop_group || n.loop;
     it.inner = layoutGraph(lg.nodes || [], key + '/', stack, true);
@@ -474,6 +503,89 @@ $('legend').innerHTML = ['bash', 'script', 'agent', 'flow', 'wait', 'stop', 'loo
    <span class="ln"><svg width="34" height="8"><path d="M1 4H33" stroke="var(--edge)" stroke-width="2" stroke-dasharray="6 5"/></svg>conditional target (if)</span>
    <span class="ln"><svg width="34" height="8"><path d="M1 4H33" stroke="var(--loop)" stroke-width="2.2" stroke-dasharray="2 5" stroke-linecap="round"/></svg>feeds next loop iteration</span>`;
 
+// ---------- agent context ----------
+// What one Claude node receives, in the order the provider assembles it: ambient
+// project/user guidance, the declared skills, then the node's own prompt.
+const tokens = t => Math.round((t || '').length / 4);
+const fmtTok = n => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
+function modelOf(n) {
+  const cfg = DATA.config || {};
+  const provider = n.provider || cfg.assistant || 'claude';
+  return { provider, model: n.model || cfg.assistants?.[provider]?.model || 'provider default', from: n.model ? 'node' : '.archon/config.yaml' };
+}
+function promptOf(i) {
+  const n = i.node;
+  if (n.prompt) return { text: n.prompt, source: 'inline prompt:' };
+  const wf = WF[i.wf];
+  const text = wf?.commands?.[n.command];
+  return { text, source: wf ? `${wf.file.replace(/[^/]+$/, '')}commands/${n.command}.md` : n.command };
+}
+// Explain every substitution in the prompt so the reader sees where its value comes from.
+function variables(text, i) {
+  const wf = WF[i.wf] || {};
+  const found = new Map();
+  const re = /\$INPUTS\.(?<input>[\w-]+)|\$(?<builtin>WORKFLOW_ID|ARTIFACTS_DIR|ARGUMENTS|USER_MESSAGE|BASE_BRANCH|DOCS_DIR)\b|\$(?<prev>LOOP_PREV\.)?(?<node>[A-Za-z][\w-]*)\.output(?<field>(?:\.[\w-]+)*)/g;
+  for (const m of text.matchAll(re)) {
+    const [all] = m, g = m.groups;
+    if (found.has(all)) continue;
+    if (g.input) {
+      const bound = i.node.with?.[g.input];
+      found.set(all, bound !== undefined ? `bound by <code>with:</code> → ${esc(typeof bound === 'string' ? bound : JSON.stringify(bound))}`
+        : `workflow input <b>${esc(g.input)}</b>${wf.inputs?.[g.input]?.description ? ' — ' + esc(wf.inputs[g.input].description) : ''}`);
+    } else if (g.builtin) {
+      found.set(all, { WORKFLOW_ID: 'this run\'s id', ARTIFACTS_DIR: 'this run\'s artifacts directory', ARGUMENTS: 'the invocation message', USER_MESSAGE: 'the invocation message', BASE_BRANCH: 'the run\'s base branch', DOCS_DIR: 'the docs directory' }[g.builtin]);
+    } else {
+      const field = g.field ? g.field.slice(1) : '(whole output)';
+      found.set(all, `${g.prev ? 'previous loop iteration of ' : 'output of '}<a class="chip" data-goto-id="${esc(g.node)}">${esc(g.node)}</a> · <code>${esc(field)}</code>`);
+    }
+  }
+  return found;
+}
+const hlVars = text => esc(text).replace(/\$INPUTS\.[\w-]+|\$(?:WORKFLOW_ID|ARTIFACTS_DIR|ARGUMENTS|USER_MESSAGE|BASE_BRANCH|DOCS_DIR)\b|\$(?:LOOP_PREV\.)?[A-Za-z][\w-]*\.output(?:\.[\w-]+)*/g, m => `<span class="var">${m}</span>`);
+function contextLayers(i) {
+  const n = i.node, layers = [];
+  for (const g of DATA.guidance || [])
+    layers.push({ title: g.label, color: 'var(--muted)', text: g.text, note: `Loaded by Claude for every node (settingSources project + user). Files: ${g.files.join(' → ')}` });
+  const declared = n.skills || [];
+  for (const name of declared) {
+    const sk = DATA.skills?.[name];
+    layers.push({ title: `Skill: ${name}`, color: 'var(--agent)', text: sk?.text || '', missing: !sk,
+      note: sk ? `${sk.file} — injected because this node declares it.` + (sk.extras.length ? ` On demand only: ${sk.extras.map(e => `${e.path} (${fmtTok(Math.round(e.bytes / 4))} tok)`).join(', ')}` : '') : 'Not installed under .claude/skills — Archon would reject or warn.' });
+  }
+  const p = promptOf(i);
+  layers.push({ title: 'Node prompt', color: 'var(--sel)', text: p.text || '', missing: p.text == null, note: p.source, prompt: true });
+  return layers;
+}
+function contextSection(i) {
+  const n = i.node, m = modelOf(n), layers = contextLayers(i);
+  const total = layers.reduce((a, l) => a + tokens(l.text), 0);
+  const p = layers[layers.length - 1];
+  const vars = p.text ? variables(p.text, i) : new Map();
+  const session = n.context === 'fresh' ? 'fresh session' : n.context?.resume ? `forks session of ${n.context.resume}` : 'inherits the prior compatible session when sequential';
+  let html = `<section><h3>Agent context · what this node receives</h3>
+    <dl><dt>provider</dt><dd>${esc(m.provider)}</dd><dt>model</dt><dd>${esc(m.model)} <span class="chip">${esc(m.from)}</span></dd>
+    <dt>session</dt><dd>${esc(session)}</dd><dt>skills</dt><dd>${(n.skills || []).length ? n.skills.map(s => `<span class="chip">${esc(s)}</span>`).join(' ') : '<span class="chip">none — Archon nodes get no ambient skills</span>'}</dd></dl>
+    <div class="ctx-bar">${layers.map(l => `<i style="background:${l.color};width:${total ? (100 * tokens(l.text) / total) : 0}%" title="${esc(l.title)}"></i>`).join('')}</div>
+    <div class="ctx-total"><span class="chip">≈ ${fmtTok(total)} tokens authored context</span><span class="chip">+ Claude Code system prompt & tools</span><button class="tb" data-fullctx="${esc(i.key)}">View full context ⤢</button></div>`;
+  for (const l of layers) {
+    html += `<details class="layer"${l.prompt ? ' open' : ''}><summary><i class="sw" style="background:${l.color}"></i><b>${esc(l.title)}</b><span class="tok">${l.missing ? '<span class="warn">missing</span>' : '≈ ' + fmtTok(tokens(l.text)) + ' tok'}</span></summary>
+      <div class="body"><p class="note">${esc(l.note)}</p><pre>${l.prompt ? hlVars(l.text) : esc(l.text)}</pre>
+      ${l.prompt && vars.size ? `<table class="vars">${[...vars].map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('')}</table>` : ''}</div></details>`;
+  }
+  return html + '</section>';
+}
+function showFullContext(key) {
+  const i = S.items.get(key); if (!i) return;
+  const m = modelOf(i.node), layers = contextLayers(i);
+  $('modalTitle').textContent = `${i.wf} › ${i.id} — ${m.model}, ${i.node.context || 'shared'} context`;
+  $('modalBody').innerHTML = layers.map(l => `<span class="sep"># ${esc(l.title)}  ·  ${esc(l.note)}</span>${l.prompt ? hlVars(l.text) : esc(l.text)}`).join('\n');
+  S.modalText = layers.map(l => `# ${l.title}\n\n${l.text}`).join('\n\n');
+  $('modal').classList.add('on');
+}
+$('modalX').onclick = () => $('modal').classList.remove('on');
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') $('modal').classList.remove('on'); });
+$('modalCopy').onclick = () => navigator.clipboard?.writeText(S.modalText || '');
+
 // ---------- detail panel ----------
 const refLinks = txt => esc(txt).replace(/\$(LOOP_PREV\.)?([\w-]+)\.output/g, (m, lp, id) => `<span class="ref">${m}</span>`);
 function showPanel(key) {
@@ -492,7 +604,7 @@ function showPanel(key) {
   kv('trigger_rule', n.trigger_rule && esc(n.trigger_rule));
   kv('retry', n.retry && esc(Object.entries(n.retry).map(([a, b]) => `${a}: ${b}`).join(', ')));
   kv('isolation', n.isolation && esc(n.isolation));
-  const known = new Set(['id', 'depends_on', 'when', 'prompt', 'bash', 'script', 'runtime', 'context', 'always_run', 'trigger_rule', 'retry', 'with', 'loop_group', 'loop', 'workflow', 'wait', 'cancel', 'isolation']);
+  const known = new Set(['id', 'depends_on', 'when', 'prompt', 'command', 'skills', 'model', 'bash', 'script', 'runtime', 'context', 'always_run', 'trigger_rule', 'retry', 'with', 'loop_group', 'loop', 'workflow', 'wait', 'cancel', 'isolation']);
   Object.keys(n).filter(k => !known.has(k)).forEach(k => kv(k, `<code>${esc(JSON.stringify(n[k]))}</code>`));
   const code = (title, body) => `<section><h3>${esc(title)}</h3><pre>${refLinks(body)}</pre></section>`;
   const lg = n.loop_group || n.loop;
@@ -504,7 +616,7 @@ function showPanel(key) {
   if (n.with) html += code('with', Object.entries(n.with).map(([a, b]) => `${a}: ${typeof b === 'string' ? b : JSON.stringify(b)}`).join('\n'));
   if (n.bash) html += code('bash', n.bash);
   if (n.script) html += code('script', n.script);
-  if (n.prompt) html += code('prompt', n.prompt);
+  if (i.kind === 'agent') html += contextSection(i);
   if (n.cancel) html += code('cancel', String(n.cancel));
   if (n.wait) {
     html += code('attention', n.wait.attention || '');
@@ -591,6 +703,17 @@ document.addEventListener('click', e => {
   if (t.closest('[data-tog]')) { e.stopPropagation(); toggle(t.closest('[data-tog]').dataset.tog); return; }
   if (t.closest('[data-open]')) { openWf(t.closest('[data-open]').dataset.open, true); return; }
   if (t.closest('[data-goto]')) { const k = t.closest('[data-goto]').dataset.goto; select(k); flyTo(k); return; }
+  if (t.closest('[data-fullctx]')) { showFullContext(t.closest('[data-fullctx]').dataset.fullctx); return; }
+  if (t.closest('[data-goto-id]')) {
+    // A node reference resolves to the nearest node with that id: same scope first, then any enclosing one.
+    const id = t.closest('[data-goto-id]').dataset.gotoId, parts = (S.sel || '').split('/');
+    for (let d = parts.length - 1; d >= 0; d--) {
+      const k = [...parts.slice(0, d), id].join('/');
+      if (S.items.has(k)) { select(k); flyTo(k); return; }
+    }
+    const any = [...S.items.values()].find(x => x.id === id); if (any) { select(any.key); flyTo(any.key); }
+    return;
+  }
   if (t.closest('[data-wf]')) { openWf(t.closest('[data-wf]').dataset.wf, false); return; }
   if (t.closest('[data-crumb]')) { const k = +t.closest('[data-crumb]').dataset.crumb; const name = S.stack[k]; S.stack = S.stack.slice(0, k); openWf(name, false, true); return; }
   if (t.id === 'closeP') { select(null); return; }
@@ -612,7 +735,7 @@ try { const t = localStorage.getItem('archon-viz-theme'); if (t) document.docume
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') { e.target.value = ''; S.q = ''; applySearch(); e.target.blur(); } return; }
   if (e.key === '/') { e.preventDefault(); $('q').focus(); }
-  else if (e.key === 'Escape') select(null);
+  else if (e.key === 'Escape') { if ($('modal').classList.contains('on')) $('modal').classList.remove('on'); else select(null); }
   else if (e.key === 'f' || e.key === 'F') fit();
   else if (e.key === '+' || e.key === '=') $('zIn').click();
   else if (e.key === '-') $('zOut').click();
@@ -625,7 +748,8 @@ function applySearch() {
   const hits = [];
   document.querySelectorAll('.node, .frame').forEach(el => {
     const i = S.items.get(el.dataset.key);
-    const m = q && i && (i.id.toLowerCase().includes(q) || JSON.stringify(i.inner ? { ...i.node, loop_group: undefined } : i.node).toLowerCase().includes(q));
+    const m = q && i && (i.id.toLowerCase().includes(q) || JSON.stringify(i.inner ? { ...i.node, loop_group: undefined } : i.node).toLowerCase().includes(q) ||
+      (i.node.command && (WF[i.wf]?.commands?.[i.node.command] || '').toLowerCase().includes(q)));
     el.classList.toggle('match', !!m); if (m) hits.push(i.key);
   });
   S.hits = hits; drawMini();

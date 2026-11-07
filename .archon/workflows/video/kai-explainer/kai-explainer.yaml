@@ -28,9 +28,9 @@ nodes:
   - research-state
   when: $research-state.output.artifacts.done == false
   context: fresh
-  prompt: |-
-    Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
-    If research files already exist from an earlier pass, run `node scripts/archon/kai-explainer.mjs research-status $INPUTS.project` first. Read the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.
+  command: research
+  skills:
+  - script-writing
   retry:
     max_attempts: 2
     on_error: transient
@@ -46,10 +46,9 @@ nodes:
   - research-recheck
   when: $research-recheck.output.artifacts.done == false
   context: fresh
-  prompt: |-
-    Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence in jobs/scripts/$INPUTS.project. Retain primary sources for all factual claims and first-person research claims. Never invent personal experience. Complete only this assignment.
-    If research files already exist from an earlier pass, run `node scripts/archon/kai-explainer.mjs research-status $INPUTS.project` first. Read the latest research-status errors and produce the missing substantive files. Existing evidence must be preserved. The source index is SOURCES.md directly in the script folder; local evidence belongs in sources/.
-    This is the ONE research fix pass. Run `node scripts/archon/kai-explainer.mjs research-status $INPUTS.project` and produce only what its errors report as missing. Production continues after this pass whether or not every error is resolved; the independent script review will see any gap.
+  command: research-fix
+  skills:
+  - script-writing
   retry:
     max_attempts: 2
     on_error: transient
@@ -94,11 +93,11 @@ nodes:
       - script-state
       context: fresh
       model: claude-opus-5-5
-      prompt: |-
-        Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-        Read skills/script-writing/SKILL.md. The Archon invocation and this node assignment authorize creation of this project’s outputs; missing SCRIPT.md, VISUALS.md, review.md, or archon/script-decision.json is expected on a new project and is never a reason to stop or self-discover whether this is the active author node. jobs/scripts/$INPUTS.project/SOURCES.md and local evidence must already exist from the upstream research node; use those cited sources before writing factual claims. Create SCRIPT.md, research.md, and VISUALS.md in the project directory (jobs/scripts/$INPUTS.project) and ensure they are substantive. Read review.md and archon/script-decision.json only when present. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work; do not report success unless required files were actually written.
+      command: write
+      skills:
+      - script-writing
       when: $script-state.output.artifacts.needsWrite == true
-      retry: &id001
+      retry:
         max_attempts: 2
         on_error: transient
     - id: script-binding
@@ -115,12 +114,9 @@ nodes:
       - script-binding
       context: fresh
       model: claude-opus-5-5
-      prompt: |-
-        This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, without blocking on packaging. A legitimately unreadable or missing source needed for a material factual claim still requires an incomplete verdict naming that claim and source.
-        You are the independent script reviewer for project $INPUTS.project. This Archon node explicitly commissions file inspection and writing the review. Work from the repository root; tools are available for reading files and writing your report.
-        Read jobs/scripts/$INPUTS.project/production-profile.json, BRIEF.md, SCRIPT.md, VISUALS.md, SOURCES.md and retained source evidence in that project. Follow skills/script-writing/references/review.md. Do not change author files, sources, script or visual intent. This is the ONLY review of this script: a revise or incomplete disposition gets one author fix round and production then continues without another review, so put every material finding in this report.
-        The exact review binding is $script-binding.output.artifacts.binding. Write substantive findings to jobs/scripts/$INPUTS.project/review-draft.md using file tools. Include concrete findings supported by the files you actually inspected, and a final line "Disposition: pass", "Disposition: revise" or "Disposition: incomplete". A missing previous report is expected; you are responsible for creating it. If evidence is genuinely missing, still write a binding-tagged incomplete report naming what is missing. Do not claim inspection you did not perform.
-        After writing the draft, run `node scripts/archon/script-review-report.mjs $INPUTS.project`. It reads the explicit project slug and the deterministic archon/script-review-request.json assignment and writes review.md with the exact verified binding. Do not transcribe the hash by hand. Complete this command before finishing. Finish with a short plain-language confirmation of the report path. Do not return JSON; the next deterministic node reads your report and produces the machine result.
+      command: script-review
+      skills:
+      - script-writing
     - id: script-report
       when: $script-binding.output.artifacts.needsReview == true
       depends_on:
@@ -144,12 +140,13 @@ nodes:
       - script-fix-state
       context: fresh
       model: claude-opus-5-5
-      retry: *id001
+      retry:
+        max_attempts: 2
+        on_error: transient
       when: $script-fix-state.output.artifacts.needsFix == true
-      prompt: |-
-        Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-        Read skills/script-writing/SKILL.md. The Archon invocation and this node assignment authorize creation of this project’s outputs; missing SCRIPT.md, VISUALS.md, review.md, or archon/script-decision.json is expected on a new project and is never a reason to stop or self-discover whether this is the active author node. jobs/scripts/$INPUTS.project/SOURCES.md and local evidence must already exist from the upstream research node; use those cited sources before writing factual claims. Create SCRIPT.md, research.md, and VISUALS.md in the project directory (jobs/scripts/$INPUTS.project) and ensure they are substantive. Read review.md and archon/script-decision.json only when present. If inputScript is supplied and canRevise is false, preserve every byte of SCRIPT.md and only produce missing research / visual intent. A user revision permits only the requested changes. Do not review your own work; do not report success unless required files were actually written.
-        This is the ONE fix round after the independent script review. Read review.md and address every concrete finding in SCRIPT.md, research.md and VISUALS.md. The workflow continues after this fix WITHOUT another review, so fix substantively and keep the scene syntax valid: run `node scripts/archon/kai-explainer.mjs script-status $INPUTS.project` before finishing and correct any reported errors. Record what you changed and any finding you could not resolve at the end of research.md under "## Review fix".
+      command: script-fix
+      skills:
+      - script-writing
     - id: script-continue
       depends_on:
       - script-fix-state
@@ -201,7 +198,9 @@ nodes:
   when: $narration.output.status == 'repair'
   context: fresh
   model: claude-opus-5-5
-  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, skills/script-writing/SKILL.md and jobs/$INPUTS.project/review/narration-repair.json. The measured Kai narration missed the duration target by more than 20%. This is the ONE narration fix round: edit jobs/scripts/$INPUTS.project/SCRIPT.md so the spoken text is close to targetWords words (the receipt also gives the measured length, target and current word count). Cut or add material proportionally across scenes; keep every scene heading, marker and the explainroo narration syntax, every sourced claim and its attribution, and the hook. Do not add unsourced claims. Run `node scripts/archon/kai-explainer.mjs script-status $INPUTS.project` and fix any reported syntax error. The narration is regenerated after this fix and production continues WITHOUT another script review, whatever length it measures. Append what you cut or added to jobs/scripts/$INPUTS.project/research.md under "## Duration fix". Do not edit any other project files.'
+  command: narration-fix
+  skills:
+  - script-writing
   retry:
     max_attempts: 2
     on_error: transient
@@ -234,7 +233,9 @@ nodes:
   when: $audio-review.output.status == 'repair'
   context: fresh
   model: claude-opus-5-5
-  prompt: 'Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, engines/explainroo/AGENTS.md narration syntax, jobs/$INPUTS.project/review/narration-repair.json and jobs/$INPUTS.project/review/audio-review.json. The speech check could not confirm enough of the generated narration in the listed scenes. This is the ONE audio fix round: in jobs/scripts/$INPUTS.project/SCRIPT.md, change only those scenes so the speech engine says them clearly, for example spelling out numbers, symbols, acronyms and unusual names with the documented pronunciation syntax. Keep the meaning, claims and attribution. Run `node scripts/archon/kai-explainer.mjs script-status $INPUTS.project` and fix any reported syntax error. The changed scenes are regenerated once and production continues without another review. Append your changes to jobs/scripts/$INPUTS.project/research.md under "## Audio fix".'
+  command: audio-fix
+  skills:
+  - script-writing
   retry:
     max_attempts: 2
     on_error: transient
@@ -287,7 +288,9 @@ nodes:
   - production-state
   - register-director
   context: fresh
-  prompt: 'Project: $INPUTS.project. Read jobs/scripts/$INPUTS.project/production-profile.json, engines/explainroo/AGENTS.md Scene API and engines/explainroo/templates/kai/TEMPLATE.md. Author jobs/$INPUTS.project/scenes.js using jobs/$INPUTS.project/build/timeline.json. Implement an exported scene function for every measured timeline scene ID. Create moving explanations, intermediate states and coherent handoffs; load actual heavy fonts. Use the full Scene API. Preserve script.md, voice configuration and approved recordings. This node owns only direction and scene authoring; Archon owns progression. Registered producer identity: $WORKFLOW_ID:director.'
+  command: direction
+  skills:
+  - kai-scenes
   trigger_rule: none_failed_min_one_success
   when: $production-state.output.artifacts.done == false
   retry:
@@ -347,10 +350,10 @@ nodes:
       depends_on:
       - thumbnail-state
       context: fresh
-      prompt: |-
-        Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-        Read docs/publishing.md. Make or repair variants at the saved canvas dimensions. Use lib/thumbnails.mjs exportThumbnail for full PNG and feed preview. Read thumbnailStatus for requested count and per-variant feedback; preserve unchanged passing variants. Write BRIEF.md with Title, Headline, Description and original editable SVG with actual heavy fonts. Use the pinned local node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2 for heavy type; embed the actual font in the editable SVG. Do not search the web for a font. Inspect and export actual files, not a plan. Do not review your own variants.
-      retry: &id002
+      command: thumbnail-generate
+      skills:
+      - thumbnails
+      retry:
         max_attempts: 2
         on_error: transient
       when: $thumbnail-state.output.artifacts.needsGenerate == true
@@ -365,9 +368,9 @@ nodes:
       depends_on:
       - thumbnail-review-state
       context: fresh
-      prompt: |-
-        Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-        Your actual assignment is thumbnail review, not workflow discovery. Call thumbnailStatus(job) from lib/thumbnails.mjs, where job is jobs/$INPUTS.project. Open each returned thumbnail.png and preview file using the native view_image tool; these are local files. Read personalities/kai-explainer/PROFILE.md, not a nonexistent project PROFILE.md. Independently view every made thumbnail PNG and feed preview. Use recordVerdict and recordRanking from lib/thumbnails.mjs with reviewer $WORKFLOW_ID:thumbnail-reviewer. Add actionable blocked findings as reviewer feedback with addThumbnailFeedback. Preserve all findings and rank only current passing variants. No claimed CTR measurements. This is the ONLY review of these variants: a blocked variant gets one fix round and is not reviewed again, so record every actionable finding now. Read the actual function signatures and finish the verdict/ranking library calls before returning. A summary of what you still need to read is not completion. Missing viewing capability must be recorded honestly as a blocked verdict, never an invented pass.
+      command: thumbnail-review
+      skills:
+      - thumbnails
       retry:
         max_attempts: 2
         on_error: transient
@@ -389,12 +392,13 @@ nodes:
       depends_on:
       - thumbnail-fix-request
       context: fresh
-      retry: *id002
+      retry:
+        max_attempts: 2
+        on_error: transient
       when: $thumbnail-join.output.artifacts.needsFix == true
-      prompt: |-
-        Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-        Read docs/publishing.md. Make or repair variants at the saved canvas dimensions. Use lib/thumbnails.mjs exportThumbnail for full PNG and feed preview. Read thumbnailStatus for requested count and per-variant feedback; preserve unchanged passing variants. Write BRIEF.md with Title, Headline, Description and original editable SVG with actual heavy fonts. Use the pinned local node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2 for heavy type; embed the actual font in the editable SVG. Do not search the web for a font. Inspect and export actual files, not a plan. Do not review your own variants.
-        This is the ONE fix round after the independent thumbnail review. Read thumbnailStatus for each variant's review findings and open feedback, and remake the blocked variants so every finding is addressed, then re-export with exportThumbnail. Keep each PNG under 2 MB. The workflow selects a variant after this fix WITHOUT another review.
+      command: thumbnail-fix
+      skills:
+      - thumbnails
     - id: thumbnail-fixed
       depends_on:
       - thumbnail-fix
@@ -457,9 +461,9 @@ nodes:
       depends_on:
       - publishing-state
       context: fresh
-      prompt: |-
-        Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFILE.md. Work only in this project's folders. Follow the applicable repository skill. Preserve supplied recordings, approved narration, evidence and provenance. Never answer human attention on their behalf. Archon owns stage progression. Complete only this node's assignment. Use direct library functions and the documented Archon adapters. Use actual image viewing capability for inspection; disclose unavailable inspection instead of claiming a pass.
-        Write publishing.json in the script project folder with title, description, tags, privacy: unlisted and exact channelId for abdupdates (obtain it from the operator or configuration, never invent it; the channelId in the publishing.json of an earlier project that has archon/published.json was confirmed by an authenticated upload and may be reused). Read archon/publishing-decision.json and apply requested copy revisions. If archon/publishing-errors.json exists, fix every error it lists. Preserve existing approved copy. Include sources. Read docs/publishing.md. This node authors copy only; it does not approve or upload.
+      command: publishing-copy
+      skills:
+      - publishing
       when: $publishing-state.output.artifacts.done == false
       retry:
         max_attempts: 2

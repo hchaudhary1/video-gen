@@ -25,7 +25,7 @@
         "y": 0
       },
       "style": {
-        "width": 2388,
+        "width": 3068,
         "height": 240
       },
       "data": {
@@ -67,7 +67,7 @@
       "data": {
         "description": "research · if research-state.done == false",
         "agentDefinition": "Archon node `research` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "Research the rules-story film `$INPUTS.project`. Its files are in `jobs/scripts/$INPUTS.project/`.\n\nStart from `BRIEF.md`, or from `SCRIPT.md` when a script was supplied. Produce:\n\n- `SOURCES.md` (the source index) and retained evidence in `sources/` for every real-world\n  claim. Keep invented lore separate from real claims.\n- `identity.json`: `{\"identity\": \"<id>\", \"parent\": null}` naming a serie…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -98,7 +98,7 @@
       "data": {
         "description": "research-fix · if research-recheck.done == false",
         "agentDefinition": "Archon node `research-fix` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "The research for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/` is incomplete. The research check reports:\n\n$research-recheck.output.artifacts.errors\n\nProduce exactly what is missing and keep all existing evidence. This is the only fix\npass: production continues afterwards and the independent script review sees any gap.\n",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -128,11 +128,42 @@
       "type": "prompt",
       "data": {
         "label": "identity",
-        "prompt": "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\" --route"
       },
       "parentId": "group-1",
       "position": {
         "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-identity-fix",
+      "name": "identity-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "identity-fix · if identity.status == repair",
+        "agentDefinition": "Archon node `identity-fix` in rules-story. Completes only its assigned work.",
+        "prompt": "The series identity in `jobs/scripts/$INPUTS.project/identity.json` could not be continued for `$INPUTS.project`.\n`jobs/scripts/$INPUTS.project/archon/identity-repair.json` has the error.\n\nFix exactly that error. Either name an existing identity from\n`personalities/rules-story/identities/` in `identity.json` (set `parent` only for a Short\nwhose parent already has a file number), or, only if a new…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-identity-final",
+      "name": "identity-final",
+      "type": "prompt",
+      "data": {
+        "label": "identity-final · if identity.status == repair",
+        "prompt": "node scripts/archon/rules-story.mjs identity \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-1",
+      "position": {
+        "x": 2744,
         "y": 52
       }
     },
@@ -201,7 +232,7 @@
       "data": {
         "description": "write · if script-state.needsWrite == true",
         "agentDefinition": "Archon node `write` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "prompt": "Write the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`.\n\nProduce substantive `SCRIPT.md`, `research.md` and `VISUALS.md` from `BRIEF.md` and the\nresearch already in `SOURCES.md` and `sources/`. Every factual claim must rest on those\nsources. Rules-story narration is plain spoken prose.\n\n- Supplied script: $script-state.output.artifacts.supplied. Revision allowed: $script-state.…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -232,7 +263,7 @@
       "data": {
         "description": "script-review · if script-binding.needsReview == true",
         "agentDefinition": "Archon node `script-review` in rules-story. Completes only its assigned work.",
-        "prompt": "This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, withou…",
+        "prompt": "Independently review the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`, following `references/review.md` of\nthe script-writing skill. You did not write it and you must not change any author file.\n\nRead `BRIEF.md`, `SCRIPT.md`, `VISUALS.md`, `SOURCES.md` and the evidence in `sources/`.\nThis review is text-only and happens before narration: audio, timing, scenes, thumbnails\nand re…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -277,7 +308,7 @@
       "data": {
         "description": "script-fix · if script-fix-state.needsFix == true",
         "agentDefinition": "Archon node `script-fix` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "prompt": "Apply the independent review of the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`.\n\nRead `review.md` and fix every concrete finding in `SCRIPT.md`, `research.md` and\n`VISUALS.md`. There is no second review, so fix substantively. Rules-story narration is plain spoken prose.\n\nFinish when `node scripts/archon/rules-story.mjs script-status $INPUTS.project` reports no errors. Append …",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -369,7 +400,7 @@
         "y": 620
       },
       "style": {
-        "width": 4088,
+        "width": 6128,
         "height": 240
       },
       "data": {
@@ -397,7 +428,7 @@
       "data": {
         "description": "narration-fix · if narration.needsScriptFix == true",
         "agentDefinition": "Archon node `narration-fix` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, skills/script-writing/SKILL.md and jobs/scripts/$INPUTS.project/archon/narration-repair.json. The Ming narration missed the duration target by more than 20%. This is the ONE…",
+        "prompt": "The narration for `$INPUTS.project` needs a script change. `jobs/scripts/$INPUTS.project/archon/narration-repair.json` says why.\n\n- `reason: \"duration\"`: the measured narration missed the duration target by more than 20%.\n  Edit the spoken prose in `jobs/scripts/$INPUTS.project/SCRIPT.md` to fit the target, cutting or adding\n  proportionally while keeping the story, the rules and the cue phrases.…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -427,11 +458,42 @@
       "type": "prompt",
       "data": {
         "label": "prepare",
-        "prompt": "node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\" --route"
       },
       "parentId": "group-3",
       "position": {
         "x": 1044,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-prepare-fix",
+      "name": "prepare-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "prepare-fix · if prepare.status == repair",
+        "agentDefinition": "Archon node `prepare-fix` in rules-story. Completes only its assigned work.",
+        "prompt": "Preparing the job folder `jobs/$INPUTS.project` from the reviewed script and the generated narration failed.\n`jobs/scripts/$INPUTS.project/archon/prepare-repair.json` has the error.\n\nFix only its cause, for example remove an incomplete `jobs/$INPUTS.project` folder (one without `job.json`)\nleft by an interrupted preparation. Never touch `jobs/scripts/$INPUTS.project/narration.wav`, `SCRIPT.md`, a…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1384,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-prepare-final",
+      "name": "prepare-final",
+      "type": "prompt",
+      "data": {
+        "label": "prepare-final · if prepare.status == repair",
+        "prompt": "node scripts/archon/rules-story.mjs prepare \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 1724,
         "y": 52
       }
     },
@@ -441,11 +503,42 @@
       "type": "prompt",
       "data": {
         "label": "timing",
-        "prompt": "node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\" --route"
       },
       "parentId": "group-3",
       "position": {
-        "x": 1384,
+        "x": 2064,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-timing-fix",
+      "name": "timing-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "timing-fix · if timing.status == repair",
+        "agentDefinition": "Archon node `timing-fix` in rules-story. Completes only its assigned work.",
+        "prompt": "Measuring word timing (ASR and forced alignment) for `jobs/$INPUTS.project` failed.\n`jobs/scripts/$INPUTS.project/archon/asr-timing-repair.json` has the error.\n\nFix only its cause. You may delete stale or partial outputs (`jobs/$INPUTS.project/transcript.json`,\n`alignment.json`, `review/archon-timing.json`) so they are measured again. If the error\npoints at the speech models, check them with `nod…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 2404,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-timing-final",
+      "name": "timing-final",
+      "type": "prompt",
+      "data": {
+        "label": "timing-final · if timing.status == repair",
+        "prompt": "node scripts/archon/rules-story.mjs asr-timing \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 2744,
         "y": 52
       }
     },
@@ -459,7 +552,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 1724,
+        "x": 3084,
         "y": 52
       }
     },
@@ -473,7 +566,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 2064,
+        "x": 3424,
         "y": 52
       }
     },
@@ -487,7 +580,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 2404,
+        "x": 3764,
         "y": 52
       }
     },
@@ -501,7 +594,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 2744,
+        "x": 4104,
         "y": 52
       }
     },
@@ -515,7 +608,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 3084,
+        "x": 4444,
         "y": 52
       }
     },
@@ -529,7 +622,7 @@
       },
       "parentId": "group-3",
       "position": {
-        "x": 3424,
+        "x": 4784,
         "y": 52
       }
     },
@@ -539,11 +632,42 @@
       "type": "prompt",
       "data": {
         "label": "sound",
-        "prompt": "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\""
+        "prompt": "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\" --route"
       },
       "parentId": "group-3",
       "position": {
-        "x": 3764,
+        "x": 5124,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-sound-fix",
+      "name": "sound-fix",
+      "type": "subAgent",
+      "data": {
+        "description": "sound-fix · if sound.status == repair",
+        "agentDefinition": "Archon node `sound-fix` in rules-story. Completes only its assigned work.",
+        "prompt": "Rendering the series sound kit for `jobs/$INPUTS.project` failed. `jobs/scripts/$INPUTS.project/archon/sound-repair.json` has the\nerror; the renderer is `lib/sound-design.mjs`.\n\nFix only its cause inside `jobs/$INPUTS.project`, for example delete partial sound files under `jobs/$INPUTS.project/assets`\nand a stale `review/archon-sound.json` so the kit renders again. Do not change any identity's\nso…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 5464,
+        "y": 52
+      }
+    },
+    {
+      "id": "n-sound-final",
+      "name": "sound-final",
+      "type": "prompt",
+      "data": {
+        "label": "sound-final · if sound.status == repair",
+        "prompt": "node scripts/archon/rules-story.mjs sound \"$INPUTS_PROJECT\" '{\"final\":true}'"
+      },
+      "parentId": "group-3",
+      "position": {
+        "x": 5804,
         "y": 52
       }
     },
@@ -556,7 +680,7 @@
         "y": 930
       },
       "style": {
-        "width": 3068,
+        "width": 2388,
         "height": 240
       },
       "data": {
@@ -598,7 +722,7 @@
       "data": {
         "description": "direction · if production-state.done == false",
         "agentDefinition": "Archon node `direction` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "Direct the rules-story film `$INPUTS.project` (job `jobs/$INPUTS.project`).\n\nAuthor `jobs/$INPUTS.project/film.json` and `jobs/$INPUTS.project/series.json` as described in `docs/composition.md`: the series\nidentity, the rules and their measured cue phrases, on the saved canvas and the measured\nnarration. Use the sound kit recorded in `jobs/$INPUTS.project/review/archon-sound.json`, the series ove…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -629,7 +753,7 @@
       "data": {
         "description": "direction-fix · if series.status == repair",
         "agentDefinition": "Archon node `direction-fix` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "The series kit for `$INPUTS.project` could not be prepared from the direction. `jobs/$INPUTS.project/review/series-repair.json`\nhas the error.\n\nFix `jobs/$INPUTS.project/film.json` and `jobs/$INPUTS.project/series.json` for exactly that error. The series kit is prepared\nonce more and production continues.\n",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -668,6 +792,55 @@
       }
     },
     {
+      "id": "group-5",
+      "type": "group",
+      "name": "5 · Steps",
+      "position": {
+        "x": 190,
+        "y": 1240
+      },
+      "style": {
+        "width": 348,
+        "height": 240
+      },
+      "data": {
+        "label": "5 · Steps"
+      }
+    },
+    {
+      "id": "n-scenes",
+      "name": "scenes",
+      "type": "subAgent",
+      "data": {
+        "description": "scenes · if production-state.done == false",
+        "agentDefinition": "Archon node `scenes` in rules-story. Completes only its assigned work.",
+        "prompt": "Author the scenes of the rules-story film `$INPUTS.project` (job `jobs/$INPUTS.project`).\n\nInputs: `jobs/$INPUTS.project/film.json` and `jobs/$INPUTS.project/series.json` (the director's beat plan, scene order and\ncue phrases), `jobs/scripts/$INPUTS.project/VISUALS.md` and the measured phrase timing.\n\n1. Run `node scripts/archon/rules-story.mjs build $INPUTS.project`. If every scene file exists a…",
+        "agentType": "other",
+        "outputPorts": 1
+      },
+      "parentId": "group-5",
+      "position": {
+        "x": 24,
+        "y": 52
+      }
+    },
+    {
+      "id": "group-6",
+      "type": "group",
+      "name": "6 · Production",
+      "position": {
+        "x": 190,
+        "y": 1550
+      },
+      "style": {
+        "width": 688,
+        "height": 240
+      },
+      "data": {
+        "label": "6 · Production"
+      }
+    },
+    {
       "id": "n-production",
       "name": "production",
       "type": "prompt",
@@ -675,9 +848,9 @@
         "label": "production ▸ rules-story-production-round · if production-state.done == false",
         "prompt": "Run Archon sub-workflow `rules-story-production-round`"
       },
-      "parentId": "group-4",
+      "parentId": "group-6",
       "position": {
-        "x": 2404,
+        "x": 24,
         "y": 52
       }
     },
@@ -689,26 +862,26 @@
         "label": "delivery",
         "prompt": "node scripts/archon/rules-story.mjs deliver \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-4",
+      "parentId": "group-6",
       "position": {
-        "x": 2744,
+        "x": 364,
         "y": 52
       }
     },
     {
-      "id": "group-5",
+      "id": "group-7",
       "type": "group",
-      "name": "5 · thumbnail-cycle · loop ≤4 passes until thumbnail-loop-check",
+      "name": "7 · thumbnail-cycle · loop ≤4 passes until thumbnail-loop-check",
       "position": {
         "x": 190,
-        "y": 1240
+        "y": 1860
       },
       "style": {
         "width": 4428,
         "height": 240
       },
       "data": {
-        "label": "5 · thumbnail-cycle · loop ≤4 passes until thumbnail-loop-check"
+        "label": "7 · thumbnail-cycle · loop ≤4 passes until thumbnail-loop-check"
       }
     },
     {
@@ -719,7 +892,7 @@
         "label": "thumbnail-answer",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nconst answer = process.env.INPUTS_ANSWER;\nawait emit(\"answer\", {kind:\"thumbnail\", expected: process.env.INPUTS_BINDING, answer: answer ? JSON.parse(answer) : null});"
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 24,
         "y": 52
@@ -733,7 +906,7 @@
         "label": "thumbnail-stop · stop run · if thumbnail-answer.rejected == true",
         "prompt": "Operator stopped this production; retained artifacts remain available."
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 364,
         "y": 52
@@ -747,7 +920,7 @@
         "label": "thumbnail-state",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 704,
         "y": 52
@@ -760,11 +933,11 @@
       "data": {
         "description": "thumbnail-generate · if thumbnail-state.needsGenerate == true",
         "agentDefinition": "Archon node `thumbnail-generate` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "Make the thumbnail variants for `$INPUTS.project` (job `jobs/$INPUTS.project`).\n\n`thumbnailStatus` gives the number of variants to make and any feedback on existing ones.\nMake every missing variant and remake those with open feedback; leave unchanged passing\nvariants alone. Export each with `exportThumbnail` and look at the PNG and feed preview you\nproduced. The film's title and story are in `job…",
         "agentType": "other",
         "outputPorts": 1
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 1044,
         "y": 52
@@ -778,7 +951,7 @@
         "label": "thumbnail-review-state",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-status \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 1384,
         "y": 52
@@ -791,11 +964,11 @@
       "data": {
         "description": "thumbnail-review · if thumbnail-review-state.needsReview == true",
         "agentDefinition": "Archon node `thumbnail-review` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "Independently review the thumbnail variants of `$INPUTS.project` (job `jobs/$INPUTS.project`). Your reviewer id is\n`$WORKFLOW_ID:thumbnail-reviewer`.\n\nView every made `thumbnail.png` and feed preview, record a verdict for each, add every\nactionable finding on a blocked variant as reviewer feedback, then rank the passing variants.\nThis is the only review: a blocked variant gets one fix and is not …",
         "agentType": "other",
         "outputPorts": 1
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 1724,
         "y": 52
@@ -809,7 +982,7 @@
         "label": "thumbnail-join",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-status \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 2064,
         "y": 52
@@ -823,7 +996,7 @@
         "label": "thumbnail-fix-request · if thumbnail-join.needsFix == true",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-fix-request \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 2404,
         "y": 52
@@ -836,11 +1009,11 @@
       "data": {
         "description": "thumbnail-fix · if thumbnail-join.needsFix == true",
         "agentDefinition": "Archon node `thumbnail-fix` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "Fix the thumbnail variants of `$INPUTS.project` (job `jobs/$INPUTS.project`) that the independent review blocked.\n\n`thumbnailStatus` lists each variant's findings and open feedback. Remake the blocked variants\nso every finding is addressed and re-export them with `exportThumbnail`. A variant is selected\nafter this fix without another review.\n",
         "agentType": "other",
         "outputPorts": 1
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 2744,
         "y": 52
@@ -854,7 +1027,7 @@
         "label": "thumbnail-fixed · if thumbnail-join.needsFix == true",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-fixed \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 3084,
         "y": 52
@@ -868,7 +1041,7 @@
         "label": "thumbnail-select",
         "prompt": "node scripts/archon/rules-story.mjs thumbnail-loop-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 3424,
         "y": 52
@@ -882,7 +1055,7 @@
         "label": "thumbnail-gate",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"gate\", {kind:\"thumbnail\"});"
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 3764,
         "y": 52
@@ -903,26 +1076,26 @@
         ],
         "outputPorts": 1
       },
-      "parentId": "group-5",
+      "parentId": "group-7",
       "position": {
         "x": 4104,
         "y": 52
       }
     },
     {
-      "id": "group-6",
+      "id": "group-8",
       "type": "group",
-      "name": "6 · publishing-cycle · loop ≤4 passes until publishing-loop-check",
+      "name": "8 · publishing-cycle · loop ≤4 passes until publishing-loop-check",
       "position": {
         "x": 190,
-        "y": 1550
+        "y": 2170
       },
       "style": {
         "width": 2048,
         "height": 240
       },
       "data": {
-        "label": "6 · publishing-cycle · loop ≤4 passes until publishing-loop-check"
+        "label": "8 · publishing-cycle · loop ≤4 passes until publishing-loop-check"
       }
     },
     {
@@ -933,7 +1106,7 @@
         "label": "publishing-answer",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nconst answer = process.env.INPUTS_ANSWER;\nawait emit(\"answer\", {kind:\"publishing\", expected: process.env.INPUTS_BINDING, answer: answer ? JSON.parse(answer) : null});"
       },
-      "parentId": "group-6",
+      "parentId": "group-8",
       "position": {
         "x": 24,
         "y": 52
@@ -947,7 +1120,7 @@
         "label": "publishing-stop · stop run · if publishing-answer.rejected == true",
         "prompt": "Operator stopped this production; retained artifacts remain available."
       },
-      "parentId": "group-6",
+      "parentId": "group-8",
       "position": {
         "x": 364,
         "y": 52
@@ -961,7 +1134,7 @@
         "label": "publishing-state",
         "prompt": "node scripts/archon/rules-story.mjs publishing-loop-result \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-6",
+      "parentId": "group-8",
       "position": {
         "x": 704,
         "y": 52
@@ -974,11 +1147,11 @@
       "data": {
         "description": "publishing-copy · if publishing-state.done == false",
         "agentDefinition": "Archon node `publishing-copy` in rules-story. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/rules-story/PROFILE…",
+        "prompt": "Write the publishing copy for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/publishing.json`. The film is described by\n`jobs/scripts/$INPUTS.project/SCRIPT.md`, `jobs/scripts/$INPUTS.project/SOURCES.md` and the chosen thumbnail in `jobs/$INPUTS.project/thumbnail/`.\n",
         "agentType": "other",
         "outputPorts": 1
       },
-      "parentId": "group-6",
+      "parentId": "group-8",
       "position": {
         "x": 1044,
         "y": 52
@@ -992,7 +1165,7 @@
         "label": "publishing-gate",
         "prompt": "const {emit} = await import(process.cwd() + \"/scripts/archon/rules-story.mjs\");\nawait emit(\"gate\", {kind:\"publishing\"});"
       },
-      "parentId": "group-6",
+      "parentId": "group-8",
       "position": {
         "x": 1384,
         "y": 52
@@ -1028,26 +1201,26 @@
         ],
         "outputPorts": 4
       },
-      "parentId": "group-6",
+      "parentId": "group-8",
       "position": {
         "x": 1724,
         "y": 52
       }
     },
     {
-      "id": "group-7",
+      "id": "group-9",
       "type": "group",
-      "name": "7 · Publishing",
+      "name": "9 · Publishing",
       "position": {
         "x": 190,
-        "y": 1860
+        "y": 2480
       },
       "style": {
         "width": 348,
         "height": 240
       },
       "data": {
-        "label": "7 · Publishing"
+        "label": "9 · Publishing"
       }
     },
     {
@@ -1058,7 +1231,7 @@
         "label": "publish",
         "prompt": "node scripts/archon/rules-story.mjs publish \"$INPUTS_PROJECT\""
       },
-      "parentId": "group-7",
+      "parentId": "group-9",
       "position": {
         "x": 24,
         "y": 52
@@ -1070,7 +1243,7 @@
       "name": "end",
       "position": {
         "x": 190,
-        "y": 2170
+        "y": 2790
       },
       "data": {
         "label": "end"
@@ -1135,6 +1308,20 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-identity-n-identity-fix",
+      "from": "n-identity",
+      "to": "n-identity-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-identity-fix-n-identity-final",
+      "from": "n-identity-fix",
+      "to": "n-identity-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-script-attention-n-narration",
       "from": "n-script-attention",
       "to": "n-narration",
@@ -1177,6 +1364,20 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-prepare-n-prepare-fix",
+      "from": "n-prepare",
+      "to": "n-prepare-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-prepare-fix-n-prepare-final",
+      "from": "n-prepare-fix",
+      "to": "n-prepare-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-prepare-n-timing",
       "from": "n-prepare",
       "to": "n-timing",
@@ -1184,8 +1385,36 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-prepare-final-n-timing",
+      "from": "n-prepare-final",
+      "to": "n-timing",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-timing-n-timing-fix",
+      "from": "n-timing",
+      "to": "n-timing-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-timing-fix-n-timing-final",
+      "from": "n-timing-fix",
+      "to": "n-timing-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-timing-n-audio-evidence",
       "from": "n-timing",
+      "to": "n-audio-evidence",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-timing-final-n-audio-evidence",
+      "from": "n-timing-final",
       "to": "n-audio-evidence",
       "fromPort": "output",
       "toPort": "input"
@@ -1240,8 +1469,29 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-sound-n-sound-fix",
+      "from": "n-sound",
+      "to": "n-sound-fix",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-sound-fix-n-sound-final",
+      "from": "n-sound-fix",
+      "to": "n-sound-final",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-sound-n-production-state",
       "from": "n-sound",
+      "to": "n-production-state",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-sound-final-n-production-state",
+      "from": "n-sound-final",
       "to": "n-production-state",
       "fromPort": "output",
       "toPort": "input"
@@ -1317,6 +1567,13 @@
       "toPort": "input"
     },
     {
+      "id": "c-n-register-scenes-n-scenes",
+      "from": "n-register-scenes",
+      "to": "n-scenes",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
       "id": "c-n-production-state-n-production",
       "from": "n-production-state",
       "to": "n-production",
@@ -1326,6 +1583,13 @@
     {
       "id": "c-n-register-scenes-n-production",
       "from": "n-register-scenes",
+      "to": "n-production",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-scenes-n-production",
+      "from": "n-scenes",
       "to": "n-production",
       "fromPort": "output",
       "toPort": "input"
@@ -1634,6 +1898,13 @@
     {
       "id": "c-n-identity-n-script-answer",
       "from": "n-identity",
+      "to": "n-script-answer",
+      "fromPort": "output",
+      "toPort": "input"
+    },
+    {
+      "id": "c-n-identity-final-n-script-answer",
+      "from": "n-identity-final",
       "to": "n-script-answer",
       "fromPort": "output",
       "toPort": "input"

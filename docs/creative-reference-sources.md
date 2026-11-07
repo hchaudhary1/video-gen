@@ -19,7 +19,7 @@ revision `ac06eb255371da35d1db0a146dbfcca8c8857543`.
 - [Copyright and attribution notice](https://github.com/smixs/creative-director-skill/blob/ac06eb255371da35d1db0a146dbfcca8c8857543/NOTICE).
 - [Licence and warranty disclaimer](https://github.com/smixs/creative-director-skill/blob/ac06eb255371da35d1db0a146dbfcca8c8857543/LICENSE).
 
-Applied in `skills/script-writing/references/concept-development.md` and the concept-selection
+Applied in `.agents/skills/script-writing/references/concept-development.md` and the concept-selection
 addition in `docs/kai-hooks-and-thumbnails.md`, with routing links in the writing skill and profiles.
 Changes: replaced advertising objectives with horror and technical-explainer examples; made ideation
 conditional; retained existing project artifacts, evidence rules and approved narration.
@@ -35,8 +35,8 @@ revision `92be33a5a73325fb3d8e0c73b22744b114e2a90e`.
 - [Copyright and attribution notice](https://github.com/smixs/visual-skills/blob/92be33a5a73325fb3d8e0c73b22744b114e2a90e/NOTICE).
 - [Licence and warranty disclaimer](https://github.com/smixs/visual-skills/blob/92be33a5a73325fb3d8e0c73b22744b114e2a90e/LICENSE).
 
-Applied in `skills/hyperframes/references/staging-and-tension.md`, the concealment/geography addition
-in `skills/hyperframes/references/visual-planning.md` and the visual-direction addition in
+Applied in `.agents/skills/hyperframes/references/staging-and-tension.md`, the concealment/geography addition
+in `.agents/skills/hyperframes/references/visual-planning.md` and the visual-direction addition in
 `personalities/kai-explainer/PROFILE.md`. Changes: rewritten for measured narration, the horror series
 frame and original explainer drawings; added an original illustrative corridor sequence.
 Omitted fixed rhythm ladders, mandatory detail/anchor counts, model recommendations and prompt syntax.

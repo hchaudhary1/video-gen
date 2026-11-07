@@ -200,7 +200,7 @@
       "data": {
         "description": "technical-fix · if verify.fixable == true",
         "agentDefinition": "Archon node `technical-fix` in rules-story-production-round. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are the active Archon technical-fix node; this invocation authorizes the assignment. Do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md and jobs/$INPUTS.project/review/archon-technical.json. Final verification of the rendered film reported the issues listed there. This is the ONE techni…",
+        "prompt": "Final verification of the rendered film `$INPUTS.project` (job `jobs/$INPUTS.project`) reported issues, listed in\n`jobs/$INPUTS.project/review/archon-technical.json`.\n\nChange only the scene sources and visual settings needed to resolve them. Keep the script,\nrecordings, voice configuration, measured timing and review evidence. Note what you fixed\nin `jobs/$INPUTS.project/review/technical-fix-$WOR…",
         "agentType": "other",
         "outputPorts": 1
       },

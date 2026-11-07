@@ -3,9 +3,8 @@ name: script-writing
 description: Research, write or review narration scripts and concise visual intent for this video pipeline.
 ---
 
-For both Archon treatments, follow `docs/production.md` and the saved editorial profile.
-Complete only your assigned author or independent reviewer node. Archon owns production
-progression and human attention checkpoints. Use direct domain adapters and libraries.
+The treatment's editorial direction is `files["PROFILE.md"]` in
+`jobs/scripts/<slug>/production-profile.json`, frozen when the run started.
 
 Write for the audience, purpose and duration in the brief. Choose the structure and voice that serve the
 material; openings, narrative arcs, sentence patterns and revision passes have no prescribed template.
@@ -26,7 +25,7 @@ Research assignments: `references/sourcing.md`. Independent review assignments: 
 Read only the reference relevant to your role. The writer can request missing evidence in
 `research.md` under `## Evidence requests` and reply `NEEDS SOURCES` for the host to resolve.
 
-`node skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text. Estimate
+`node .agents/skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text. Estimate
 speaking duration from word count when useful, then measure the actual generated recording.
 When the measured take misses the brief's target by more than 20% (minimum 2 s), the
 narration goes back for one resize and then continues at whatever length it measures, so
@@ -35,8 +34,7 @@ Kokoro voice is slower than conversational speech: the RIDAR film measured about
 spoken words at 522 s (about 141 words per minute), while reviewers had estimated 150–165.
 Plan on roughly 140 words per minute, about 2.35 words per second of target, and leave margin.
 
-The host commissions independent script review. Report what you produced, word count, duration estimate,
-review status and any unresolved evidence. A self-check is not independent review.
+Script review is done by a separate, independent reviewer. A self-check is not independent review.
 
 ## Developing a concept
 

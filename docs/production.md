@@ -13,7 +13,7 @@ call media libraries directly. Each agent completes only its assigned node.
   narration, scenes, production, thumbnails or publishing.
 
 Choose editorial intent from [the profile index](../personalities/README.md). Follow the
-[production skill](../skills/video-production/SKILL.md) for node responsibilities and load
+[production skill](../.agents/skills/video-production/SKILL.md) for node responsibilities and load
 only the technical references needed for the assignment.
 
 ## Run unattended
@@ -259,6 +259,13 @@ live in `jobs/<slug>/`. The YAML packs under `.archon/workflows/video/` expose i
 stages; bounded rounds are Archon loops (see [Cycles as loops](#cycles-as-loops)). Model/provider settings belong in
 `.archon/config.yaml` or explicit Archon run bindings; confirm the model in real node
 execution when a particular model is required.
+
+Each AI node is a `command:` whose prompt is `commands/<node>.md` in its workflow folder,
+plus a `skills:` list. A node receives only `CLAUDE.md`/`AGENTS.md`, the skills it declares
+and its command; it gets no other skills. Role knowledge (script writing, HyperFrames or Kai
+scenes, visual review, thumbnails, publishing copy) lives in `.agents/skills/`, so commands
+state only the node's task, its inputs and when it is done. To see exactly what a node is
+given, run `.cache/archon/bun/bin/bun scripts/archon/visualize.ts --serve` and select the node.
 
 ### Script review and resume
 

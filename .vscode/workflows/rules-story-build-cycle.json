@@ -99,7 +99,7 @@
       "data": {
         "description": "repair · if build.status == repair",
         "agentDefinition": "Archon node `repair` in rules-story-build-cycle. Completes only its assigned work.",
-        "prompt": "You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font…",
+        "prompt": "The build of `$INPUTS.project` (job `jobs/$INPUTS.project`, phase `$INPUTS.phase`) reported errors, listed in\n`jobs/$INPUTS.project/review/build.json`.\n\nFix the reported syntax errors, missing exports, font and layout errors in the scene sources.\nThis is a technical correction, not a creative pass. Keep the script, recordings, voice\nconfiguration, measured timing and review evidence. Append a sec…",
         "agentType": "other",
         "outputPorts": 1
       },

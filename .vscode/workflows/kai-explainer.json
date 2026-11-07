@@ -67,7 +67,7 @@
       "data": {
         "description": "research · if research-state.done == false",
         "agentDefinition": "Archon node `research` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
+        "prompt": "Research the Kai explainer `$INPUTS.project`. Its files are in `jobs/scripts/$INPUTS.project/`.\n\nResearch the question in `BRIEF.md`. Write `SOURCES.md` (the source index) and keep the\nretained primary-source evidence for every factual claim, including any first-person\nresearch claim, as files in `sources/`. Never invent personal experience.\n\nKeep evidence that is already there. Finish when\n`node…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -98,7 +98,7 @@
       "data": {
         "description": "research-fix · if research-recheck.done == false",
         "agentDefinition": "Archon node `research-fix` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved Kai profile. Research the brief and keep SOURCES.md and sources/ local evidence …",
+        "prompt": "The research for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/` is incomplete. The research check reports:\n\n$research-recheck.output.artifacts.errors\n\nProduce exactly what is missing and keep all existing evidence. This is the only fix\npass: production continues afterwards and the independent script review sees any gap.\n",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -187,7 +187,7 @@
       "data": {
         "description": "write · if script-state.needsWrite == true",
         "agentDefinition": "Archon node `write` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "prompt": "Write the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`.\n\nProduce substantive `SCRIPT.md`, `research.md` and `VISUALS.md` from `BRIEF.md` and the\nresearch already in `SOURCES.md` and `sources/`. Every factual claim must rest on those\nsources. Kai narration uses explainroo scene headings: every spoken line, including the opening hook, sits under a `## scene-id` heading, using the…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -218,7 +218,7 @@
       "data": {
         "description": "script-review · if script-binding.needsReview == true",
         "agentDefinition": "Archon node `script-review` in kai-explainer. Completes only its assigned work.",
-        "prompt": "This is PRE-NARRATION, TEXT-ONLY script review. Audio, measured narration timing, alignment, scene implementation, final title/thumbnail and rendering do not exist at this stage; their absence is NOT missing evidence and must not cause an incomplete verdict. Use word count only for a duration estimate. PACKAGE.md is optional: if absent, evaluate the promise against BRIEF.md and the script, withou…",
+        "prompt": "Independently review the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`, following `references/review.md` of\nthe script-writing skill. You did not write it and you must not change any author file.\n\nRead `BRIEF.md`, `SCRIPT.md`, `VISUALS.md`, `SOURCES.md` and the evidence in `sources/`.\nThis review is text-only and happens before narration: audio, timing, scenes, thumbnails\nand re…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -263,7 +263,7 @@
       "data": {
         "description": "script-fix · if script-fix-state.needsFix == true",
         "agentDefinition": "Archon node `script-fix` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and the saved jobs/scripts/$INPUTS.project/production-profile.json. Work only in this project'…",
+        "prompt": "Apply the independent review of the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`.\n\nRead `review.md` and fix every concrete finding in `SCRIPT.md`, `research.md` and\n`VISUALS.md`. There is no second review, so fix substantively. Kai narration uses explainroo scene headings: every spoken line, including the opening hook, sits under a `## scene-id` heading, using the narration and…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -383,7 +383,7 @@
       "data": {
         "description": "narration-fix · if narration.status == repair",
         "agentDefinition": "Archon node `narration-fix` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, skills/script-writing/SKILL.md and jobs/$INPUTS.project/review/narration-repair.json. The measured Kai narration missed the duration target by more than 20%. This is the ONE…",
+        "prompt": "The measured Kai narration for `$INPUTS.project` missed its duration target by more than 20%.\n`jobs/$INPUTS.project/review/narration-repair.json` gives the measured length, the target, the current word\ncount and `targetWords`.\n\nEdit `jobs/scripts/$INPUTS.project/SCRIPT.md` so the spoken text is close to `targetWords` words, cutting or adding\nproportionally across scenes. Keep every scene heading …",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -442,7 +442,7 @@
       "data": {
         "description": "audio-fix · if audio-review.status == repair",
         "agentDefinition": "Archon node `audio-fix` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Read AGENTS.md, engines/explainroo/AGENTS.md narration syntax, jobs/$INPUTS.project/review/narration-repair.json and jobs/$INPUTS.project/review/audio-review.json. The speech check could no…",
+        "prompt": "The speech check could not confirm enough of the Kai narration for `$INPUTS.project` in some scenes.\n`jobs/$INPUTS.project/review/audio-review.json` lists them; `jobs/$INPUTS.project/review/narration-repair.json` has the details.\n\nIn `jobs/scripts/$INPUTS.project/SCRIPT.md`, change only those scenes so the voice says them clearly: spell out\nnumbers, symbols, acronyms and unusual names with the pr…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -559,7 +559,7 @@
       "data": {
         "description": "direction · if production-state.done == false",
         "agentDefinition": "Archon node `direction` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. Read jobs/scripts/$INPUTS.project/production-profile.json, engines/explainroo/AGENTS.md Scene API and engines/explainroo/templates/kai/TEMPLATE.md. Author jobs/$INPUTS.project/scenes.js using jobs/$INPUTS.project/build/timeline.json. Implement an exported scene function for every measured timeline scene ID. Create moving explanations, intermediate states and coherent han…",
+        "prompt": "Author the scenes of the Kai explainer `$INPUTS.project`: write `jobs/$INPUTS.project/scenes.js` against the measured\n`jobs/$INPUTS.project/build/timeline.json`, with one exported scene function for every scene ID in it.\n\nTell the explanation as moving drawings: intermediate states, coherent handoffs between\nscenes, and the full Scene API where it helps. `jobs/scripts/$INPUTS.project/VISUALS.md` …",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -662,7 +662,7 @@
       "data": {
         "description": "thumbnail-generate · if thumbnail-state.needsGenerate == true",
         "agentDefinition": "Archon node `thumbnail-generate` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
+        "prompt": "Make the thumbnail variants for `$INPUTS.project` (job `jobs/$INPUTS.project`).\n\n`thumbnailStatus` gives the number of variants to make and any feedback on existing ones.\nMake every missing variant and remake those with open feedback; leave unchanged passing\nvariants alone. Export each with `exportThumbnail` and look at the PNG and feed preview you\nproduced. The film's title and story are in `job…",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -693,7 +693,7 @@
       "data": {
         "description": "thumbnail-review · if thumbnail-review-state.needsReview == true",
         "agentDefinition": "Archon node `thumbnail-review` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
+        "prompt": "Independently review the thumbnail variants of `$INPUTS.project` (job `jobs/$INPUTS.project`). Your reviewer id is\n`$WORKFLOW_ID:thumbnail-reviewer`.\n\nView every made `thumbnail.png` and feed preview, record a verdict for each, add every\nactionable finding on a blocked variant as reviewer feedback, then rank the passing variants.\nThis is the only review: a blocked variant gets one fix and is not …",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -738,7 +738,7 @@
       "data": {
         "description": "thumbnail-fix · if thumbnail-join.needsFix == true",
         "agentDefinition": "Archon node `thumbnail-fix` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
+        "prompt": "Fix the thumbnail variants of `$INPUTS.project` (job `jobs/$INPUTS.project`) that the independent review blocked.\n\n`thumbnailStatus` lists each variant's findings and open feedback. Remake the blocked variants\nso every finding is addressed and re-export them with `exportThumbnail`. A variant is selected\nafter this fix without another review.\n",
         "agentType": "other",
         "outputPorts": 1
       },
@@ -876,7 +876,7 @@
       "data": {
         "description": "publishing-copy · if publishing-state.done == false",
         "agentDefinition": "Archon node `publishing-copy` in kai-explainer. Completes only its assigned work.",
-        "prompt": "Project: $INPUTS.project. You are executing the active assigned Archon node. This invocation authorizes the work; do not search for a workflow run, start another controller, or stop after reading instructions. Complete the required files/library calls before finishing. Read AGENTS.md, docs/production.md and jobs/scripts/$INPUTS.project/production-profile.json and personalities/kai-explainer/PROFI…",
+        "prompt": "Write the publishing copy for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/publishing.json`. The film is described by\n`jobs/scripts/$INPUTS.project/SCRIPT.md`, `jobs/scripts/$INPUTS.project/SOURCES.md` and the chosen thumbnail in `jobs/$INPUTS.project/thumbnail/`.\n",
         "agentType": "other",
         "outputPorts": 1
       },

@@ -5,16 +5,16 @@ and thumbnail. Agents own writing, visual design and implementation; media libra
 handle measured timing, rendering, evidence and delivery. For software work, inspect and
 change the code normally.
 
-Archon exclusively schedules both `rules-story` and `kai-explainer`. Read the corresponding
-`docs/production.md` runbook and saved production profile. YAML lives under
-`.archon/workflows/video/`; each agent completes only its assigned node. Archon advances
-dependencies, starts independent reviewers and pauses for actual operator decisions.
-No other production controller or per-harness role transport is supported.
+Archon exclusively schedules both `rules-story` and `kai-explainer`; YAML lives under
+`.archon/workflows/video/`, with each node's prompt in its `commands/` folder. When you are
+running inside a workflow node, the node prompt and the skills it loads are your whole
+assignment: do the work it names and stop. Archon advances stages, starts independent
+reviewers and asks the operator for decisions. No other production controller exists.
 
-For production read `skills/video-production/SKILL.md`; for scripts read
-`skills/script-writing/SKILL.md`; for native rules-story scenes read
-`skills/hyperframes/SKILL.md`. Kai authors use the explainroo Scene API and Kai template.
-Load technical references only for the current assignment.
+Skills live in `.agents/skills/` (`.claude/skills` links there). Operators starting or
+resuming production read `.agents/skills/video-production/SKILL.md` and `docs/production.md`.
+Each project keeps script-side files in `jobs/scripts/<slug>/` (brief, sources, script,
+`production-profile.json` with the frozen treatment profile) and the media job in `jobs/<slug>/`.
 
 Work within the requested project. Keep assets and caches inside the repository. Preserve
 supplied recordings and approved narration. Claims and reused media need evidence and

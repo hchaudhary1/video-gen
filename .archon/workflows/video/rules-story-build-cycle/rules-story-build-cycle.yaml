@@ -32,7 +32,9 @@ nodes:
   - build
   when: $build.output.status == 'repair'
   context: fresh
-  prompt: 'You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-$INPUTS.phase.md, appending a new section for this pass and keeping earlier sections. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair. This is the ONE technical repair round: the build runs once more afterwards, and any issue it still reports is accepted and disclosed rather than repaired again, so fix every reported error now. A scene module the engine cannot load still stops production.'
+  command: repair
+  skills:
+  - hyperframes
   retry:
     max_attempts: 2
     on_error: transient
