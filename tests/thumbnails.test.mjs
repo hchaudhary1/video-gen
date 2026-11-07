@@ -15,7 +15,7 @@ import sharp from 'sharp';
 const library = await mkdtemp(path.join(cache, 'thumb-library-'));
 process.env.VG_LIBRARY = library;
 after(() => rm(library, {recursive: true, force: true}));
-const {thumbnailDimensions, thumbnailStatus, recordVerdict, recordRanking, addThumbnailFeedback, chooseThumbnail, exportThumbnail} = await import('../lib/thumbnails.mjs');
+const {thumbnailDimensions, thumbnailStatus, recordVerdict, recordRanking, addThumbnailFeedback, chooseThumbnail, acceptThumbnail, exportThumbnail} = await import('../lib/thumbnails.mjs');
 const {chromePath} = await import('../lib/native.mjs');
 
 async function fixture(t, manifest = {}) {
@@ -48,6 +48,21 @@ test('independent verdicts and actual feedback govern selection and archive',asy
  await assert.rejects(chooseThumbnail(job,{variant:'v1'}),/feedback/);
  await make(job,'v1',{colour:'#990000'});await verdict(job,'v1','pass');await chooseThumbnail(job,{variant:'v1',by:'you'});
  assert.ok((await readdir(path.join(library,'thumbnails',path.basename(job)))).includes('history'));
+});
+test('a variant remade after its blocking review passes after revision; an unchanged one does not',async t=>{
+ const job=await fixture(t);await make(job,'v1');await make(job,'v2');
+ await verdict(job,'v1','blocked',['Headline too small']);await verdict(job,'v2','blocked',['Unsupported number']);
+ assert.equal((await thumbnailStatus(job)).variants.some(v=>v.revisedAfterReview),false);
+ await make(job,'v1',{colour:'#990000'});
+ const s=await thumbnailStatus(job);
+ assert.deepEqual(s.variants.map(v=>v.revisedAfterReview),[true,false]);
+ await acceptThumbnail(job,{variant:'v1',reason:'fix round'});
+ const review=JSON.parse(await readFile(path.join(job,'thumbnail/REVIEW.json'),'utf8'));
+ assert.equal(review.status,'passed-after-revision');
+ assert.deepEqual(review.addressedFindings,['Headline too small']);
+ assert.equal((await thumbnailStatus(job)).chosen.passedAfterRevision,true);
+ await acceptThumbnail(job,{variant:'v2',reason:'fix round'});
+ assert.equal(JSON.parse(await readFile(path.join(job,'thumbnail/REVIEW.json'),'utf8')).status,'accepted-without-pass');
 });
 test('thumbnail-export renders the SVG to a 1280×720 PNG and a feed preview', async t => {
   const chrome = await chromePath().catch(() => null);

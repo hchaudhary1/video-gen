@@ -197,6 +197,7 @@ test('one fix after a non-passing script review continues without another review
   const ready=await stageOperation('script-ready',ctx,{});
   assert.equal(ready.done,true);
   assert.equal(ready.mode,'revised-after-review');
+  assert.match(ready.revision.reason,/passes the review/);
   const status=await stageOperation('script-status',ctx,{});
   assert.equal(status.needsReview,false, 'the fixed script is not reviewed again');
   await writeFile(path.join(ctx.dir,'SCRIPT.md'),'An unrelated later edit.');

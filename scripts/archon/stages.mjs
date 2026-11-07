@@ -82,6 +82,7 @@ const reportHashOf = (dir) => fileHash(path.join(dir, 'review.md')).catch(e => {
 // A script is accepted when its current text passed independent review, or when it is the
 // result of the one fix round after a non-passing review (or a later duration/audio fix).
 // The fixed text is not reviewed again; archon/script-revision.json records why it continued.
+// A fix round that changed the text in response to the review passes the review stage.
 export async function scriptAcceptance(dir, project) {
   const validation = await validateScript(dir, project);
   const binding = await scriptBinding(dir);
@@ -94,6 +95,7 @@ export async function scriptAcceptance(dir, project) {
   return { done: Boolean(passed || continued), mode: passed ? 'passed' : continued ? revision.mode : null,
     validation, binding, review, reviewed: Boolean(reviewed), revision };
 }
+export const scriptPassedAfterRevision = (revision) => revision?.mode === 'revised-after-review';
 // Automated script fixes never rewrite a supplied script or one the operator must approve.
 export const scriptFixAllowed = (project) => !project.inputScript && !project.review.includes('script');
 export async function recordScriptRevision(ctx, { mode, reason, priorBinding = null }) {
@@ -107,6 +109,11 @@ export async function recordScriptRevision(ctx, { mode, reason, priorBinding = n
 }
 const thumbnailReviewSet = (status) => digest(status.variants.map((v) => [v.id, v.review ? v.pngSha256 : null, v.review?.status ?? null]));
 const thumbnailCurrentSet = (status) => digest(status.variants.map((v) => [v.id, v.pngSha256 ?? null]));
+// Variants remade in the one fix round after a blocking review pass that review.
+export function revisedThumbnails(status) {
+  return [...status.ranking, ...status.variants.map((v) => v.id)].filter((id, i, all) => all.indexOf(id) === i &&
+    status.variants.some((v) => v.id === id && v.made && v.revisedAfterReview && !v.openFeedback.length));
+}
 export function passingThumbnails(status) {
   return status.ranking.filter((id) =>
     status.variants.some(
@@ -162,7 +169,8 @@ export async function gate(kind, { dir, job, project, engine }) {
     const offered = passingThumbnails(s).length || !fixed ? passingThumbnails(s)
       : s.variants.filter((v) => v.made).map((v) => v.id);
     options = [
-      ...offered.map((id) => ({ id, label: passingThumbnails(s).includes(id) ? id : `${id} (not passed review)` })),
+      ...offered.map((id) => ({ id, label: passingThumbnails(s).includes(id) ? id
+        : revisedThumbnails(s).includes(id) ? `${id} (passed after revision)` : `${id} (not passed review)` })),
       { id: 'revise', label: 'Revise thumbnails' },
       { id: 'reject', label: 'Stop' },
     ];
@@ -253,7 +261,9 @@ export async function checkpoint(ctx, { kind, answer, expected }) {
     } else if (passingThumbnails(await thumbnailStatus(ctx.job)).includes(decision))
       await chooseThumbnail(ctx.job, { variant: decision, by: 'you' });
     else await acceptThumbnail(ctx.job, { variant: decision, by: 'you',
-      reason: `Operator selected ${decision} after the one fix round without a passing review.` });
+      reason: revisedThumbnails(await thumbnailStatus(ctx.job)).includes(decision)
+        ? `Operator selected ${decision}, passed after its one fix round.`
+        : `Operator selected ${decision} after the one fix round without a passing review.` });
   }
   return { ...current, done: record.decision === 'approve' || record.decision === 'select', rejected: false };
 }
@@ -413,7 +423,9 @@ export async function stageOperation(stage, ctx, opts) {
     const changed = a.review.binding !== a.binding;
     const receipt = await recordScriptRevision(ctx, {
       mode: changed ? 'revised-after-review' : 'retained-after-review',
-      reason: `Independent script review returned ${a.review.disposition}; ${changed ? 'one fix round applied' : 'script retained'} without another review.`,
+      reason: changed
+        ? `Independent script review returned ${a.review.disposition}; its findings were addressed in one fix round, which passes the review.`
+        : `Independent script review returned ${a.review.disposition}; the script was retained unchanged without another review.`,
       priorBinding: a.review.binding,
     });
     return { done: true, mode: receipt.mode, recorded: true };
@@ -563,10 +575,16 @@ export async function stageOperation(stage, ctx, opts) {
         if (!made.length) throw new Error('No finished thumbnail variant exists after the fix round.');
         const order = [...s.ranking, ...made.map((v) => v.id)];
         const fits = made.filter((v) => !v.openFeedback.some((f) => f.by === 'technical'));
-        const pick = order.find((id) => (fits.length ? fits : made).some((v) => v.id === id));
-        const reason = 'No variant passed independent review after the one fix round.';
-        await acceptThumbnail(job, { variant: pick, reason, by: 'archon' });
-        await recordContinuation(job, { stage: 'thumbnail', binding: state.reviewedSet, reason, details: { variant: pick } });
+        const revised = revisedThumbnails(s).filter((id) => (fits.length ? fits : made).some((v) => v.id === id));
+        const pick = revised[0] ?? order.find((id) => (fits.length ? fits : made).some((v) => v.id === id));
+        if (revised.length) {
+          await acceptThumbnail(job, { variant: pick, by: 'archon',
+            reason: 'Remade in the one fix round after its independent review; passed after revision.' });
+        } else {
+          const reason = 'No variant passed independent review after the one fix round.';
+          await acceptThumbnail(job, { variant: pick, reason, by: 'archon' });
+          await recordContinuation(job, { stage: 'thumbnail', binding: state.reviewedSet, reason, details: { variant: pick } });
+        }
       }
     }
     let chosen = (await thumbnailStatus(job)).chosen;

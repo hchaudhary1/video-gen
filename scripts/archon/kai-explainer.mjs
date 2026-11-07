@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { readFile, writeFile, mkdir, copyFile, readdir, stat, cp, rm } from 'node:fs/promises';
 import { createProject, loadProject } from '../../lib/project.mjs';
 import { freezePersonality, readPersonality } from '../../lib/personalities.mjs';
-import { fileHash, sourceFingerprint, loadReviewPack, reviewStatus } from '../../lib/review.mjs';
-import { stageOperation, saveJSON, readJSON, digest, gate, scriptBinding, scriptFixAllowed, recordScriptRevision } from './stages.mjs';
+import { fileHash, sourceFingerprint, loadReviewPack, reviewStatus, deliveryReviewFields } from '../../lib/review.mjs';
+import { stageOperation, saveJSON, readJSON, digest, gate, scriptBinding, scriptFixAllowed, recordScriptRevision, scriptPassedAfterRevision } from './stages.mjs';
 import { acceptBuild, buildUsable, recordContinuation, listContinuations, continuationLimitations } from '../../lib/acceptance.mjs';
 import { getTheme } from '../../engines/explainroo/engine/themes.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -280,20 +280,20 @@ export async function qualifyKai(job) {
     packSha256: reviews.packSha256,
     reviewedSourceHash: reviews.reviewedSourceHash,
     revisionNotes: "review/revision-notes.md",
-    independentReviewPassed: reviews.independentPassed,
-    reviewDisposition: reviews.disposition,
+    ...deliveryReviewFields(reviews),
     reviewerIds: reviews.reports.map((r) => r.reviewer.agentId),
-    unresolvedFindings: reviews.reports.flatMap((r) => r.findings.filter((f) => f.severity === 'blocking')),
     limitations: [
       ...reviews.reports.flatMap((r) => r.inspection.limitations),
       ...(reviews.limitations || []),
       ...(technical.limitations || []),
       ...continuationLimitations(continuations),
-      ...(scriptAccepted ? [`Script continued without a passing re-review (${scriptAccepted.mode}): ${scriptAccepted.reason}`] : []),
+      ...(scriptAccepted && !scriptPassedAfterRevision(scriptAccepted) ? [`Script continued without a passing review (${scriptAccepted.mode}): ${scriptAccepted.reason}`] : []),
       'Engine speech checks are ASR measurements; no listening or naturalness judgment is established.',
     ],
     continuations,
-    scriptAcceptance: scriptAccepted ? { mode: scriptAccepted.mode, reason: scriptAccepted.reason } : { mode: 'passed' },
+    scriptAcceptance: !scriptAccepted ? { mode: 'passed', passed: true }
+      : { mode: scriptPassedAfterRevision(scriptAccepted) ? 'passed-after-revision' : scriptAccepted.mode,
+          passed: scriptPassedAfterRevision(scriptAccepted), reason: scriptAccepted.reason },
   };
 }
 export async function run(stage, slug, options = {}, { media } = {}) {

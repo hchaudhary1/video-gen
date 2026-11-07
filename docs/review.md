@@ -31,8 +31,10 @@ one report. An author gets one revision using that report and the build findings
 then proceeds to rendering and delivery without another creative review.
 
 The original evidence and verdict remain immutable. The revision receipt binds that report
-to the new source hash and revision notes. Delivery states `reviewed-and-revised`, preserves
-original findings and explicitly says the revised film was not reviewed again. Source edits
+to the new source hash and revision notes. The revision passes the review: delivery states
+`reviewPassed: true` and `passed-after-revision`, lists the original blocking findings as
+`addressedFindings` and keeps the reviewer's verdict as `reviewerVerdict`. The revised film is not
+reviewed again. Source edits
 after the recorded revision invalidate delivery. Technical build/render/media failures still
 stop the run; creative warnings are reported rather than opening another review cycle.
 
@@ -57,7 +59,7 @@ truth, mechanism, style or evidence; scope is scene, plan or evidence. `sceneIds
 identify ownership. A pass requires full coverage and no blocking findings. Unavailable
 visual inspection requires `incomplete`, never pass. When no complete report exists after one
 retry, `review/visual-review-unavailable.json` records that and the single revision proceeds;
-delivery discloses the missing inspection and reports `independentReviewPassed: false`.
+delivery discloses the missing inspection and reports `reviewPassed: false` (`revised-without-review`).
 
 Read review history. Respond to prior blockers with `priorFindingResponses`: sourceHash,
 findingId, resolved/unresolved/disputed disposition and an evidence-based reason. Retain

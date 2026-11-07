@@ -67,25 +67,32 @@ never thrown as node failures. Each stage follows the same shape: **do it, check
 once, and if that does not pass, run one fix round and continue without checking or reviewing
 again.** What the fix did not resolve is recorded in `jobs/<slug>/review/continuations.json`
 (script continuations in `jobs/scripts/<slug>/archon/script-revision.json`) and listed under
-`limitations` in `review/delivery.json`. A continuation is never reported as a pass:
-`independentReviewPassed` stays false wherever a review did not pass.
+`limitations` in `review/delivery.json`. A continuation of an automated check is never
+reported as a pass.
+
+Independent reviews (script, visual, thumbnail) are passed by their one revision: once a
+complete review has been acted on in the fix round, the stage counts as passed and is not
+reviewed again. Delivery reports `reviewPassed: true` with `reviewDisposition:
+"passed-after-revision"`, lists the review's blocking findings as `addressedFindings`, and keeps
+the reviewer's original verdict as `reviewerVerdict`. A review that never happened (no complete
+inspection) or a fix round that changed nothing does not pass.
 
 | Stage | Check | Fix round | After the fix |
 |---|---|---|---|
 | Research | `research-status` | `research-fix` produces what is missing | Continues; the script review sees any gap |
-| Script | one independent review | `script-fix` addresses every finding | `script-continue` accepts the fixed text, no second review |
+| Script | one independent review | `script-fix` addresses every finding | `script-continue` accepts the fixed text as passed after revision, no second review |
 | Kai narration | measured length within ±20% of `duration` (min ±2 s) | `narration-fix` resizes the script toward `targetWords` | `narration-final` regenerates once and keeps any length, disclosed |
 | Ming narration | length, text contract, generation and speech verification | `narration-fix` for a length or text defect (`reason` in `narration-repair.json`), then one new take | `narration-final` keeps the take; the audio review measures it |
 | Audio | ≥90% speech coverage per scene | Kai: `audio-fix` respells the weak scenes; Ming: `audio-redo` takes a new narration | `audio-review-final` accepts down to 50% coverage, disclosed |
 | Build | engine checks | `repair` fixes the reported errors | `build-final` accepts remaining issues for those exact sources |
-| Visual review | one complete independent inspection | one retry if no complete report was submitted, then the single revision | No second review; a missing inspection is recorded, not invented |
+| Visual review | one complete independent inspection | one retry if no complete report was submitted, then the single revision | The revision passes the review, no second review; a missing inspection is recorded, not invented, and does not pass |
 | Series kit (rules-story) | `series` | `direction-fix` | `series-final` |
 | Identity (rules-story) | `identity` continues or registers the series identity | `identity-fix` repairs `identity.json` / registration | `identity-final` |
 | Preparation (rules-story) | `prepare` builds the job folder | `prepare-fix` clears the reported cause | `prepare-final` |
 | Timing (rules-story) | `timing` measures ASR word timing | `timing-fix` clears stale measured outputs | `timing-final` |
 | Sound kit (rules-story) | `sound` renders the identity's sound | `sound-fix` clears partial sound files | `sound-final` |
 | Final verification | encoded-media checks | `technical-fix`, rebuild and re-render | `technical-verify` accepts remaining issues, disclosed |
-| Thumbnails | one independent review | `thumbnail-fix` remakes blocked variants | Best finished variant is selected and marked `accepted-without-pass` |
+| Thumbnails | one independent review | `thumbnail-fix` remakes blocked variants | A remade variant is selected as `passed-after-revision`; if none was remade, the best finished variant is marked `accepted-without-pass` |
 | Publishing copy | copy contract | the copy author fixes `archon/publishing-errors.json` | Operator approval is still required before any upload |
 
 Routed rules-story stages write `jobs/scripts/<slug>/archon/<stage>-repair.json` for their fix

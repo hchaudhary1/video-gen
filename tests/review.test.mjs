@@ -220,18 +220,24 @@ function blockedReview(context, role) {
   return report;
 }
 
-test('one review and one revision proceed with original findings disclosed', async t => {
+test('one review and one revision pass the review with its findings marked addressed', async t => {
   const job=await fixture(t), context=await freeze(job,'final');
   await submitReview(job,blockedReview(context,REVIEW_ROLES[0]));
   assert.equal((await reviewStatus(job,'final')).ok,false);
   await revised(job);
   const status=await reviewStatus(job,'final');
   assert.equal(status.ok,true);
+  assert.equal(status.passed,true);
+  assert.equal(status.passedBy,'revision');
   assert.equal(status.independentPassed,false);
-  assert.equal(status.disposition,'reviewed-and-revised');
+  assert.equal(status.disposition,'passed-after-revision');
   const result=await qualifyDelivery(job);
-  assert.equal(result.reviewDisposition,'reviewed-and-revised');
-  assert.equal(result.unresolvedFindings.length,1);
+  assert.equal(result.reviewPassed,true);
+  assert.equal(result.reviewDisposition,'passed-after-revision');
+  assert.equal(result.reviewerVerdict,'revise');
+  assert.equal(result.unresolvedFindings.length,0);
+  assert.equal(result.addressedFindings.length,1);
+  assert(!result.limitations.some(l => /not reviewed again/.test(l)));
   await writeFile(path.join(job,'compositions/scene.html'),'untracked post-revision edit');
   assert.equal((await reviewStatus(job,'final')).ok,false);
 });
