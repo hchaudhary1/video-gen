@@ -19,6 +19,10 @@ run alive if this agent's host restarts:
   --input project=<slug> --input 'options={"brief":"...","duration":300}'
 ```
 
+For script-only iteration on a Kai explainer, run `kai-script` the same way (it stops after the
+independent script review) and add `--input redo=review|write|research` to repeat a step on an
+existing project.
+
 Save the returned run ID. Options are saved with the project on its first run and are not
 changed by later launches.
 

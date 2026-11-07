@@ -6,7 +6,8 @@ render, collect evidence and deliver. For software work, inspect and change the 
 
 Production runs only through the Archon workflows `rules-story` and `kai-explainer`
 (`.archon/workflows/video/`). Inside a workflow node, the node prompt and the skills it
-loads are your whole assignment: do that work and stop. To start, resume or answer a
+loads are your whole assignment: do that work and stop. `kai-script` is a script-only lab that
+runs kai-explainer's nodes through the independent script review and stops. To start, resume or answer a
 production, use the `video-production` skill (`.agents/skills/`, linked from `.claude/skills`).
 
 A project keeps its brief, sources, script and frozen `production-profile.json` in

@@ -22,10 +22,13 @@ fiction and creator experience. Sources do not become the narrator's personal ex
 evidence for material claims; disclose what could not be verified.
 
 Research assignments: `references/sourcing.md`. Independent review assignments: `references/review.md`.
-Read only the reference relevant to your role. The writer can request missing evidence in
+A node that asks for an argued Kai take also names its section of `references/kai-take.md`
+(research dossier, stance, house voice, review of the take). Read only the reference relevant to your role. The writer can request missing evidence in
 `research.md` under `## Evidence requests` and reply `NEEDS SOURCES` for the host to resolve.
 
-`node .agents/skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text. Estimate
+`node .agents/skills/script-writing/scripts/fetch.mjs <url> <output.md>` can retain source text.
+`scripts/social.mjs` retains Reddit and Hacker News discussion, and `scripts/youtube.mjs` searches
+YouTube and retains a video's transcript and top comments; run either without arguments for usage. Estimate
 speaking duration from word count when useful, then measure the actual generated recording.
 When the measured take misses the brief's target by more than 20% (minimum 2 s), the
 narration goes back for one resize and then continues at whatever length it measures, so

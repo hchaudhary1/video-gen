@@ -8,6 +8,14 @@ call media libraries directly. Each agent completes only its assigned node.
 
 - `rules-story`: original uncanny fiction using HyperFrames, Ming and a saved series identity.
 - `kai-explainer`: technical explanations using explainroo scenes, Kokoro or supplied recordings.
+- `kai-script`: script lab for Kai explainers. It runs `kai-explainer`'s nodes up to and including
+  the independent script review, then stops (no fix, approval, narration or media). Its research
+  also retains community reactions (Reddit, Hacker News, X) and similar YouTube videos in a take
+  dossier, and its writer argues a position rather than summarising
+  ([kai-take](../.agents/skills/script-writing/references/kai-take.md)). Re-run the same
+  project with `--input redo=review|write|research` to repeat that step and everything after
+  it; earlier files move to `jobs/scripts/<slug>/archon/iterations/`. The project can later
+  continue in `kai-explainer`.
 
 Choose editorial intent from [the profile index](../personalities/README.md). The
 [production skill](../.agents/skills/video-production/SKILL.md) is the operator's short guide.
