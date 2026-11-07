@@ -21,7 +21,7 @@ only the technical references needed for the assignment.
 After the one-time setup below, run from the repository root:
 
 ```sh
-./bin/archon workflow run kai-explainer --detach \
+./bin/archon-detached workflow run kai-explainer --detach \
   --input project=cache-explained \
   --input 'options={"brief":"Explain what a cache does using a clear visual analogy.","format":"landscape","duration":60,"review":"none","thumbnails":1,"optOut":true}'
 ```
@@ -30,6 +30,12 @@ Choose a fresh project slug for each new film. Use `rules-story` instead for an 
 uncanny-fiction brief. `--detach` lets the command return while Archon keeps executing;
 save the returned run ID. The server must remain running. No host agent or manual stage
 advancement is required.
+
+`bin/archon-detached` runs `bin/archon` in its own `systemd --user` scope. A plain `--detach`
+child stays in its launcher's cgroup, so stopping that scope (an agent host restarting, a
+closed terminal session) also stops the run. With user lingering enabled
+(`loginctl enable-linger`), the separate scope keeps the workflow running until it
+finishes. Without a systemd user manager the launcher falls back to plain `bin/archon`.
 
 `review: "none"` disables optional human checkpoints, while independent script, film and
 thumbnail reviews still run, along with measured audio review. `optOut: true` produces local deliverables without publishing

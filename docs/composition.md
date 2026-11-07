@@ -119,8 +119,9 @@ successful full build. Rendering with a reused build requires inspection for eve
 - Missing/invalid file, cue or asset: fix the named authoring input and rebuild.
 - Composition runtime or lint failure: inspect the authored HTML/JavaScript and diagnostic. The pipeline
   root is generated; fix its generator only during software work, not by patching generated job files.
-- Browser readiness on a heavily loaded machine: `VG_RENDER_READY_MS` raises the 10 s render-ready wait for build,
-  snapshot and review-pack (the timeout message lists any page errors).
+- Browser readiness on a heavily loaded machine: `VG_RENDER_READY_MS` overrides the 90 s render-ready
+  ceiling for build, snapshot and review-pack (the timeout message lists any page errors). A build
+  timeout is recorded as a build error for the one technical repair round rather than ending the run.
 - Browser readiness, missing executable/module, localhost binding or exhausted disk/RAM: fix the actual
   environment issue. Do not redesign scenes to disguise infrastructure failure.
 - Stale review/render: rebuild, regenerate evidence and review the changed sources. Do not edit receipts.

@@ -57,3 +57,15 @@ test('changing approved source text invalidates otherwise current speech receipt
   await writeFile(path.join(job,'inputs/source-script.md'),'Revised approved text.');
   await assert.rejects(assertSpeechEvidence(job),/Approved source script changed/);
 });
+
+test('Speech evidence hashes files by streaming, matching a whole-buffer hash', async () => {
+  const { hashFile, speechHash } = await import('../lib/speech.mjs');
+  const { mkdtemp, writeFile: write, rm: remove } = await import('node:fs/promises');
+  const { fileURLToPath } = await import('node:url');
+  const dir = await mkdtemp(path.join(path.dirname(fileURLToPath(import.meta.url)), '.hash-'));
+  try {
+    const bytes = Buffer.alloc(3 * 1024 * 1024 + 7, 7);
+    await write(path.join(dir, 'a.bin'), bytes);
+    assert.equal(await hashFile(path.join(dir, 'a.bin')), speechHash(bytes));
+  } finally { await remove(dir, { recursive: true, force: true }); }
+});

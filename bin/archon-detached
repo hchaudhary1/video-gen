@@ -1,0 +1,17 @@
+#!/bin/sh
+# Run an Archon command in its own systemd user scope so a `--detach`ed workflow outlives
+# the process that started it. Agent hosts and terminals run commands inside their own
+# cgroup scope; stopping that scope (a host restart or closed session) stops every
+# descendant, including a detached run. With lingering enabled the user manager keeps the
+# new scope running until the workflow exits. Without a user manager this falls back to
+# plain `bin/archon`.
+#
+#   bin/archon-detached workflow run rules-story --detach --input project=... --input 'options={...}'
+set -eu
+repo=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if command -v systemd-run >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; then
+  exec systemd-run --user --scope --collect --quiet --unit="archon-$(date +%Y%m%d%H%M%S)-$$" \
+    "$repo/bin/archon" "$@"
+fi
+echo "archon-detached: no systemd user manager; the run stays in the caller's session." >&2
+exec "$repo/bin/archon" "$@"
