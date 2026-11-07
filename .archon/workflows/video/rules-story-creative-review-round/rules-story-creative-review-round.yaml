@@ -1,5 +1,6 @@
 name: rules-story-creative-review-round
 description: One explicit creative-review pass; called by rules-story.
+mutates_checkout: false
 worktree:
   enabled: false
 inputs:

@@ -1,5 +1,6 @@
 name: kai-explainer
 description: Produce first-person Kai explainers through direct explainroo media functions, independent review and operator decisions.
+mutates_checkout: false
 worktree:
   enabled: false
 inputs:

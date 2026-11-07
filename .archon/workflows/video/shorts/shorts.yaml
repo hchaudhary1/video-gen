@@ -1,5 +1,6 @@
 name: shorts
 description: Cut any number of vertical 60–180 s Shorts from an existing landscape video (title above, watch-the-full-video call to action below) and upload them unlisted.
+mutates_checkout: false
 worktree:
   enabled: false
 inputs:

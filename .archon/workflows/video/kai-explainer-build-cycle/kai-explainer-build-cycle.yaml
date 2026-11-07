@@ -1,5 +1,6 @@
 name: kai-explainer-build-cycle
 description: One technical build, one repair when it reports issues, one final build; no independent review or creative revision.
+mutates_checkout: false
 worktree:
   enabled: false
 inputs:

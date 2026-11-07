@@ -1,5 +1,6 @@
 name: kai-explainer-production-round
 description: One explicit production pass; called by kai-explainer.
+mutates_checkout: false
 worktree:
   enabled: false
 inputs:
