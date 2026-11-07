@@ -8,10 +8,10 @@ failed this treatment however clear it is.
 
 The reference channel is Kai Explains (https://www.youtube.com/@kaiexplainsYT). Its strongest
 single-topic videos run 7–9 minutes, about 1,200–1,550 spoken words. Section 3 distils its
-method. A few of its transcripts on unrelated topics are kept locally, untracked, in
-`.cache/kai-reference/style/` as voice references for the writer and reviewer: read them for
+method. A few of its transcripts on unrelated topics are kept in `references/kai-voice/` as voice
+references for the writer and reviewer: read them for
 rhythm, framing and how opinion is argued, never as sources. Do not cite, quote or reuse their
-claims, and do not retrieve other video transcripts. When the folder is absent, rely on section 3.
+claims, and do not retrieve other video transcripts.
 
 ## 1. Research for a take (researcher)
 

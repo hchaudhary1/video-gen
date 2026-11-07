@@ -2,7 +2,7 @@ Write the script for `$INPUTS.project` in `jobs/scripts/$INPUTS.project/`.
 
 This is an argued Kai take, not a neutral explainer. Read sections 2 and 3 of
 `references/kai-take.md` in the script-writing skill and the voice references in
-`.cache/kai-reference/style/` (style only, never sources), then `BRIEF.md`, `SOURCES.md`, the take
+`.agents/skills/script-writing/references/kai-voice/` (style only, never sources), then `BRIEF.md`, `SOURCES.md`, the take
 dossier `sources/ANALYSIS.md` and the evidence in `sources/`. Before any narration, commit to one
 take and record it in `research.md` under `## Take` (thesis, stance, why, steelman, what would
 change my mind, gap). Then write the script that argues it as a conversation with the viewer, not a lecture:
@@ -27,7 +27,7 @@ Produce substantive `SCRIPT.md`, `research.md` and `VISUALS.md`. Every factual c
 those sources; opinions are judgments of that evidence, never invented experience. Kai narration
 uses explainroo scene headings: every spoken line, including the opening hook, sits under a
 `## scene-id` heading, using the narration and marker syntax in `engines/explainroo/AGENTS.md`.
-Size the script to the brief's duration at about 140 words per minute.
+Size the script to the brief's duration at about 170 words per minute.
 
 - Supplied script: $script-state.output.artifacts.supplied. Revision allowed: $script-state.output.artifacts.canRevise.
   When a script was supplied and revision is not allowed, keep `SCRIPT.md` byte-for-byte

@@ -29,7 +29,7 @@ project and writes `video.json` with these defaults:
 | `theme` | `kai.json` (extends `midnight`) | near-black `#0e1010`, blue `#1e8fe1`, yellow `#ffd23f`, red `#e0313b`, Space Grotesk 700 for words and numerals, JetBrains Mono for labels |
 | `camera` | `"still"` | initializer setting only; author moving or stationary views as needed |
 | `transition` | `"cut"` | initializer setting only; choose cuts or authored handoffs for the scene |
-| `voice` | `am_michael`, `speed` 1.1 | a calm male narrator at about 160 words a minute |
+| `voice` | `am_michael`, `speed` 1.3 | a calm male narrator at about 170 words a minute |
 | `music` | `{ "style": "calm", "volume": 0.3 }` | a quiet bed under the voice |
 | `sfx` | `"minimal"` | only the kit's own light sounds (pops, blips, a thud for stamps) |
 | `captions` | `false` | wide videos; upload the `.srt` instead |
@@ -70,8 +70,8 @@ acronyms (`{KV|K V}`, `{GGUF|G G U F}`, `{Qwen|Kwen}`). Words that sound like
 other words ("picks"/"pix", "write"/"right", "tight"/"tied") fail the speech
 check; reword them.
 
-**Length and pace.** As a planning guide, about 155 to 175 words a minute.
-A 10 minute video is about 1,600 words in 40 to 50 scenes. Scene length: median 12 to 16 seconds,
+**Length and pace.** As a planning guide, about 170 words a minute.
+A 10 minute video is about 1,700 words in 40 to 50 scenes. Scene length: median 12 to 16 seconds,
 most under 20, rarely over about 30. A typical scene is 2 to 4 sentences.
 Adjust these ranges to the brief and the time needed to understand the visual.
 

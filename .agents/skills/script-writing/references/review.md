@@ -8,7 +8,7 @@ experiences and unsupported promises in proposed packaging.
 This review happens before narration and visual production. Measured duration, alignment, audio,
 scene implementation and rendered thumbnails are not prerequisites. Estimate duration from words
 when needed; do not demand evidence from later stages. Kai narration gets only one resize when the
-measured take misses the target by more than 20%, and the default Kokoro voice runs at roughly 140 words
+measured take misses the target by more than 20%, and the Kai voice (`am_michael` at speed 1.3) runs at roughly 170 words
 per minute. A script whose estimate at that pace falls outside the band is a blocking finding,
 not a low-priority note.
 

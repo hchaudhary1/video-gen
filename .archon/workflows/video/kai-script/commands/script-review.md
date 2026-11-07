@@ -10,7 +10,7 @@ promise against `BRIEF.md`. A source needed for a material claim that is missing
 makes the review incomplete; name the claim and the source.
 
 Judge the take and the voice as hard as the facts, following section 4 of `kai-take.md`. Read
-at least one voice reference in `.cache/kai-reference/style/` beside the script and say, with
+at least one voice reference in `.agents/skills/script-writing/references/kai-voice/` beside the script and say, with
 quoted passages, whether ours sounds like a conversation with the viewer or a lecture. A
 lecture-like voice, an opening that does not walk in from the viewer's world, community voices
 used as a collage instead of framing and setting the agenda, a missing or fragile mechanism
