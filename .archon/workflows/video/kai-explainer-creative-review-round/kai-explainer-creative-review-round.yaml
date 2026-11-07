@@ -11,6 +11,7 @@ inputs:
     default: '{}'
 nodes:
 - id: build
+  description: Run the explainroo check on scenes.js (exports, syntax, fonts, layout, contrast); errors route to one technical repair.
   depends_on: []
   workflow: kai-explainer-build-cycle
   isolation: inherit
@@ -18,6 +19,7 @@ nodes:
     project: $INPUTS.project
     phase: pre-review
 - id: preview
+  description: 'Kai: render a draft preview video for the operator/reviewer from the current build.'
   depends_on:
   - build
   always_run: true
@@ -27,6 +29,7 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: freeze
+  description: Freeze the review evidence pack (frames, contact sheets, clips, hashes) from the current usable build.
   depends_on:
   - preview
   always_run: true
@@ -35,27 +38,31 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: visual-evidence
+  description: Copy the frozen evidence into review/original-evidence/<pack hash>/ and point the pack at it, so later rebuilds cannot change what the reviewer saw.
   depends_on:
   - freeze
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs visual-evidence "$INPUTS_PROJECT"
 - id: visual-review-state
+  description: Has a complete visual review (viewed, full coverage) already been submitted for this pack?
   depends_on:
   - visual-evidence
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs visual-review-status "$INPUTS_PROJECT"
 - id: visual-review
+  description: Independent visual review of the frozen evidence.
   depends_on:
   - visual-review-state
   when: $visual-review-state.output.artifacts.done == false
   context: fresh
-  prompt: |-
-    Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
-    Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
+  command: visual-review
+  skills:
+  - visual-review
   retry:
     max_attempts: 2
     on_error: transient
 - id: visual-review-recheck
+  description: Did the reviewer submit a complete report? If not, one retry.
   depends_on:
   - visual-review-state
   - visual-review
@@ -63,18 +70,19 @@ nodes:
   trigger_rule: none_failed_min_one_success
   bash: node scripts/archon/kai-explainer.mjs visual-review-status "$INPUTS_PROJECT"
 - id: visual-review-retry
+  description: Second and last attempt at the visual review.
   depends_on:
   - visual-review-recheck
   when: $visual-review-recheck.output.artifacts.done == false
   context: fresh
-  prompt: |-
-    Project: $INPUTS.project. This is the ONE independent visual review. Read docs/review.md, personalities/kai-explainer/PROFILE.md and jobs/$INPUTS.project/review/final/pack.json. Inspect actual frozen images/temporal evidence over the full interval for visual mechanism, continuity and legibility. Record pass, revise or incomplete truthfully with findings and actual inspection limitations. Submit ONE report using lib/review.mjs submitReview(job,report), role "visual-review", reviewer identity "$WORKFLOW_ID:visual-review". Never edit production. You are independent from all registered producers. Unavailable inspection means incomplete. The author gets exactly one revision after your report; no second review will occur.
-    Use the native view_image tool to open the local frozen PNG/JPEG evidence paths from the pack. Reading image filenames in a shell is not viewing images. Inspect the temporal sheets for every scene and scene-end frames; record only the intervals you actually inspect and disclose frame-sequence/playback limitations. If a tool invocation fails, retain the error and try the available local image-viewing tool before declaring inspection unavailable. Read the report validator in lib/review.mjs and submitReview's actual arguments before writing your report. The assignment is not complete until a truthful report has been submitted, including an incomplete report if inspection is genuinely unavailable.
-    The previous attempt at this ONE review did not submit a complete report. Submit it now; if inspection is genuinely unavailable, submit an honest incomplete report. Production continues to the single revision after this attempt either way.
+  command: visual-review-retry
+  skills:
+  - visual-review
   retry:
     max_attempts: 2
     on_error: transient
 - id: review-join
+  description: 'Close the review round: write review/archon-findings.json; if no complete review exists, record that and continue to the revision.'
   depends_on:
   - visual-review-recheck
   - visual-review-retry
@@ -82,6 +90,7 @@ nodes:
   bash: node scripts/archon/kai-explainer.mjs review-round "$INPUTS_PROJECT"
   trigger_rule: none_failed_min_one_success
 - id: register-revision
+  description: Register the revising author as a producer.
   depends_on:
   - review-join
   always_run: true
@@ -92,14 +101,19 @@ nodes:
   with:
     run: $WORKFLOW_ID
 - id: revision
+  description: The one revision after the visual review.
   depends_on:
   - register-revision
   context: fresh
-  prompt: 'Project: $INPUTS.project. This is the ONE revision after independent visual review, even if the review passed. Read jobs/$INPUTS.project/review/archon-findings.json, review/build.json within that project, the saved profile, docs/composition.md (rules-story) or engines/explainroo/AGENTS.md and engines/explainroo/templates/kai/TEMPLATE.md (Kai). If review/archon-findings.json shows no complete inspection, inspect the frozen evidence in review/final/pack.json yourself and fix demonstrated technical or legibility defects only. Address all demonstrated findings in the project''s scene files and visual settings. Preserve approved script, recording and measured timing. This invocation authorizes you to save changes. Create jobs/$INPUTS.project/review/revision-notes.md describing actual changes and any unresolved findings; if no change is warranted, explain that. Do not write reviewer reports or claim your revision was independently approved. The workflow proceeds after this revision and technical checks, without another creative review. Producer identity: $WORKFLOW_ID:scene-author.'
+  command: revision
+  skills:
+  - kai-scenes
+  - typography
   retry:
     max_attempts: 2
     on_error: transient
 - id: revision-build
+  description: Rebuild after the revision (one build cycle).
   depends_on:
   - revision
   workflow: kai-explainer-build-cycle
@@ -108,11 +122,13 @@ nodes:
     project: $INPUTS.project
     phase: post-revision
 - id: revision-complete
+  description: Record review/visual-revision.json binding the review to the revised source and revision notes.
   depends_on:
   - revision-build
   always_run: true
   bash: node scripts/archon/kai-explainer.mjs revision-complete "$INPUTS_PROJECT"
 - id: revised-preview
+  description: 'Kai: render a new draft preview of the revised film.'
   depends_on:
   - revision-complete
   always_run: true
@@ -121,6 +137,7 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: round-result
+  description: Return this round's result to the parent workflow.
   depends_on:
   - revised-preview
   always_run: true

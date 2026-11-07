@@ -11,6 +11,7 @@ inputs:
     default: pre-review
 nodes:
 - id: register-repair
+  description: Register the technical repairer as a producer.
   depends_on: []
   always_run: true
   runtime: bun
@@ -20,6 +21,7 @@ nodes:
   with:
     run: $WORKFLOW_ID
 - id: build
+  description: Build the film and run the engine checks (syntax, exports, fonts, layout); errors route to one technical repair.
   depends_on:
   - register-repair
   always_run: true
@@ -28,15 +30,20 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: repair
+  description: The one technical repair of build errors.
   depends_on:
   - build
   when: $build.output.status == 'repair'
   context: fresh
-  prompt: 'You are the active Archon technical-repair node for project $INPUTS.project, phase $INPUTS.phase. This invocation authorizes this assignment; do not discover or launch workflows. Read jobs/scripts/$INPUTS.project/production-profile.json, personalities/rules-story/PROFILE.md, jobs/$INPUTS.project/review/build.json and the applicable scene API. Repair only the concrete syntax, missing exports, font or layout errors reported by the build. For Kai use engines/explainroo/AGENTS.md; for rules-story use skills/hyperframes/SKILL.md. Inspect source files and save actual fixes inside this project. Preserve script, recordings, voice configuration, measured timing and review evidence. This is a technical correction, not another creative pass or review. Use the provisioned local heavy fonts at natural proportions. Document actual fixes and unresolved errors in jobs/$INPUTS.project/review/technical-repair-$WORKFLOW_ID-$INPUTS.phase.md, appending a new section for this pass and keeping earlier sections. A chat reply is not a repair. Do not submit reviewer reports or answer human attention. Registered identity: $WORKFLOW_ID:technical-repair. This is the ONE technical repair round: the build runs once more afterwards, and any issue it still reports is accepted and disclosed rather than repaired again, so fix every reported error now. A scene module the engine cannot load still stops production.'
+  command: repair
+  skills:
+  - hyperframes
+  - typography
   retry:
     max_attempts: 2
     on_error: transient
 - id: build-final
+  description: Rebuild after the repair; remaining check issues are accepted and disclosed, an unloadable scene stops the run.
   depends_on:
   - repair
   when: $build.output.status == 'repair'
@@ -46,6 +53,7 @@ nodes:
     max_attempts: 1
     on_error: all
 - id: result
+  description: Confirm the build is usable for the current sources and return it.
   depends_on:
   - build
   - build-final

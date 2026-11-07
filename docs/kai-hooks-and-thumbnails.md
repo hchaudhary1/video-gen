@@ -126,7 +126,7 @@ traffic source matter; public views alone cannot isolate title, thumbnail or scr
 
 ## Explore the concept before choosing the package
 
-When the angle is unsettled, use [concept development](../skills/script-writing/references/concept-development.md)
+When the angle is unsettled, use [concept development](../.agents/skills/script-writing/references/concept-development.md)
 to explore materially different audience questions and hooks. Check each promise against retained
 evidence before selecting it. Choose a thumbnail metaphor that communicates the same promise
 without implying a stronger result. Record the chosen angle, rationale and relevant analogy limits

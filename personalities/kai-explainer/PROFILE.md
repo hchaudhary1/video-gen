@@ -26,7 +26,7 @@ time to become clear. Plan within measured narration cues and the existing Scene
 palette and actual loaded heavy fonts. These choices support original drawings, not a required
 character-drama structure or AI-video prompt format.
 
-Use [concept development](../../skills/script-writing/references/concept-development.md) when choosing
+Use [concept development](../../.agents/skills/script-writing/references/concept-development.md) when choosing
 the question, hook or visual analogy. Check where each analogy breaks down so its staging and motion
 do not imply a false technical relationship. Concept notes and self-checks do not replace independent
 review. Visual-direction guidance is adapted from Serge Shima's Visual Skills;

@@ -1,31 +1,46 @@
 ---
 name: video-production
-description: Produce or continue a video through its Archon workflow, including review, thumbnails and delivery.
+description: Start, watch, answer, resume or publish a video production run (rules-story or kai-explainer) as the operator's agent.
 ---
 
-Use the user's brief as creative authority. Choose the treatment from `personalities/README.md`.
-Start `archon workflow run rules-story` or `archon workflow run kai-explainer` with an explicit
-project input and options JSON. Read the corresponding `docs/production.md` runbook. Resume
-by saved Archon run ID and retain the frozen profile, canvas, recording and decisions.
+# Running a production
 
-Archon owns every stage and checkpoint. Complete only your assigned node; do not start
-other agents, choose subsequent stages or answer a human attention wait. Use the direct
-adapters and libraries named by the workflow. Read only the technical references needed
-for your assignment. Keep sources, media and caches in the repository.
+You operate Archon runs for the person; you do not do the nodes' work yourself.
+`docs/production.md` is the full runbook (options, failure policy, recovery).
 
-For rules-story, author native scenes using `skills/hyperframes/SKILL.md` and the saved
-profile's series frame. For Kai, use the explainroo Scene API in `engines/explainroo/AGENTS.md`
-and its Kai template; read `docs/kai-hooks-and-thumbnails.md` for the hook and packaging.
+## Start
 
-Research retains evidence; narration preserves supplied recordings and approved takes.
-Measured timing drives the picture. Use actual loaded heavy fonts at natural proportions.
-Build and inspect the actual film. Reviewers must be independent from all producers and
-must inspect frozen evidence across the full interval. Technical measurements establish
-technical facts, not listening, naturalness or audience engagement. Missing inspection
-capability is a specific blocker, not grounds to manufacture a pass.
+Choose the treatment from `personalities/README.md`; the person's explicit direction wins.
+Use a fresh lowercase slug per film and launch through the detached helper, which keeps the
+run alive if this agent's host restarts:
 
-After audio generation, complete the audio-review nodes before visual work. Perform exactly
-one independent visual review and one author revision; do not commission another creative
-review. Keep demonstrated defects, user decisions and limitations truthful.
-Finish thumbnail and authorized publication nodes through Archon. Do not describe a
-single revision as an independently reviewed pass.
+```sh
+./bin/archon-detached workflow run rules-story --detach \
+  --input project=<slug> --input 'options={"brief":"...","duration":300}'
+```
+
+Save the returned run ID. Options are saved with the project on its first run and are not
+changed by later launches.
+
+## Watch and answer
+
+`./bin/archon workflow get <run-id>` and `workflow logs <run-id> --format text` show progress.
+A paused run waits for the person (script, film, thumbnail or publishing decision). Only the
+person answers: relay the question and the artifact it names, then pass their exact words
+with `archon workflow respond`. Never answer for them. A Discord ping, when asked for, goes
+through `scripts/discord-notify.mjs` with one stable request ID per pending question; a ping
+is not approval.
+
+## Resume
+
+`./bin/archon workflow resume <run-id>`. Deterministic nodes recover the saved profile and
+skip work whose outputs are still current. A killed parent can leave child runs marked
+running: confirm no live process, then `archon workflow abandon <id>` before relaunching.
+
+## Finish
+
+A completed production leaves `jobs/<slug>/renders/video.mp4`,
+`jobs/<slug>/thumbnail/thumbnail.png` and `jobs/<slug>/review/delivery.json`. Unless the
+project opted out, the run then uploads the film unlisted to abdupdates after the person
+approves the copy (`docs/publishing.md`). A running, paused or failed run is not a delivery;
+report its actual state.

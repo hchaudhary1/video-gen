@@ -10,7 +10,7 @@ rendering, verification and delivery. There is no separate stage CLI or host han
 | `kai-explainer` | First-person technical/AI visual explanations | explainroo Canvas, Kokoro or supplied recording |
 
 Read [AGENTS.md](AGENTS.md), [the profile index](personalities/README.md) and the applicable
-[production skill](skills/video-production/SKILL.md). Editorial profiles define intent;
+[production skill](.agents/skills/video-production/SKILL.md). Editorial profiles define intent;
 Archon configuration defines provider/model choices. Each author/reviewer is a fresh node.
 
 ## Production
