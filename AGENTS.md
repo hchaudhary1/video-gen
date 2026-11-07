@@ -5,7 +5,8 @@ Agents write, design and implement; the libraries in `lib/` and `engines/` measu
 render, collect evidence and deliver. For software work, inspect and change the code normally.
 
 Production runs only through the Archon workflows `rules-story` and `kai-explainer`
-(`.archon/workflows/video/`). Inside a workflow node, the node prompt and the skills it
+(`.archon/workflows/video/`); `shorts` cuts vertical 60–180 s Shorts from an existing
+landscape video without remaking it and uploads them unlisted. Inside a workflow node, the node prompt and the skills it
 loads are your whole assignment: do that work and stop. To start, resume or answer a
 production, use the `video-production` skill (`.agents/skills/`, linked from `.claude/skills`).
 

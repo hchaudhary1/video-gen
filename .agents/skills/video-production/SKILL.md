@@ -1,6 +1,6 @@
 ---
 name: video-production
-description: Start, watch, answer, resume or publish a video production run (rules-story or kai-explainer) as the operator's agent.
+description: Start, watch, answer, resume or publish a video production run (rules-story, kai-explainer, or shorts cut from an existing video) as the operator's agent.
 ---
 
 # Running a production
@@ -21,6 +21,24 @@ run alive if this agent's host restarts:
 
 Save the returned run ID. Options are saved with the project on its first run and are not
 changed by later launches.
+
+## Shorts from an existing video
+
+`shorts` cuts `count` vertical Shorts (60–180 s each) out of a landscape video and uploads
+them unlisted. One Haiku agent picks the moments and titles from a one-file brief built from
+the production's measured timeline; everything else is code. The picture is never remade:
+it sits on a 1080×1920 canvas matched to its edge colour, with the full title above and
+"WATCH THE FULL VIDEO / Tap the link below ↓" below. For an existing production the slug
+alone is enough (its render, timeline, title, channel and published URL are reused):
+
+```sh
+./bin/archon-detached workflow run shorts --detach \
+  --input project=<slug> --input 'options={"count":3}'
+```
+
+For any other file add `"video"`, `"title"` and `"channelId"` (and `"fullVideoUrl"` for the
+description link). `"upload": false` keeps them local. Results:
+`jobs/<slug>/shorts/out/short-NN.mp4`, `delivery.json` and `published.json`.
 
 ## Watch and answer
 

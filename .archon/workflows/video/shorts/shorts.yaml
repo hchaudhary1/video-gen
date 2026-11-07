@@ -1,0 +1,80 @@
+name: shorts
+description: Cut any number of vertical 60–180 s Shorts from an existing landscape video (title above, watch-the-full-video call to action below) and upload them unlisted.
+worktree:
+  enabled: false
+inputs:
+  project:
+    description: Lowercase slug; outputs go to jobs/<slug>/shorts/. An existing production's slug reuses its render, measured timeline, title and channel.
+    required: true
+  options:
+    description: 'Shorts options JSON: {"count": 3, "video": "path.mp4", "title": "...", "accent": "WORD", "notes": "what to favour", "channelId": "UC...", "fullVideoUrl": "https://...", "upload": true}. Only count is required for an existing production.'
+    default: "{}"
+nodes:
+  - id: measure
+    description: Freeze the request, check the source, take speech units from the production's measured timeline (ASR only for an outside video) and write the one-file brief SELECT.md.
+    depends_on: []
+    always_run: true
+    runtime: bun
+    script: |-
+      const {emit} = await import(process.cwd() + "/scripts/archon/shorts.mjs");
+      await emit("prepare", JSON.parse(process.env.INPUTS_OPTIONS || "{}"));
+  - id: select
+    description: Pick the shorts and their titles from SELECT.md into plan.json.
+    depends_on:
+      - measure
+    when: $measure.output.artifacts.needsWrite == true
+    context: fresh
+    command: select
+    retry:
+      max_attempts: 2
+      on_error: transient
+  - id: plan-check
+    description: Check plan.json (count, 60–180 s, real ids, titles, no overlap).
+    depends_on:
+      - measure
+      - select
+    always_run: true
+    trigger_rule: none_failed_min_one_success
+    bash: node scripts/archon/shorts.mjs plan-check "$INPUTS_PROJECT"
+  - id: select-fix
+    description: The one fix for the errors in plan-errors.json.
+    depends_on:
+      - plan-check
+    when: $plan-check.output.artifacts.valid == false
+    context: fresh
+    command: select-fix
+    retry:
+      max_attempts: 2
+      on_error: transient
+  - id: plan-final
+    description: Final check; anything still invalid is repaired in code (whole rows, or dropped) and disclosed.
+    depends_on:
+      - plan-check
+      - select-fix
+    always_run: true
+    trigger_rule: none_failed_min_one_success
+    bash: node scripts/archon/shorts.mjs plan-check "$INPUTS_PROJECT" '{"final":true}'
+  - id: render
+    description: Place each unchanged clip on a 1080×1920 canvas matched to its edge colour, with the title and call to action. Unchanged shorts are reused.
+    depends_on:
+      - plan-final
+    always_run: true
+    bash: node scripts/archon/shorts.mjs render "$INPUTS_PROJECT"
+    retry:
+      max_attempts: 1
+      on_error: all
+  - id: deliver
+    description: Check every short in code (canvas, length, audio, text fit, background seam) and write delivery.json.
+    depends_on:
+      - render
+    always_run: true
+    bash: node scripts/archon/shorts.mjs deliver "$INPUTS_PROJECT"
+  - id: publish
+    description: Upload each clean short unlisted to the configured channel (resumable, never duplicated) and write published.json. No-op when upload is false.
+    depends_on:
+      - deliver
+    always_run: true
+    bash: node scripts/archon/shorts.mjs publish "$INPUTS_PROJECT"
+    retry:
+      max_attempts: 1
+      on_error: all
